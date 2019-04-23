@@ -11,7 +11,7 @@ const double ROBOT_RADIUS = 0.17425;
 const double ROBOT_WHEEL_RADIUS = 0.032;
 const double ROBOT_SAFETY_DISTANCE = ROBOT_RADIUS + 0.2;
 const double ROBOT_TRACK = 0.235;
-const double ROBOT_ANGULAR_SPEED = 10.0; //max: 15.625
+const double ROBOT_ANGULAR_SPEED = 5.0; //max: 15.625
 
 ros::ServiceClient diffDrive;
 bool obstacle = false; //for testing purposes
@@ -22,38 +22,6 @@ inline double distanceFromCenter(double range, double angle) {
     double a = sin(alpha) * range;
     double b = cos(alpha) * range;
     return sqrt(pow(a, 2.0) + pow(b + LASER_OFFSET, 2.0));
-}
-
-
-inline double distanceEllipse(double angle) {
-    const double a = ROBOT_SAFETY_DISTANCE - LASER_OFFSET;
-    const double b = ROBOT_SAFETY_DISTANCE;
-
-    return a * b / sqrt(pow(b * cos(angle), 2.0) + pow(a * sin(angle), 2.0));
-}
-
-
-void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
-//    ROS_INFO("angle: min=%f, max=%f", msg->angle_min, msg->angle_max);
-//    ROS_INFO("angle_increment= %f", msg->angle_increment);
-//    ROS_INFO("time_increment= %f", msg->time_increment);
-//    ROS_INFO("scan_time= %f", msg->scan_time);
-//    ROS_INFO("range: min=%f, max=%f", msg->range_min, msg->range_max);
-    ROS_INFO("distance=%f", msg->ranges[msg->ranges.size() / 2]);
-
-    double angle = msg->angle_min;
-
-    for (int i = 0; i < msg->ranges.size(); i++) {
-        if (msg->ranges[i] < distanceEllipse(0)) {
-            obstacle = true;
-            break;
-        }
-        else {
-            obstacle = false;
-        }
-
-        angle += msg->angle_increment;
-    }
 }
 
 
@@ -83,6 +51,7 @@ int sgn(double val) {
 }
 
 
+// angle in radians
 void turn(double angle) {
     brake();
 
@@ -99,19 +68,16 @@ void turn(double angle) {
 }
 
 
-void turnRandom() {
-    int degree = rand() % 360 - 180;
-    double radiant = degree * M_PI / 180.0;
-    turn(radiant);
-}
-
-
-void drive() {
+void drive(double distance) {
+    double time = distanceToTime(distance, ROBOT_ANGULAR_SPEED);
     ROS_INFO("driving: diffDrive 10 10");
     create_fundamentals::DiffDrive srv;
     srv.request.left = ROBOT_ANGULAR_SPEED;
     srv.request.right = ROBOT_ANGULAR_SPEED;
     diffDrive.call(srv);
+
+    ros::Duration(time).sleep();
+    brake();
 }
 
 
@@ -123,21 +89,29 @@ void mySigintHandler(int sig) {
 }
 
 
+// side_length: side length of square in metres
+// iterations: number of repetitions
+void driveSquare(double side_length, int iterations) {
+    // 4 turns make 1 square
+    for (int i = 0; i < iterations * 4; ++i) {
+        drive(side_length);
+        ros::Duration(0.5).sleep();
+        turn(M_PI_2);
+        ros::Duration(0.5).sleep();
+    }
+}
+
+
 int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
-    ros::init(argc, argv, "wanderer", ros::init_options::NoSigintHandler);
+    ros::init(argc, argv, "square_no_sensors", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("scan_filtered", 1, laserCallback);
     diffDrive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     signal(SIGINT, mySigintHandler);
     ros::Rate loop_rate(25);
 
     while (ros::ok()) {
-        if (obstacle) {
-            turnRandom();
-        } else {
-            drive();
-        }
+        driveSquare(1., 1);
 
         ros::spinOnce();
 
