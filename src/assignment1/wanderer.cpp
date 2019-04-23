@@ -9,7 +9,7 @@
 const double LASER_OFFSET = 0.12;
 const double ROBOT_RADIUS = 0.17425;
 const double ROBOT_WHEEL_RADIUS = 0.032;
-const double ROBOT_SAFETY_DISTANCE = ROBOT_RADIUS + 0.1;
+const double ROBOT_SAFETY_DISTANCE = ROBOT_RADIUS + 0.2;
 const double ROBOT_TRACK = 0.235;
 const double ROBOT_ANGULAR_SPEED = 10.0; //max: 15.625
 
@@ -72,7 +72,7 @@ double angularToLinear(double angular) {
 
 
 double distanceToTime(double distance, double speed) {
-    return distance / angularToLinear(speed);
+    return std::abs(distance / angularToLinear(speed));
 }
 
 
@@ -86,7 +86,6 @@ void turn(double angle) {
     srv.request.left = -ROBOT_ANGULAR_SPEED;
     srv.request.right = ROBOT_ANGULAR_SPEED;
     diffDrive.call(srv);
-
 
     ros::Duration(time).sleep();
     brake();
