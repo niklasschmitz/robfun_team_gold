@@ -16,7 +16,7 @@ const double ROBOT_MAX_ANGULAR_SPEED = 15.625;
 const double ENCODER_STEPS_PER_REVOLUTION = 1; //FIXME insert true value here
 
 ros::ServiceClient diffDrive;
-bool obstacle = false; //for testing purposes
+bool obstacle = false; //for testing purposes only
 
 class Variables{
 	public:
