@@ -13,7 +13,6 @@ const double ROBOT_TRACK = 0.258;
 const double ROBOT_ANGULAR_SPEED = 10.0; //max: 15.625
 
 ros::ServiceClient diffDrive;
-bool obstacle = true;
 
 
 inline double distanceEllipse(double angle) {
@@ -83,16 +82,21 @@ void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     ROS_INFO("distance=%f", msg->ranges[msg->ranges.size() / 2]);
 
     double angle = msg->angle_min;
+    bool obstacle = false;
 
     for (int i = 0; i < msg->ranges.size(); i++) {
         if (msg->ranges[i] < distanceEllipse(i)) {
             obstacle = true;
             break;
-        } else {
-            obstacle = false;
         }
 
         angle += msg->angle_increment;
+    }
+
+    if (obstacle) {
+        turnRandom();
+    } else {
+        drive();
     }
 }
 
@@ -111,22 +115,8 @@ int main(int argc, char **argv) {
     ros::Subscriber sub = n.subscribe("scan_filtered", 1, laserCallback);
     diffDrive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     signal(SIGINT, mySigintHandler);
-    ros::Rate loop_rate(100);
 
-    while (ros::ok()) {
-        
-        ros::spinOnce();
-        
-        if (obstacle) {
-            turnRandom();
-        } else {
-            drive();
-        }
-
-        ROS_INFO("alive");
-
-        loop_rate.sleep();
-    }
+    ros::spin();
 
     mySigintHandler(0);
 
