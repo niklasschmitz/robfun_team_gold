@@ -12,7 +12,6 @@ const double ROBOT_WHEEL_RADIUS = 0.032;
 const double ROBOT_SAFETY_DISTANCE = ROBOT_RADIUS + 0.2;
 const double ROBOT_TRACK = 0.235;
 const double ROBOT_ANGULAR_SPEED = 5.0; //max: 15.625
-const double NUM_SQUARES = 5; // Num of Squares to drive
 
 ros::ServiceClient diffDrive;
 bool obstacle = false; //for testing purposes
@@ -111,8 +110,9 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     ros::Rate loop_rate(25);
 
-    for (int i = 0; i < NUM_SQUARES && ros::ok(); i++) {
-        driveSquare(1., 1);
+    if (ros::ok()) {
+        // drive 5 consecutive squares
+        driveSquare(1., 5);
 
         ros::spinOnce();
 
