@@ -5,7 +5,7 @@
 #include "create_fundamentals/DiffDrive.h"
 
 const double ROBOT_WHEEL_RADIUS = 0.032;
-const double ROBOT_TRACK = 0.235;
+const double ROBOT_TRACK = 0.258;
 const double ROBOT_ANGULAR_SPEED = 5.0; //max: 15.625
 
 ros::ServiceClient diffDrive;
