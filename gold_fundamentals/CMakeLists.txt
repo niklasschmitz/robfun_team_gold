@@ -63,7 +63,7 @@ catkin_package(
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_executable(example_laser src/example_laser.cpp)
+add_executable(example_laser src/example_laser.cpp src/perfect_turn_no_sensor.cpp)
 target_link_libraries(example_laser ${catkin_LIBRARIES})
 add_dependencies(example_laser create_fundamentals_generate_messages_cpp)
 
@@ -79,4 +79,15 @@ add_executable(wanderer src/wanderer.cpp)
 target_link_libraries(wanderer ${catkin_LIBRARIES})
 add_dependencies(wanderer create_fundamentals_generate_messages_cpp)
 
+add_executable(square_no_sensors src/square_no_sensors.cpp)
+target_link_libraries(square_no_sensors ${catkin_LIBRARIES})
+add_dependencies(square_no_sensors create_fundamentals_generate_messages_cpp)
+
+add_executable(square_with_encoders src/square_with_encoders.cpp)
+target_link_libraries(square_with_encoders ${catkin_LIBRARIES})
+add_dependencies(square_with_encoders create_fundamentals_generate_messages_cpp)
+
+add_executable(perfect_turn_no_sensor src/perfect_turn_no_sensor.cpp)
+target_link_libraries(perfect_turn_no_sensor ${catkin_LIBRARIES})
+add_dependencies(perfect_turn_no_sensor create_fundamentals_generate_messages_cpp)
 
