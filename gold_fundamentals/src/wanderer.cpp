@@ -44,7 +44,7 @@ void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     double angle = msg->angle_min;
 
     for (int i = 0; i < msg->ranges.size(); i++) {
-        if (msg->ranges[i] < distanceEllipse(0)) {
+        if (msg->ranges[i] < distanceEllipse(i)) {
             obstacle = true;
             break;
         }
