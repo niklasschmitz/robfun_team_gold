@@ -68,7 +68,7 @@ void drive(double distance) {
 
 
 void mySigintHandler(int sig) {
-    ROS_INFO("exiting..");
+    ROS_INFO("exiting.. sig:%d", sig);
     brake();
 
     ros::shutdown();

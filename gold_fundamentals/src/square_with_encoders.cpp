@@ -141,7 +141,7 @@ void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
 
 
 void mySigintHandler(int sig) {
-    ROS_INFO("exiting..");
+    ROS_INFO("exiting.. sig:%d", sig);
     brake();
 
     ros::shutdown();
@@ -170,7 +170,6 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
 
     ros::spin();
-    mySigintHandler(0);
 
     return 0;
 }
