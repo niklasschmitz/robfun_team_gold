@@ -2,14 +2,10 @@
 #include <cmath>
 #include <csignal>
 #include <cstdlib>
-#include "sensor_msgs/LaserScan.h"
 #include "create_fundamentals/DiffDrive.h"
 #include "create_fundamentals/SensorPacket.h"
 
-const double LASER_OFFSET = 0.12;
-const double ROBOT_RADIUS = 0.17425;
 const double ROBOT_WHEEL_RADIUS = 0.032;
-const double ROBOT_SAFETY_DISTANCE = ROBOT_RADIUS + 0.2;
 const double ROBOT_TRACK = 0.235;
 const double ROBOT_ANGULAR_SPEED = 5.0; //max: 15.625
 const double ROBOT_MAX_ANGULAR_SPEED = 15.625;
@@ -18,37 +14,37 @@ const double ENCODER_STEPS_PER_REVOLUTION = M_PI * 2.0;
 ros::ServiceClient diffDrive;
 bool obstacle = false; //for testing purposes only
 
-class Variables{
-	public:
-        int
-		double pos_desired;
-		double pos_actual;
-		double prev_encoderLeft;
-		double prev_encoderRight;
+class Variables {
+public:
+    double pos_desired;
+    double pos_actual;
+    double prev_encoderLeft;
+    double prev_encoderRight;
 
-		//PID
-		double kP;
-		double kD;
+    //PID
+    double kP;
+    double kD;
 
-		double last_error;
+    double last_error;
 
-		Variables() {
-			pos_desired = 0;
-			pos_actual = 0;
-			prev_encoderLeft = 0; // would be better to init to current encoder values when calling main first time
-			prev_encoderRight = 0;
+    Variables() {
+        pos_desired = 0;
+        pos_actual = 0;
+        prev_encoderLeft = 0; // would be better to init to current encoder values when calling main first time
+        prev_encoderRight = 0;
 
-			//PID
-			kP = 5;
-			kD = 1;
+        //PID
+        kP = 5;
+        kD = 1;
 
-			last_error = 0;	
-		}
+        last_error = 0;
+    }
 
-		~Variables() {
+    ~Variables() {
 
-		}
+    }
 };
+
 Variables vars;
 
 
@@ -66,7 +62,7 @@ double angularToLinear(double angular_vel) {
 }
 
 double linearToAngular(double linear_vel) {
-	return linear_vel / ROBOT_WHEEL_RADIUS;
+    return linear_vel / ROBOT_WHEEL_RADIUS;
 }
 
 double distanceToTime(double distance, double speed) {
@@ -76,8 +72,8 @@ double distanceToTime(double distance, double speed) {
 
 int sgn(double val) {
     if (val > 0) { return 1; }
-	if (val < 0) { return -1; }
-	return 0;
+    if (val < 0) { return -1; }
+    return 0;
 }
 
 
@@ -98,12 +94,7 @@ void turn(double angle) {
 }
 
 void drive(double distance) {
-    //ROS_INFO("driving: dist=%lf, using PD control", distance);
-    //create_fundamentals::DiffDrive srv;
-	
-    //srv.request.left = ROBOT_ANGULAR_SPEED;
-    //srv.request.right = ROBOT_ANGULAR_SPEED;
-    //diffDrive.call(srv);
+    //TODO
 }
 
 /*
@@ -114,40 +105,38 @@ void setVelocity(double wheelL_linear_vel, double wheelR_linear_vel) {
     ROS_INFO("driving: w1 lin_vel %lf, w2 lin_vel %lf", wheelL_linear_vel, wheelR_linear_vel);
     create_fundamentals::DiffDrive srv;
 
-	// calc angular velocities, limit to max speed
-	double wheelL_angular_vel = std::max(std::min(linearToAngular(wheelL_linear_vel), ROBOT_ANGULAR_SPEED), -ROBOT_ANGULAR_SPEED);
-	double wheelR_angular_vel = std::max(std::min(linearToAngular(wheelR_linear_vel), ROBOT_ANGULAR_SPEED), -ROBOT_ANGULAR_SPEED);
+    // calc angular velocities, limit to max speed
+    double wheelL_angular_vel = std::max(std::min(linearToAngular(wheelL_linear_vel), ROBOT_ANGULAR_SPEED), -ROBOT_ANGULAR_SPEED);
+    double wheelR_angular_vel = std::max(std::min(linearToAngular(wheelR_linear_vel), ROBOT_ANGULAR_SPEED), -ROBOT_ANGULAR_SPEED);
 
-	// call service
+    // call service
     srv.request.left = wheelL_angular_vel;
     srv.request.right = wheelR_angular_vel;
     diffDrive.call(srv);
 }
 
-void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr& msg)
-{
-	ROS_INFO("left encoder: %lf, right encoder: %lf", msg->encoderLeft, msg->encoderRight);
+void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
+    ROS_INFO("left encoder: %lf, right encoder: %lf", msg->encoderLeft, msg->encoderRight);
 
-	// calc distance driven (or maybe calc velocity?)
-	double enc_left = msg->encoderLeft;
-	double enc_right = msg->encoderRight;
+    // calc distance driven (or maybe calc velocity?)
+    double enc_left = msg->encoderLeft;
+    double enc_right = msg->encoderRight;
 
-	double wheelLeft_radiansDriven = 2* M_PI / ENCODER_STEPS_PER_REVOLUTION * (enc_left - vars.prev_encoderLeft);
-	double wheelLeft_distanceDriven = wheelLeft_radiansDriven * ROBOT_WHEEL_RADIUS;
+    double wheelLeft_radiansDriven = 2 * M_PI / ENCODER_STEPS_PER_REVOLUTION * (enc_left - vars.prev_encoderLeft);
+    double wheelLeft_distanceDriven = wheelLeft_radiansDriven * ROBOT_WHEEL_RADIUS;
 
-	double wheelRight_radiansDriven = 2* M_PI / ENCODER_STEPS_PER_REVOLUTION * (enc_right - vars.prev_encoderRight);
-	double wheelRight_distanceDriven = wheelRight_radiansDriven * ROBOT_WHEEL_RADIUS;
+    double wheelRight_radiansDriven = 2 * M_PI / ENCODER_STEPS_PER_REVOLUTION * (enc_right - vars.prev_encoderRight);
+    double wheelRight_distanceDriven = wheelRight_radiansDriven * ROBOT_WHEEL_RADIUS;
 
-	vars.pos_actual += (wheelLeft_distanceDriven + wheelRight_distanceDriven) / 2;
+    vars.pos_actual += (wheelLeft_distanceDriven + wheelRight_distanceDriven) / 2;
 
-	vars.prev_encoderLeft = enc_left;
-	vars.prev_encoderRight = enc_right;
+    vars.prev_encoderLeft = enc_left;
+    vars.prev_encoderRight = enc_right;
 
-	//
-	double error = vars.pos_desired - vars.pos_actual;
-	double delta_error = error - vars.last_error;
-	double vel_des = vars.kP * error + vars.kD * delta_error;
-	setVelocity(vel_des, vel_des);
+    double error = vars.pos_desired - vars.pos_actual;
+    double delta_error = error - vars.last_error;
+    double vel_des = vars.kP * error + vars.kD * delta_error;
+    setVelocity(vel_des, vel_des);
 }
 
 
@@ -176,21 +165,11 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     ros::init(argc, argv, "square_with_encoders", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
-	ros::Subscriber sub = n.subscribe("sensor_packet", 1, sensorCallback);
+    ros::Subscriber sub = n.subscribe("sensor_packet", 1, sensorCallback);
     diffDrive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     signal(SIGINT, mySigintHandler);
-//    ros::Rate loop_rate(25);
 
-//    while (ros::ok()) {
-//        driveSquare(1., 1);
-
-//        ros::spinOnce();
-
-//        ROS_INFO("alive");
-
-//        loop_rate.sleep();
-//    }
-	ros::spin();
+    ros::spin();
     mySigintHandler(0);
 
     return 0;
