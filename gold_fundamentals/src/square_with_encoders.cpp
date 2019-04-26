@@ -13,13 +13,14 @@ const double ROBOT_SAFETY_DISTANCE = ROBOT_RADIUS + 0.2;
 const double ROBOT_TRACK = 0.235;
 const double ROBOT_ANGULAR_SPEED = 5.0; //max: 15.625
 const double ROBOT_MAX_ANGULAR_SPEED = 15.625;
-const double ENCODER_STEPS_PER_REVOLUTION = 1; //FIXME insert true value here
+const double ENCODER_STEPS_PER_REVOLUTION = M_PI * 2.0;
 
 ros::ServiceClient diffDrive;
 bool obstacle = false; //for testing purposes only
 
 class Variables{
 	public:
+        int
 		double pos_desired;
 		double pos_actual;
 		double prev_encoderLeft;
@@ -38,8 +39,8 @@ class Variables{
 			prev_encoderRight = 0;
 
 			//PID
-			kP = 10;
-			kD = 2;
+			kP = 5;
+			kD = 1;
 
 			last_error = 0;	
 		}
@@ -49,13 +50,6 @@ class Variables{
 		}
 };
 Variables vars;
-
-inline double distanceFromCenter(double range, double angle) {
-    double alpha = angle + M_PI_2;
-    double a = sin(alpha) * range;
-    double b = cos(alpha) * range;
-    return sqrt(pow(a, 2.0) + pow(b + LASER_OFFSET, 2.0));
-}
 
 
 void brake() {
@@ -121,8 +115,8 @@ void setVelocity(double wheelL_linear_vel, double wheelR_linear_vel) {
     create_fundamentals::DiffDrive srv;
 
 	// calc angular velocities, limit to max speed
-	double wheelL_angular_vel = std::min(linearToAngular(wheelL_linear_vel), ROBOT_MAX_ANGULAR_SPEED);
-	double wheelR_angular_vel = std::min(linearToAngular(wheelR_linear_vel), ROBOT_MAX_ANGULAR_SPEED);
+	double wheelL_angular_vel = std::max(std::min(linearToAngular(wheelL_linear_vel), ROBOT_ANGULAR_SPEED), -ROBOT_ANGULAR_SPEED);
+	double wheelR_angular_vel = std::max(std::min(linearToAngular(wheelR_linear_vel), ROBOT_ANGULAR_SPEED), -ROBOT_ANGULAR_SPEED);
 
 	// call service
     srv.request.left = wheelL_angular_vel;
@@ -183,7 +177,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "square_with_encoders", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
 	ros::Subscriber sub = n.subscribe("sensor_packet", 1, sensorCallback);
-//    diffDrive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
+    diffDrive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     signal(SIGINT, mySigintHandler);
 //    ros::Rate loop_rate(25);
 
