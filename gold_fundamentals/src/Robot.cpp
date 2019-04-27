@@ -9,11 +9,12 @@ const double Robot::SAFETY_DISTANCE = RADIUS + 0.1;
 const double Robot::TRACK = 0.258;
 const double Robot::WHEEL_RADIUS = 0.032;
 
-Robot::Robot() {}
 
-Robot::Robot(ros::ServiceClient diff_drive) :
-        diff_drive(diff_drive)
-{
+Robot::Robot() : controller(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0) {
+}
+
+Robot::Robot(ros::ServiceClient diff_drive) : Robot() {
+    this->diff_drive = diff_drive;
 }
 
 void Robot::diffDrive(double left, double right) {

@@ -1,7 +1,6 @@
 #import "PID.h"
 
-PID::PID(double dt, double max, double min, double Kp, double Ki, double Kd) :
-        _dt(dt),
+PID::PID(double max, double min, double Kp, double Ki, double Kd) :
         _max(max),
         _min(min),
         _Kp(Kp),
@@ -11,7 +10,7 @@ PID::PID(double dt, double max, double min, double Kp, double Ki, double Kd) :
         _integral(0) {
 }
 
-double PID::calculate(double setpoint, double pv) {
+double PID::calculate(double setpoint, double pv, double dt) {
 
     // Calculate error
     double error = setpoint - pv;
@@ -21,11 +20,11 @@ double PID::calculate(double setpoint, double pv) {
     double Pout = _Kp * error;
 
     // Integral term
-    _integral += error * _dt;
+    _integral += error * dt;
     double Iout = _Ki * _integral;
 
     // Derivative term
-    double derivative = (error - _pre_error) / _dt;
+    double derivative = (error - _pre_error) / dt;
     double Dout = _Kd * derivative;
 
     // Calculate total output
@@ -41,6 +40,11 @@ double PID::calculate(double setpoint, double pv) {
     _pre_error = error;
 
     return output;
+}
+
+void PID::reset() {
+    this->_pre_error = 0;
+    this->_integral = 0;
 }
 
 PID::~PID() {

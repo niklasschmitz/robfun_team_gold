@@ -5,6 +5,7 @@
 #include "create_fundamentals/DiffDrive.h"
 #include "create_fundamentals/SensorPacket.h"
 #include "tools.h"
+#include "PID.h"
 
 class Robot {
 public:
@@ -25,6 +26,7 @@ public:
     static const double WHEEL_RADIUS;
 
     double speed;
+    PID controller;
     ros::ServiceClient diff_drive;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
