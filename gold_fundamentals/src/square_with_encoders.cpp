@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     robot = Robot(diffDrive);
 
-    driveSquare(1., 5);
+    driveSquare(1., 1);
 
     return 0;
 }
