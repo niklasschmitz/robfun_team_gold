@@ -4,8 +4,8 @@
 #include <cstdlib>
 #include "create_fundamentals/DiffDrive.h"
 #include "create_fundamentals/SensorPacket.h"
-#include "Robot.cpp"
-#include "PID.cpp"
+#include "Robot.h"
+#include "PID.h"
 #include "tools.h"
 
 Robot robot;
