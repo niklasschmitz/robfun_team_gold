@@ -11,4 +11,4 @@ if [ "$#" -ne 1 ]; then
   return 1
 fi
 
-scp -r $1 gold@192.168.0.100:~/catkin_ws/src/gold_fundamentals/src/
+scp -r $1 gold@192.168.0.100:~/catkin_ws/src/gold_fundamentals/

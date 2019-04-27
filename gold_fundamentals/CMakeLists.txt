@@ -94,3 +94,7 @@ add_dependencies(perfect_turn_no_sensor create_fundamentals_generate_messages_cp
 add_executable(drive_with_encoders src/drive_with_encoders.cpp src/tools.cpp src/tools.h)
 target_link_libraries(drive_with_encoders ${catkin_LIBRARIES})
 add_dependencies(drive_with_encoders create_fundamentals_generate_messages_cpp)
+
+add_executable(perfect_turn_with_encoders src/perfect_turn_with_encoders.cpp src/tools.cpp src/tools.h)
+target_link_libraries(perfect_turn_with_encoders ${catkin_LIBRARIES})
+add_dependencies(perfect_turn_with_encoders create_fundamentals_generate_messages_cpp)
