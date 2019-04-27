@@ -31,7 +31,7 @@ void drive(double distance) {
         ros::Duration(0.1).sleep();
     }
 
-    PID pid = PID(1.0 / RATE, Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.45, 0.0, 0.0);
+    PID pid = PID(1.0 / RATE, Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.5, 0.0, 0.0);
 
     double setpoint = robot.sensorData->encoderLeft + distance * Robot::ENCODER_STEPS_PER_REVOLUTION / (M_PI * 2.0 * Robot::WHEEL_RADIUS);
     double position = robot.sensorData->encoderLeft;
