@@ -3,12 +3,12 @@
 
 class PID {
 public:
-    PID(double dt, double max, double min, double Kp, double Ki, double Kd);
+    PID(double max, double min, double Kp, double Ki, double Kd);
 
     ~PID();
 
-    double calculate(double setpoint, double pv);
-    double _dt;
+    double calculate(double setpoint, double pv, double dt);
+    void reset();
 private:
 
     double _max;
