@@ -55,7 +55,7 @@ void Robot::diffDrive(double left, double right) {
     }
     if (right != 0 && fabs(right) < MIN_SPEED) {
         ROS_INFO("speed to low. adjusting to +- %lf", MIN_SPEED);
-        left = MIN_SPEED * sgn(right);
+        right = MIN_SPEED * sgn(right);
     }
     create_fundamentals::DiffDrive srv;
     srv.request.left = left;
