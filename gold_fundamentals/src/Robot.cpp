@@ -2,8 +2,8 @@
 
 const double Robot::ENCODER_STEPS_PER_REVOLUTION = M_PI * 2.0;
 const double Robot::LASER_OFFSET = 0.12;
-const double Robot::MAX_SPEED = 15.625;
-const double Robot::MIN_SPEED = M_PI;
+const double Robot::MAX_SPEED = 10.; //15.625
+const double Robot::MIN_SPEED = 1.;
 const double Robot::RADIUS = 0.17425;
 const double Robot::SAFETY_DISTANCE = RADIUS + 0.1;
 const double Robot::TRACK = 0.258;
