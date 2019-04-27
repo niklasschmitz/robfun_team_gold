@@ -5,7 +5,6 @@
 #include "create_fundamentals/DiffDrive.h"
 #include "create_fundamentals/SensorPacket.h"
 #include "Robot.h"
-#include "PID.h"
 #include "tools.h"
 
 Robot robot;
@@ -31,8 +30,6 @@ void drive(double distance) {
         ros::Duration(0.1).sleep();
     }
 
-    PID pid = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.5, 0.0, 0.0);
-
     double setpoint = robot.sensorData->encoderLeft +
                       distance * Robot::ENCODER_STEPS_PER_REVOLUTION / (M_PI * 2.0 * Robot::WHEEL_RADIUS);
     double position = robot.sensorData->encoderLeft;
@@ -47,7 +44,7 @@ void drive(double distance) {
         double diff = (robot.sensorData->encoderLeft - prev_encoder) * sgn(out);
         position += diff;
 
-        out = pid.calculate(setpoint, position, 1.0 / RATE);
+        out = robot.controller.calculate(setpoint, position, 1.0 / RATE);
         robot.diffDrive(out, out);
 
         ROS_INFO("enc:%lf, pre:%lf, goal:%lf, pos:%lf, diff%lf, speed:%lf", robot.sensorData->encoderLeft, prev_encoder,
