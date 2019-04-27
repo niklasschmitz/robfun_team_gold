@@ -35,26 +35,25 @@ void turn(double angle) {
 
     PID pid = PID(1.0 / RATE, Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.3, 0.0, 0.0);
 
-    double setpoint = robot.sensorData->encoderRight +
+    double setpoint = robot.sensorData->encoderLeft +
                       distance * Robot::ENCODER_STEPS_PER_REVOLUTION / (M_PI * 2.0 * Robot::WHEEL_RADIUS);
-    double position = robot.sensorData->encoderRight;
-    double prev_encoder = robot.sensorData->encoderRight;
+    double position = robot.sensorData->encoderLeft;
+    double prev_encoder = robot.sensorData->encoderLeft;
     double out = 1.0;
 
     ros::Rate loop_rate(RATE);
     while (ros::ok() && fabs(setpoint - position) > 0.1) {
         ros::spinOnce();
 
-        double diff_abs = robot.sensorData->encoderRight - prev_encoder;
-        double diff = (robot.sensorData->encoderRight - prev_encoder) * sgn(out);
+        double diff = fabs(robot.sensorData->encoderLeft - prev_encoder) * sgn(out);
         position += diff;
 
         out = pid.calculate(setpoint, position);
         robot.diffDrive(-out, out);
 
-        ROS_INFO("enc:%lf, pre:%lf, goal:%lf, pos:%lf, diff%lf, speed:%lf", robot.sensorData->encoderRight,
+        ROS_INFO("enc:%lf, pre:%lf, goal:%lf, pos:%lf, diff%lf, speed:%lf", robot.sensorData->encoderLeft,
                  prev_encoder, setpoint, position, diff, out);
-        prev_encoder = robot.sensorData->encoderRight;
+        prev_encoder = robot.sensorData->encoderLeft;
         loop_rate.sleep();
     }
 
@@ -71,18 +70,7 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     robot = Robot(diffDrive);
 
-    //turn(M_PI_2);
-
-
- //   while (robot.sensorData == NULL) {
- //       ros::spinOnce();
-//        ros::Duration(0.1).sleep();
-//    }
-//    robot.diffDrive(-M_PI, M_PI);
-//    ros::Duration(1).sleep();
-//    robot.diffDrive(0, 0);
-//    ros::Duration(1).sleep();
-//    ros::spinOnce();
+    turn(M_PI_2);
 
     return 0;
 }
