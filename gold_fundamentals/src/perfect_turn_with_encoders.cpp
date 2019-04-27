@@ -71,18 +71,8 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     robot = Robot(diffDrive);
 
-    //turn(M_PI_2);
-
-
-    while (robot.sensorData == NULL) {
-        ros::spinOnce();
-        ros::Duration(0.1).sleep();
-    }
-    robot.diffDrive(-M_PI, M_PI);
-    ros::Duration(1).sleep();
-    robot.diffDrive(0, 0);
-    ros::Duration(1).sleep();
-    ros::spinOnce();
+    // turn a quarter circle or 90 degrees
+    turn(M_PI_2);
 
     return 0;
 }
