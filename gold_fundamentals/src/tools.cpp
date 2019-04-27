@@ -1,7 +1,3 @@
-//
-// Created by ros on 27.04.19.
-//
-
 #include "tools.h"
 
 

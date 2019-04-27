@@ -4,8 +4,8 @@
 #include <cstdlib>
 #include "create_fundamentals/DiffDrive.h"
 #include "create_fundamentals/SensorPacket.h"
-#include "Robot.cpp"
-#include "PID.cpp"
+#include "Robot.h"
+#include "PID.h"
 #include "tools.h"
 
 Robot robot;
@@ -64,7 +64,7 @@ void turn(double angle) {
 
 int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
-    ros::init(argc, argv, "drive_with_encoders", ros::init_options::NoSigintHandler);
+    ros::init(argc, argv, "perfect_turn_with_encoders", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("sensor_packet", 1, sensorCallback);
     ros::ServiceClient diffDrive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
@@ -74,15 +74,15 @@ int main(int argc, char **argv) {
     //turn(M_PI_2);
 
 
-    while (robot.sensorData == NULL) {
-        ros::spinOnce();
-        ros::Duration(0.1).sleep();
-    }
-    robot.diffDrive(-M_PI, M_PI);
-    ros::Duration(1).sleep();
-    robot.diffDrive(0, 0);
-    ros::Duration(1).sleep();
-    ros::spinOnce();
+ //   while (robot.sensorData == NULL) {
+ //       ros::spinOnce();
+//        ros::Duration(0.1).sleep();
+//    }
+//    robot.diffDrive(-M_PI, M_PI);
+//    ros::Duration(1).sleep();
+//    robot.diffDrive(0, 0);
+//    ros::Duration(1).sleep();
+//    ros::spinOnce();
 
     return 0;
 }
