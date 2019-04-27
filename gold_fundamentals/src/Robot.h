@@ -27,6 +27,8 @@ public:
 
     double speed;
     PID controller;
+    PID controllerLeft;
+    PID controllerRight;
     ros::ServiceClient diff_drive;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
