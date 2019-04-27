@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include "create_fundamentals/DiffDrive.h"
+#include "create_fundamentals/SensorPacket.h"
 
 class Robot {
 public:
@@ -24,6 +25,8 @@ public:
     double encoderLeft;
     double encoderRight;
     ros::ServiceClient diff_drive;
+
+    create_fundamentals::SensorPacket::ConstPtr sensorData;
 
 //private:
 
