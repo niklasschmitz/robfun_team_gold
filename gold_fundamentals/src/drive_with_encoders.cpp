@@ -39,7 +39,7 @@ void drive(double distance) {
     double out = 1.0;
 
     ros::Rate loop_rate(RATE);
-    while (ros::ok() && abs(setpoint - position) > 0.1) {
+    while (ros::ok() && fabs(setpoint - position) > 0.1) {
         ros::spinOnce();
 
         double diff_abs = robot.sensorData->encoderLeft - prev_encoder;
