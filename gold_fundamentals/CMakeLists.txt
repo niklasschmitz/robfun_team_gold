@@ -63,7 +63,7 @@ catkin_package(
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_executable(example_laser src/example_laser.cpp src/perfect_turn_no_sensor.cpp)
+add_executable(example_laser src/example_laser.cpp)
 target_link_libraries(example_laser ${catkin_LIBRARIES})
 add_dependencies(example_laser create_fundamentals_generate_messages_cpp)
 
