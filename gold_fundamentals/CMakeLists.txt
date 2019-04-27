@@ -83,7 +83,7 @@ add_executable(square_no_sensors src/square_no_sensors.cpp)
 target_link_libraries(square_no_sensors ${catkin_LIBRARIES})
 add_dependencies(square_no_sensors create_fundamentals_generate_messages_cpp)
 
-add_executable(square_with_encoders src/square_with_encoders.cpp)
+add_executable(square_with_encoders src/square_with_encoders.cpp src/tools.cpp src/tools.h src/Robot.cpp src/Robot.h src/PID.cpp src/PID.h)
 target_link_libraries(square_with_encoders ${catkin_LIBRARIES})
 add_dependencies(square_with_encoders create_fundamentals_generate_messages_cpp)
 
