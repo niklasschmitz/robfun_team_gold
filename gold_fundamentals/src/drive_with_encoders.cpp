@@ -31,7 +31,7 @@ void drive(double distance) {
         ros::Duration(0.1).sleep();
     }
 
-    PID pid = PID(1.0 / RATE, Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.5, 0.0, 0.0);
+    PID pid = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.5, 0.0, 0.0);
 
     double setpoint = robot.sensorData->encoderLeft + distance * Robot::ENCODER_STEPS_PER_REVOLUTION / (M_PI * 2.0 * Robot::WHEEL_RADIUS);
     double position = robot.sensorData->encoderLeft;
@@ -46,7 +46,7 @@ void drive(double distance) {
         double diff = (robot.sensorData->encoderLeft - prev_encoder) * sgn(out);
         position += diff;
 
-        out = pid.calculate(setpoint, position);
+        out = pid.calculate(setpoint, position, 1.0 / RATE);
         robot.diffDrive(out, out);
 
         ROS_INFO("enc:%lf, pre:%lf, goal:%lf, pos:%lf, diff%lf, speed:%lf",robot.sensorData->encoderLeft, prev_encoder, setpoint, position, diff, out);
@@ -54,7 +54,8 @@ void drive(double distance) {
         loop_rate.sleep();
     }
 
-    robot.diffDrive(0.0,0.0);
+    robot.diffDrive(0.0, 0.0);
+    robot.controller.reset();
 }
 
 
