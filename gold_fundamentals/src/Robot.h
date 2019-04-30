@@ -15,6 +15,12 @@ public:
     ~Robot();
 
     void diffDrive(double left, double right);
+    void brake();
+    void drive(double distance);
+    void turn(double angle);
+    void turnRandom();
+
+    static const double LOOPRATE;
 
     static const double ENCODER_STEPS_PER_REVOLUTION;
     static const double LASER_OFFSET;
@@ -27,8 +33,6 @@ public:
 
     double speed;
     PID controller;
-    PID controllerLeft;
-    PID controllerRight;
     ros::ServiceClient diff_drive;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
