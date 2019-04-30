@@ -31,10 +31,11 @@ double PID::calculate(double setpoint, double pv, double dt) {
     double output = Pout + Iout + Dout;
 
     // Restrict to max/min
-    if (output > _max)
+    if (output > _max) {
         output = _max;
-    else if (output < _min)
+    } else if (output < _min) {
         output = _min;
+    }
 
     // Save error to previous error
     _pre_error = error;
