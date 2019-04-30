@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="gold_fundamentals" name="plan_executer" type="plan_executer"/>
+</launch>
