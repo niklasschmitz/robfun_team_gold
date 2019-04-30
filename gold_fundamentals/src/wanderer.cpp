@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include "sensor_msgs/LaserScan.h"
 #include "create_fundamentals/DiffDrive.h"
+#include "tools.h"
 
 const double LASER_OFFSET = 0.12;
 const double ROBOT_RADIUS = 0.17425;
@@ -31,27 +32,11 @@ void brake() {
     diffDrive.call(srv);
 }
 
-
-inline double angularToLinear(double angular) {
-    return angular * ROBOT_WHEEL_RADIUS;
-}
-
-
-inline double distanceToTime(double distance, double speed) {
-    return distance / angularToLinear(speed);
-}
-
-int sgn(double val) {
-    if (val > 0) { return 1; }
-    if (val < 0) { return -1; }
-    return 0;
-}
-
 void turn(double angle) {
     brake();
     
     double distance = angle * ROBOT_TRACK / 2;
-    double time = distanceToTime(distance, ROBOT_ANGULAR_SPEED);
+    double time = distanceToTime(distance, ROBOT_ANGULAR_SPEED, ROBOT_WHEEL_RADIUS);
     ROS_INFO("turning: diffDrive -%lf %lf angle:%lf time:%lf", ROBOT_ANGULAR_SPEED, ROBOT_ANGULAR_SPEED, angle, time);
     create_fundamentals::DiffDrive srv;
     srv.request.left = -ROBOT_ANGULAR_SPEED * sgn(angle);

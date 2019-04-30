@@ -3,6 +3,7 @@
 #include <csignal>
 #include <cstdlib>
 #include "create_fundamentals/DiffDrive.h"
+#include "tools.h"
 
 const double ROBOT_WHEEL_RADIUS = 0.032;
 const double ROBOT_TRACK = 0.258;
@@ -19,30 +20,12 @@ void brake() {
     diffDrive.call(srv);
 }
 
-
-inline double angularToLinear(double angular) {
-    return angular * ROBOT_WHEEL_RADIUS;
-}
-
-
-inline double distanceToTime(double distance, double speed) {
-    return std::abs(distance / angularToLinear(speed));
-}
-
-
-int sgn(double val) {
-    if (val > 0) { return 1; }
-    if (val < 0) { return -1; }
-    return 0;
-}
-
-
 // angle in radians
 void turn(double angle) {
     brake();
 
     double distance = angle * ROBOT_TRACK / 2;
-    double time = distanceToTime(distance, ROBOT_ANGULAR_SPEED);
+    double time = distanceToTime(distance, ROBOT_ANGULAR_SPEED, ROBOT_WHEEL_RADIUS);
     ROS_INFO("turning: diffDrive %lf %lf angle:%lf time:%lf", ROBOT_ANGULAR_SPEED, ROBOT_ANGULAR_SPEED, angle, time);
     create_fundamentals::DiffDrive srv;
     srv.request.left = -ROBOT_ANGULAR_SPEED * sgn(angle);
@@ -55,7 +38,7 @@ void turn(double angle) {
 
 
 void drive(double distance) {
-    double time = distanceToTime(distance, ROBOT_ANGULAR_SPEED);
+    double time = distanceToTime(distance, ROBOT_ANGULAR_SPEED, ROBOT_WHEEL_RADIUS);
     ROS_INFO("driving: diffDrive %lf %lf", ROBOT_ANGULAR_SPEED, ROBOT_ANGULAR_SPEED);
     create_fundamentals::DiffDrive srv;
     srv.request.left = ROBOT_ANGULAR_SPEED;

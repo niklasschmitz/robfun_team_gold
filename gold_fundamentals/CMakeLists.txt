@@ -75,11 +75,11 @@ add_executable(example_turning src/example_turning.cpp)
 target_link_libraries(example_turning ${catkin_LIBRARIES})
 add_dependencies(example_turning create_fundamentals_generate_messages_cpp)
 
-add_executable(wanderer src/wanderer.cpp)
+add_executable(wanderer src/wanderer.cpp src/tools.cpp src/tools.h)
 target_link_libraries(wanderer ${catkin_LIBRARIES})
 add_dependencies(wanderer create_fundamentals_generate_messages_cpp)
 
-add_executable(square_no_sensors src/square_no_sensors.cpp)
+add_executable(square_no_sensors src/square_no_sensors.cpp src/tools.cpp src/tools.h)
 target_link_libraries(square_no_sensors ${catkin_LIBRARIES})
 add_dependencies(square_no_sensors create_fundamentals_generate_messages_cpp)
 
@@ -87,7 +87,7 @@ add_executable(square_with_encoders src/square_with_encoders.cpp src/tools.cpp s
 target_link_libraries(square_with_encoders ${catkin_LIBRARIES})
 add_dependencies(square_with_encoders create_fundamentals_generate_messages_cpp)
 
-add_executable(perfect_turn_no_sensor src/perfect_turn_no_sensor.cpp)
+add_executable(perfect_turn_no_sensor src/perfect_turn_no_sensor.cpp src/tools.cpp src/tools.h)
 target_link_libraries(perfect_turn_no_sensor ${catkin_LIBRARIES})
 add_dependencies(perfect_turn_no_sensor create_fundamentals_generate_messages_cpp)
 
