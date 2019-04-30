@@ -6,11 +6,12 @@
 #include "create_fundamentals/SensorPacket.h"
 #include "tools.h"
 #include "PID.h"
+#include "GridPerceptor.h"
 
 class Robot {
 public:
     Robot();
-    Robot(ros::ServiceClient diff_drive);
+    Robot(ros::ServiceClient diff_drive, GridPerceptor gp);
 
     ~Robot();
 
@@ -34,6 +35,7 @@ public:
     double speed;
     PID controller;
     ros::ServiceClient diff_drive;
+    GridPerceptor gp;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
 

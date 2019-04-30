@@ -15,8 +15,9 @@ Robot::Robot() :
     controller(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0)
     {}
 
-Robot::Robot(ros::ServiceClient diff_drive) : Robot() {
+Robot::Robot(ros::ServiceClient diff_drive, GridPerceptor gp) : Robot() {
     diff_drive = diff_drive;
+    gp = gp;
 }
 
 void Robot::diffDrive(double left, double right) {
