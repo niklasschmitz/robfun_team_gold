@@ -5,6 +5,7 @@
 #include "create_fundamentals/DiffDrive.h"
 #include "tools.h"
 #include "Robot.h"
+#include "GridPerceptor.h"
 
 const double ROBOT_WHEEL_RADIUS = 0.032;
 const double ROBOT_TRACK = 0.258;
@@ -12,7 +13,7 @@ const double ROBOT_ANGULAR_SPEED = 5.0; //max: 15.625
 
 ros::ServiceClient diffDrive;
 
-Robot robot(diffDrive);
+Robot robot;
 
 void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
@@ -41,7 +42,8 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
     diffDrive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     signal(SIGINT, mySigintHandler);
-
+    GridPerceptor gp(n);
+    robot = Robot(diffDrive, gp);
     if (ros::ok()) {
         // drive 5 consecutive squares
         driveSquare(1., 5);

@@ -6,11 +6,11 @@
 #include "create_fundamentals/DiffDrive.h"
 #include "tools.h"
 #include "Robot.h"
-
+#include "GridPerceptor.h"
 
 ros::ServiceClient diffDrive;
 
-Robot robot(diffDrive);
+Robot robot;
 
 inline double distanceEllipse(double angle) {
     const double a = Robot::SAFETY_DISTANCE - Robot::LASER_OFFSET;
@@ -55,6 +55,8 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("scan_filtered", 1, laserCallback);
     diffDrive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
+    GridPerceptor gp(n);
+    robot = Robot(diffDrive, gp);
     signal(SIGINT, mySigintHandler);
 
     ros::spin();
