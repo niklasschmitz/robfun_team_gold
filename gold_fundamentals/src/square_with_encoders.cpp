@@ -7,7 +7,9 @@
 #include "Robot.h"
 #include "tools.h"
 
-Robot robot;
+ros::ServiceClient diffDrive;
+
+Robot robot(diffDrive);
 
 void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
     ROS_INFO("left encoder: %lf, right encoder: %lf", msg->encoderLeft, msg->encoderRight);
