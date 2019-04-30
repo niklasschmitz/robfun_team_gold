@@ -63,15 +63,15 @@ catkin_package(
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_executable(example_laser src/example_laser.cpp)
+add_executable(example_laser src/examples/example_laser.cpp)
 target_link_libraries(example_laser ${catkin_LIBRARIES})
 add_dependencies(example_laser create_fundamentals_generate_messages_cpp)
 
-add_executable(example_moving src/example_moving.cpp)
+add_executable(example_moving src/examples/example_moving.cpp)
 target_link_libraries(example_moving ${catkin_LIBRARIES})
 add_dependencies(example_moving create_fundamentals_generate_messages_cpp)
 
-add_executable(example_turning src/example_turning.cpp)
+add_executable(example_turning src/examples/example_turning.cpp)
 target_link_libraries(example_turning ${catkin_LIBRARIES})
 add_dependencies(example_turning create_fundamentals_generate_messages_cpp)
 
