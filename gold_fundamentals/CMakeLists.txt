@@ -82,6 +82,6 @@ add_executable(align_robot src/align_robot.cpp src/tools.cpp src/tools.h src/Rob
 target_link_libraries(align_robot ${catkin_LIBRARIES})
 add_dependencies(align_robot create_fundamentals_generate_messages_cpp)
 
-add_executable(plan_executer src/plan_executer.cpp)
+add_executable(plan_executer src/plan_executer.cpp src/Robot.cpp src/Robot.h src/tools.cpp src/tools.h src/PID.cpp src/PID.h src/GridPerceptor.cpp src/GridPerceptor.h)
 target_link_libraries(plan_executer ${catkin_LIBRARIES})
 add_dependencies(plan_executer create_fundamentals_generate_messages_cpp)
