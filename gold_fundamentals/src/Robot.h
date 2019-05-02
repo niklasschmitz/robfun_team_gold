@@ -33,6 +33,7 @@ public:
     static const double WHEEL_RADIUS;
 
     double speed;
+    int direction;
     PID controller;
     ros::ServiceClient diff_drive;
     GridPerceptor gp;

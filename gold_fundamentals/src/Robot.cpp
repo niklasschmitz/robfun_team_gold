@@ -1,5 +1,7 @@
 #include "Robot.h"
 
+int direction;
+
 const double Robot::LOOPRATE = 30;
 const double Robot::ENCODER_STEPS_PER_REVOLUTION = M_PI * 2.0;
 const double Robot::LASER_OFFSET = 0.12;
