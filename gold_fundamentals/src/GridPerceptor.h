@@ -4,6 +4,7 @@
 #include "sensor_msgs/LaserScan.h"
 #include "ros/ros.h"
 #include <cstdlib>
+#include <vector>
 
 class GridPerceptor {
 public:
