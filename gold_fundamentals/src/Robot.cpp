@@ -14,8 +14,7 @@ const double Robot::WHEEL_RADIUS = 0.032;
 
 
 Robot::Robot() :
-    controller(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0)
-    {}
+        controller(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0) {}
 
 Robot::Robot(ros::ServiceClient diff_drive, GridPerceptor gp) : Robot() {
     this->diff_drive = diff_drive;
@@ -61,24 +60,15 @@ void Robot::drive(double distance) {
 
     double setpoint = sensorData->encoderLeft +
                       distance * Robot::ENCODER_STEPS_PER_REVOLUTION / (M_PI * 2.0 * Robot::WHEEL_RADIUS);
-    double position = sensorData->encoderLeft;
-    double prev_encoder = sensorData->encoderLeft;
-    double out = 1.0;
 
     ros::Rate loop_rate(LOOPRATE);
-    while (ros::ok() && fabs(setpoint - position) > 0.1) {
+    while (ros::ok() && fabs(setpoint - sensorData->encoderLeft) > 0.1) {
         ros::spinOnce();
 
-        double diff_abs = sensorData->encoderLeft - prev_encoder;
-        double diff = (sensorData->encoderLeft - prev_encoder) * sgn(out);
-        position += diff;
-
-        out = controller.calculate(setpoint, position, 1.0 / LOOPRATE);
+        double out = controller.calculate(setpoint, sensorData->encoderLeft, 1.0 / LOOPRATE);
         diffDrive(out, out);
+        ROS_INFO("enc:%lf, goal:%lf, speed:%lf", sensorData->encoderLeft, setpoint, out);
 
-        ROS_INFO("enc:%lf, pre:%lf, goal:%lf, pos:%lf, diff%lf, speed:%lf", sensorData->encoderLeft, prev_encoder,
-                 setpoint, position, diff, out);
-        prev_encoder = sensorData->encoderLeft;
         loop_rate.sleep();
     }
 
@@ -89,7 +79,7 @@ void Robot::drive(double distance) {
 
 void Robot::turn(double angle) {
 
-    double distance = angle * Robot::TRACK / 2.0;
+    double distance = -angle * Robot::TRACK / 2.0;
 
     while (sensorData == NULL) {
         ros::spinOnce();
@@ -98,23 +88,16 @@ void Robot::turn(double angle) {
 
     double setpoint = sensorData->encoderLeft +
                       distance * Robot::ENCODER_STEPS_PER_REVOLUTION / (M_PI * 2.0 * Robot::WHEEL_RADIUS);
-    double position = sensorData->encoderLeft;
-    double prev_encoder = sensorData->encoderLeft;
-    double out = 1.0;
 
     ros::Rate loop_rate(LOOPRATE);
-    while (ros::ok() && fabs(setpoint - position) > 0.1) {
+    while (ros::ok() && fabs(setpoint - sensorData->encoderLeft) > 0.1) {
         ros::spinOnce();
 
-        double diff = fabs(sensorData->encoderLeft - prev_encoder) * sgn(out);
-        position += diff;
 
-        out = controller.calculate(setpoint, position, 1.0 / LOOPRATE);
-        diffDrive(-out, out);
+        double out = controller.calculate(setpoint, sensorData->encoderLeft, 1.0 / LOOPRATE);
+        diffDrive(out, -out);
+        ROS_INFO("enc:%lf, goal:%lf, speed:%lf", sensorData->encoderLeft, setpoint, out);
 
-        ROS_INFO("enc:%lf, pre:%lf, goal:%lf, pos:%lf, diff%lf, speed:%lf", sensorData->encoderLeft,
-                 prev_encoder, setpoint, position, diff, out);
-        prev_encoder = sensorData->encoderLeft;
         loop_rate.sleep();
     }
 
