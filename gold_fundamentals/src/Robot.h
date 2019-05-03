@@ -11,7 +11,6 @@
 class Robot {
 public:
     Robot();
-    Robot(ros::NodeHandle n);
     ~Robot();
 
     void diffDrive(double left, double right);

@@ -1,8 +1,7 @@
 #include "GridPerceptor.h"
 
-GridPerceptor::GridPerceptor() {}
-
-GridPerceptor::GridPerceptor(ros::NodeHandle n) {
+GridPerceptor::GridPerceptor() {
+    ros::NodeHandle n;
     sub_laser = n.subscribe("scan_filtered", 1, &GridPerceptor::laserCallback, this);
 }
 

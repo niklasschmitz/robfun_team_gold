@@ -41,7 +41,6 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "square_no_sensors", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
     signal(SIGINT, mySigintHandler);
-    robot = Robot(n);
     if (ros::ok()) {
         // drive 5 consecutive squares
         driveSquare(1., 5);

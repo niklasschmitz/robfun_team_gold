@@ -34,7 +34,6 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "drive_with_encoders", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
     signal(SIGINT, mySigintHandler);
-    robot = Robot(n);
 
     driveSquare(1., 1);
 

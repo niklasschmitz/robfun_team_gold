@@ -54,7 +54,6 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
     ros::ServiceServer service = n.advertiseService("execute_plan", execute);
     signal(SIGINT, mySigintHandler);
-    robot = Robot(n);
     robot.direction = gold_fundamentals::ExecutePlanRequest::UP;
 
     robot.turn(M_PI * 2); //simulate align

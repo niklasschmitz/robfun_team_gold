@@ -9,7 +9,6 @@
 class GridPerceptor {
 public:
     GridPerceptor();
-    GridPerceptor(ros::NodeHandle n);
 
     ~GridPerceptor();
 
@@ -18,6 +17,8 @@ private:
     void laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
 
     ros::Subscriber sub_laser;
+
+    std::vector<double> linear_regression(std::vector<double> x, std::vector<double> y);
 };
 
 #endif //SRC_GP_H
