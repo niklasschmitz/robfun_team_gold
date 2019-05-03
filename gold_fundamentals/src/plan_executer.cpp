@@ -20,6 +20,7 @@ void turn(int direction) {
         amount = 1;
 
     robot.turn(amount * M_PI_2);
+    robot.direction = direction;
 }
 
 bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::ExecutePlan::Response &res) {
