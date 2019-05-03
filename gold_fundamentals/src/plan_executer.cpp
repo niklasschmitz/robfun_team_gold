@@ -7,7 +7,7 @@
 #include "GridPerceptor.h"
 
 
-double const MAZE_SIDE_LENGHT = 1.5; // TODO: mesure the side length
+double const MAZE_SIDE_LENGTH = 1.5; // TODO: measure the side length
 
 Robot robot;
 
@@ -27,7 +27,7 @@ bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::Ex
     for (int i = 0; i < req.plan.size(); i++) {
         ROS_INFO("%d", req.plan[i]);
         turn(req.plan[i]);
-        robot.drive(MAZE_SIDE_LENGHT);
+        robot.drive(MAZE_SIDE_LENGTH);
     }
 
     res.success = true;
