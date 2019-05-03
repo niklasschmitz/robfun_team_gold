@@ -8,9 +8,7 @@
 #include "Robot.h"
 #include "GridPerceptor.h"
 
-ros::ServiceClient diffDrive;
-
-Robot robot;
+Robot* robot;
 
 inline double distanceEllipse(double angle) {
     const double a = Robot::SAFETY_DISTANCE - Robot::LASER_OFFSET;
@@ -35,17 +33,19 @@ void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     }
 
     if (obstacle) {
-        robot.turnRandom();
+        robot->turnRandom();
     } else {
-        robot.diffDrive(Robot::MAX_SPEED / 2., Robot::MAX_SPEED / 2.);
+        robot->diffDrive(Robot::MAX_SPEED / 2., Robot::MAX_SPEED / 2.);
     }
 }
 
 void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
-    robot.brake();
+    robot->brake();
 
     ros::shutdown();
+
+    delete(robot);
 }
 
 
@@ -54,9 +54,12 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "wanderer", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("scan_filtered", 1, laserCallback);
+    robot = new Robot();
     signal(SIGINT, mySigintHandler);
 
     ros::spin();
+
+    delete(robot);
 
     return 0;
 }

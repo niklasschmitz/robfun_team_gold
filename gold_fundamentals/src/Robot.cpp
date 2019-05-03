@@ -18,7 +18,7 @@ Robot::Robot() {
     this->controller = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0);
     this->gp = GridPerceptor();
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
-    n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
+    this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
 }
 
 void Robot::diffDrive(double left, double right) {
