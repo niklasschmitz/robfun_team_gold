@@ -45,5 +45,9 @@ std::vector<double> GridPerceptor::linear_regression(std::vector<double> x, std:
     double beta = cov_xy / var_x;
     double alpha = y_mean - beta * x_mean;
 
-    // TODO return
+    std::vector<double> coefficients;
+    coefficients.push_back(alpha);
+    coefficients.push_back(beta);
+
+    return coefficients;
 }
