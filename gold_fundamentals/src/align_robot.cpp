@@ -8,16 +8,15 @@
 #include "tools.h"
 #include "GridPerceptor.h"
 
-ros::ServiceClient diffDrive;
-
-Robot robot;
+Robot* robot;
 
 
 void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
-    robot.brake();
+    robot->brake();
 
     ros::shutdown();
+    delete(robot);
 }
 
 void align() {
@@ -28,12 +27,13 @@ void align() {
 int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     ros::init(argc, argv, "align", ros::init_options::NoSigintHandler);
-    ros::NodeHandle n;
+    robot = new Robot();
     signal(SIGINT, mySigintHandler);
 
     //align();
     ros::spin();
 
+    delete(robot);
     return 0;
 }
 

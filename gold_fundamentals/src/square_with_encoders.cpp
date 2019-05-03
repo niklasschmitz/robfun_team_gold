@@ -8,15 +8,15 @@
 #include "tools.h"
 #include "GridPerceptor.h"
 
-ros::ServiceClient diffDrive;
 
-Robot robot;
+Robot* robot;
 
 void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
-    robot.diffDrive(0.0, 0.0);
+    robot->diffDrive(0.0, 0.0);
 
     ros::shutdown();
+    delete(robot);
 }
 
 // side_length: side length of square in metres
@@ -24,19 +24,20 @@ void mySigintHandler(int sig) {
 void driveSquare(double side_length, int iterations) {
     // 4 turns make 1 square
     for (int i = 0; i < iterations * 4; ++i) {
-        robot.drive(side_length);
-        robot.turn(M_PI_2);
+        robot->drive(side_length);
+        robot->turn(M_PI_2);
     }
 }
 
 int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     ros::init(argc, argv, "drive_with_encoders", ros::init_options::NoSigintHandler);
-    ros::NodeHandle n;
+    robot = new Robot();
     signal(SIGINT, mySigintHandler);
 
     driveSquare(1., 1);
 
+    delete(robot);
     return 0;
 }
 
