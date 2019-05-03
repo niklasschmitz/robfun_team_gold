@@ -52,12 +52,9 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     ros::init(argc, argv, "plan_executer", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("sensor_packet", 1, sensorCallback);
-    ros::ServiceClient diffDrive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     ros::ServiceServer service = n.advertiseService("execute_plan", execute);
     signal(SIGINT, mySigintHandler);
-    GridPerceptor gp(n);
-    robot = Robot(diffDrive, gp);
+    robot = Robot(n);
     robot.direction = gold_fundamentals::ExecutePlanRequest::UP;
 
     robot.turn(M_PI * 2); //simulate align

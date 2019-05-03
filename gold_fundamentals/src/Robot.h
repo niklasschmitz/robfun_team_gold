@@ -11,8 +11,7 @@
 class Robot {
 public:
     Robot();
-    Robot(ros::ServiceClient diff_drive, GridPerceptor gp);
-
+    Robot(ros::NodeHandle n);
     ~Robot();
 
     void diffDrive(double left, double right);
@@ -20,6 +19,7 @@ public:
     void drive(double distance);
     void turn(double angle);
     void turnRandom();
+    void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg);
 
     static const double LOOPRATE;
 

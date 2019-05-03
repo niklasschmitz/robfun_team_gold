@@ -54,9 +54,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "wanderer", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("scan_filtered", 1, laserCallback);
-    diffDrive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
-    GridPerceptor gp(n);
-    robot = Robot(diffDrive, gp);
+    robot = Robot(n);
     signal(SIGINT, mySigintHandler);
 
     ros::spin();
