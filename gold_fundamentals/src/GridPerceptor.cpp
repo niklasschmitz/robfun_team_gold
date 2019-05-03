@@ -17,10 +17,27 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
 }
 
 
+std::vector<std::vector<double>> GridPerceptor::convertPolarToCartesian(std::vector<double> theta, std::vector<double> r) {
+    std::vector<double> x;
+    std::vector<double> y;
+
+    for (int i = 0; i < theta.size(); ++i) {
+        x.push_back(r[i] * std::cos(theta[i]));
+        y.push_back(r[i] * std::sin(theta[i]));
+    }
+
+    std::vector<std::vector<double>> xy;
+    xy.push_back(x);
+    xy.push_back(y);
+    return xy;
+}
+
+
 std::vector<double> GridPerceptor::linear_regression(std::vector<double> x, std::vector<double> y) {
     // assume (x, y)'s in cartesian coordinates.
     // regress y given x. model: y = alpha + beta*x
 
+    // compute means
     double x_mean = 0;
     double y_mean = 0;
     for (int i = 0; i < x.size(); ++i) {
@@ -30,7 +47,7 @@ std::vector<double> GridPerceptor::linear_regression(std::vector<double> x, std:
     x_mean /= x.size();
     y_mean /= y.size();
 
-    // compute covariance of x and y and variance of x
+    // compute covariance of (x,y) and variance of x
     double cov_xy = 0;
     double var_x = 0;
     double std_xi; //tmp variable
