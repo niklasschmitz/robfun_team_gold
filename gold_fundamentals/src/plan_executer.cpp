@@ -7,16 +7,16 @@
 #include "GridPerceptor.h"
 
 
-double const MAZE_SIDE_LENGTH = 1.5; // TODO: measure the side length
+double const MAZE_SIDE_LENGTH = 1.0; // TODO: measure the side length
 
 Robot robot;
 
 void turn(int direction) {
     int amount = direction - robot.direction;
 
-    if (amount = 3)
+    if (amount == 3)
         amount = -1;
-    if (amount = -3)
+    if (amount == -3)
         amount = 1;
 
     robot.turn(amount * M_PI_2);
@@ -57,6 +57,9 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     GridPerceptor gp(n);
     robot = Robot(diffDrive, gp);
+    robot.direction = gold_fundamentals::ExecutePlanRequest::UP;
+
+    robot.turn(M_PI * 2);
 
     ROS_INFO("Ready to execute.");
     ros::spin();
