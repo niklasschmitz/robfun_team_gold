@@ -7,7 +7,7 @@
 #include "GridPerceptor.h"
 
 
-double const MAZE_SIDE_LENGTH = 1.0; // TODO: measure the side length
+double const MAZE_SIDE_LENGTH = 0.8;
 
 Robot robot;
 
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     robot = Robot(diffDrive, gp);
     robot.direction = gold_fundamentals::ExecutePlanRequest::UP;
 
-    robot.turn(M_PI * 2);
+    robot.turn(M_PI * 2); //simulate align
 
     ROS_INFO("Ready to execute.");
     ros::spin();
