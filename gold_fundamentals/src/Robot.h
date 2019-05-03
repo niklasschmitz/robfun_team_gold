@@ -20,6 +20,8 @@ public:
     void turnRandom();
     void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg);
 
+    ros::Subscriber sub_sensor;
+
     static const double LOOPRATE;
 
     static const double ENCODER_STEPS_PER_REVOLUTION;

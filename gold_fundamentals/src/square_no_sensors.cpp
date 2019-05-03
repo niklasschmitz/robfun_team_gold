@@ -11,15 +11,14 @@ const double ROBOT_WHEEL_RADIUS = 0.032;
 const double ROBOT_TRACK = 0.258;
 const double ROBOT_ANGULAR_SPEED = 5.0; //max: 15.625
 
-ros::ServiceClient diffDrive;
-
-Robot robot;
+Robot* robot;
 
 void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
-    robot.brake();
+    robot->brake();
 
     ros::shutdown();
+    delete(robot);
 }
 
 
@@ -28,9 +27,9 @@ void mySigintHandler(int sig) {
 void driveSquare(double side_length, int iterations) {
     // 4 turns make 1 square
     for (int i = 0; i < iterations * 4; ++i) {
-        robot.drive(side_length);
+        robot->drive(side_length);
         ros::Duration(0.5).sleep();
-        robot.turn(M_PI_2);
+        robot->turn(M_PI_2);
         ros::Duration(0.5).sleep();
     }
 }
@@ -39,7 +38,7 @@ void driveSquare(double side_length, int iterations) {
 int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     ros::init(argc, argv, "square_no_sensors", ros::init_options::NoSigintHandler);
-    ros::NodeHandle n;
+    robot = new Robot();
     signal(SIGINT, mySigintHandler);
     if (ros::ok()) {
         // drive 5 consecutive squares
@@ -47,6 +46,6 @@ int main(int argc, char **argv) {
     }
 
     mySigintHandler(0);
-
+    delete(robot);
     return 0;
 }
