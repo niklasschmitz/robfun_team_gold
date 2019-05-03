@@ -18,8 +18,8 @@ Robot::Robot() :
     {}
 
 Robot::Robot(ros::ServiceClient diff_drive, GridPerceptor gp) : Robot() {
-    diff_drive = diff_drive;
-    gp = gp;
+    this->diff_drive = diff_drive;
+    this->gp = gp;
 }
 
 void Robot::diffDrive(double left, double right) {
