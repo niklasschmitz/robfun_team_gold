@@ -17,7 +17,7 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
 }
 
 
-std::vector<std::vector<double>> GridPerceptor::convertPolarToCartesian(std::vector<double> theta, std::vector<double> r) {
+std::vector<std::vector<double> > GridPerceptor::convertPolarToCartesian(std::vector<double> theta, std::vector<double> r) {
     std::vector<double> x;
     std::vector<double> y;
 
@@ -26,7 +26,7 @@ std::vector<std::vector<double>> GridPerceptor::convertPolarToCartesian(std::vec
         y.push_back(r[i] * std::sin(theta[i]));
     }
 
-    std::vector<std::vector<double>> xy;
+    std::vector<std::vector<double> > xy;
     xy.push_back(x);
     xy.push_back(y);
     return xy;
