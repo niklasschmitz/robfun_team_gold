@@ -22,7 +22,9 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
         theta.push_back(theta[i-1] + msg->angle_increment);
     }
 
-    std::vector<std::vector<double>> xy = convertPolarToCartesian(theta, msg->ranges);
+    std::vector<double> r(msg->ranges.begin(), msg->ranges.end());
+
+    std::vector<std::vector<double> > xy = convertPolarToCartesian(theta, r);
     std::vector<double> coeff = linear_regression(xy[0], xy[1]);
     ROS_INFO("alpha %lf, beta %lf", coeff[0], coeff[1]);
 }
