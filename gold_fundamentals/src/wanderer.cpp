@@ -54,7 +54,6 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "wanderer", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("scan_filtered", 1, laserCallback);
-    robot = Robot(n);
     signal(SIGINT, mySigintHandler);
 
     ros::spin();

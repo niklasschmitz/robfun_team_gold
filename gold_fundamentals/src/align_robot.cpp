@@ -30,7 +30,6 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "align", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
     signal(SIGINT, mySigintHandler);
-    robot = Robot(n);
 
     //align();
     ros::spin();
