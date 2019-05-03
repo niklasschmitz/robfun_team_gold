@@ -9,18 +9,18 @@
 
 double const MAZE_SIDE_LENGTH = 0.8;
 
-Robot robot;
+Robot* robot;
 
 void turn(int direction) {
-    int amount = direction - robot.direction;
+    int amount = direction - robot->direction;
 
     if (amount == 3)
         amount = -1;
     if (amount == -3)
         amount = 1;
 
-    robot.turn(amount * M_PI_2);
-    robot.direction = direction;
+    robot->turn(amount * M_PI_2);
+    robot->direction = direction;
 }
 
 bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::ExecutePlan::Response &res) {
@@ -28,7 +28,7 @@ bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::Ex
     for (int i = 0; i < req.plan.size(); i++) {
         ROS_INFO("%d", req.plan[i]);
         turn(req.plan[i]);
-        robot.drive(MAZE_SIDE_LENGTH);
+        robot->drive(MAZE_SIDE_LENGTH);
     }
 
     res.success = true;
@@ -36,14 +36,11 @@ bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::Ex
     return true;
 }
 
-void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
-    ROS_INFO("left encoder: %lf, right encoder: %lf", msg->encoderLeft, msg->encoderRight);
-    robot.sensorData = msg;
-}
-
 void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
-    robot.diffDrive(0.0, 0.0);
+    robot->diffDrive(0.0, 0.0);
+
+    delete(robot);
 
     ros::shutdown();
 }
@@ -54,12 +51,14 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
     ros::ServiceServer service = n.advertiseService("execute_plan", execute);
     signal(SIGINT, mySigintHandler);
-    robot.direction = gold_fundamentals::ExecutePlanRequest::UP;
-
-    robot.turn(M_PI * 2); //simulate align
+    robot = new Robot();
+    robot->direction = gold_fundamentals::ExecutePlanRequest::UP;
+    robot->turn(M_PI * 2); //simulate align
 
     ROS_INFO("Ready to execute.");
     ros::spin();
+
+    delete(robot);
 
     return 0;
 }
