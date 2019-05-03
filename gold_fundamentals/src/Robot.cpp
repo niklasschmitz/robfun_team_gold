@@ -12,13 +12,14 @@ const double Robot::SAFETY_DISTANCE = RADIUS + 0.1;
 const double Robot::TRACK = 0.258;
 const double Robot::WHEEL_RADIUS = 0.032;
 
+Robot::Robot() {
+}
 
-Robot::Robot() :
-        controller(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0) {}
-
-Robot::Robot(ros::ServiceClient diff_drive, GridPerceptor gp) : Robot() {
-    this->diff_drive = diff_drive;
-    this->gp = gp;
+Robot::Robot(ros::NodeHandle n) {
+    this->controller = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0);
+    this->gp = GridPerceptor(n);
+    this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
+    n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
 }
 
 void Robot::diffDrive(double left, double right) {
@@ -103,6 +104,11 @@ void Robot::turn(double angle) {
 
     brake();
     controller.reset();
+}
+
+void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
+    ROS_INFO("left encoder: %lf, right encoder: %lf", msg->encoderLeft, msg->encoderRight);
+    this->sensorData = msg;
 }
 
 Robot::~Robot() {}

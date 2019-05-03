@@ -40,10 +40,8 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     ros::init(argc, argv, "square_no_sensors", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
-    diffDrive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     signal(SIGINT, mySigintHandler);
-    GridPerceptor gp(n);
-    robot = Robot(diffDrive, gp);
+    robot = Robot(n);
     if (ros::ok()) {
         // drive 5 consecutive squares
         driveSquare(1., 5);

@@ -1,5 +1,9 @@
 #include "PID.h"
 
+PID::PID(){
+
+}
+
 PID::PID(double max, double min, double Kp, double Ki, double Kd) :
         _max(max),
         _min(min),
