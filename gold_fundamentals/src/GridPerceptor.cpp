@@ -124,9 +124,9 @@ std::vector<T_LINE> GridPerceptor::ransac(std::vector<T_CARTESIAN_COORD> coordin
                 }
             }
         }
-
-        return lines;
     }
+
+    return lines;
 }
 
 double GridPerceptor::distBetweenLineAndPoint(T_LINE line, T_CARTESIAN_COORD point) {
