@@ -7,15 +7,16 @@
 #include <cmath>
 #include <vector>
 
-typedef struct {
-    double alpha;
-    double beta;
-} T_LINE;
 
 typedef struct {
     double x;
     double y;
-} T_CARTESIAN_COORD;
+} T_POINT2D;
+
+typedef struct {
+    T_POINT2D x0; // support vector
+    T_POINT2D u; // (normalized) directional vector
+} T_LINE;
 
 class GridPerceptor {
 public:
@@ -28,10 +29,9 @@ private:
 
     ros::Subscriber sub_laser;
 
-    T_CARTESIAN_COORD convertPolarToCartesian(double theta, double r);
-    T_LINE linear_regression(std::vector<T_CARTESIAN_COORD> coordinates);
-    std::vector<T_LINE> ransac(std::vector<T_CARTESIAN_COORD> coordinates);
-    double distBetweenLineAndPoint(T_LINE line, T_CARTESIAN_COORD point);
+    T_POINT2D convertPolarToCartesian(double theta, double r);
+    std::vector<T_LINE> ransac(std::vector<T_POINT2D> coordinates);
+    double distBetweenLineAndPoint(T_LINE line, T_POINT2D point);
     bool testLineSimilarity(std::vector<T_LINE> lines, T_LINE line);
 };
 
