@@ -1,6 +1,5 @@
 #include "Robot.h"
 
-int direction;
 
 const double Robot::LOOPRATE = 30;
 const double Robot::ENCODER_STEPS_PER_REVOLUTION = M_PI * 2.0;
@@ -19,6 +18,9 @@ Robot::Robot() {
     this->gp = GridPerceptor();
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
+    this->position.x = 0.0;
+    this->position.y = 0.0;
+    this->theta = 0.0;
 }
 
 void Robot::diffDrive(double left, double right) {
@@ -107,7 +109,26 @@ void Robot::turn(double angle) {
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
     ROS_INFO("left encoder: %lf, right encoder: %lf", msg->encoderLeft, msg->encoderRight);
+
+    double deltaLeft = this->sensorData->encoderLeft - msg->encoderLeft;
+    double deltaRight = this->sensorData->encoderRight - msg->encoderRight;
+
     this->sensorData = msg;
+
+    if (fabs(deltaRight - deltaLeft) < std::numeric_limits<float>::epsilon() * 10.0) {
+        this->position.x += deltaLeft * Robot::WHEEL_RADIUS * cos(this->theta);
+        this->position.y += deltaRight * Robot::WHEEL_RADIUS * sin(this->theta);
+    } else {
+        double theta = (deltaRight - deltaLeft) * Robot::WHEEL_RADIUS / Robot::TRACK;
+        double d = (deltaRight + deltaLeft) * Robot::WHEEL_RADIUS / 2.0;
+        double r = d / theta;
+
+        this->position.x += r * sin(this->theta + theta) - r * sin(this->theta);
+        this->position.y += r * cos(this->theta + theta) + r * cos(this->theta);
+        this->theta = fmod(this->theta + theta, 360);
+    }
+
+    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
 }
 
 Robot::~Robot() {}
