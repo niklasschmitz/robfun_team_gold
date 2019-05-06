@@ -85,3 +85,7 @@ add_dependencies(align_robot create_fundamentals_generate_messages_cpp)
 add_executable(plan_executer src/plan_executer.cpp src/Robot.cpp src/Robot.h src/tools.cpp src/tools.h src/PID.cpp src/PID.h src/GridPerceptor.cpp src/GridPerceptor.h)
 target_link_libraries(plan_executer ${catkin_LIBRARIES})
 add_dependencies(plan_executer create_fundamentals_generate_messages_cpp)
+
+add_executable(smooth_executer src/smooth_executer.cpp src/Robot.cpp src/Robot.h src/tools.cpp src/tools.h src/PID.cpp src/PID.h src/GridPerceptor.cpp src/GridPerceptor.h)
+target_link_libraries(smooth_executer ${catkin_LIBRARIES})
+add_dependencies(smooth_executer create_fundamentals_generate_messages_cpp)
