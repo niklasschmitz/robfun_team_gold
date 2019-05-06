@@ -9,21 +9,24 @@ GridPerceptor::~GridPerceptor() {
 }
 
 void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
-    ROS_INFO("Hi");
+    ROS_INFO("GridPerceptor laserCallback");
     //ROS_INFO("%i", msg->ranges.size());
     //ROS_INFO("min deg %f", msg->angle_min);
     //ROS_INFO("min deg %f", msg->angle_increment);
     //ROS_INFO("%f", msg->ranges[msg->ranges.size() / 2]);
 
-    std::vector<T_CARTESIAN_COORD> coordinates;
-    for ( int i = 0; i<msg->ranges.size(); ++i) {
+    std::vector <T_CARTESIAN_COORD> coordinates;
+    for (int i = 0; i < msg->ranges.size(); ++i) {
         double theta = msg->angle_min + msg->angle_increment * i; //might be angle_max - increment * i
         double radius = msg->ranges[i];
-        T_CARTESIAN_COORD coord = convertPolarToCartesian(theta, radius);
-        coordinates.push_back(coord);
+
+        if (!isnan(radius)) {  // only consider non-nan points
+            T_CARTESIAN_COORD coord = convertPolarToCartesian(theta, radius);
+            coordinates.push_back(coord);
+        }
     }
 
-    std::vector<T_LINE> lines = ransac(coordinates);
+    std::vector <T_LINE> lines = ransac(coordinates);
     //T_LINE line = linear_regression(xy[0], xy[1]);
     //ROS_INFO("alpha %lf, beta %lf", line.alpha, line.beta);
 }
@@ -38,9 +41,7 @@ T_CARTESIAN_COORD GridPerceptor::convertPolarToCartesian(double theta, double ra
 }
 
 
-T_LINE GridPerceptor::linear_regression(std::vector<T_CARTESIAN_COORD> coordinates) {
-    // TODO handle nan
-
+T_LINE GridPerceptor::linear_regression(std::vector <T_CARTESIAN_COORD> coordinates) {
     // assume (x, y)'s in cartesian coordinates.
     // regress y given x. model: y = alpha + beta*x
 
@@ -75,50 +76,51 @@ T_LINE GridPerceptor::linear_regression(std::vector<T_CARTESIAN_COORD> coordinat
     return line;
 }
 
-std::vector<T_LINE> GridPerceptor::ransac(std::vector<T_CARTESIAN_COORD> coordinates) {
+std::vector <T_LINE> GridPerceptor::ransac(std::vector <T_CARTESIAN_COORD> coordinates) {
     // how often do we generate a random sample
     int iterations = 10;
 
     // number of points that have to be within the epsilon so the sample is qualified as a line
     // +2 as the 2 samples will always be inside
-    int inliers_threshold = 20+2;
+    int inliers_threshold = 20 + 2;
 
     // boundary around the line. samples within are inliers, others are outliers
     double epsilon = 5;
 
-    std::vector<T_LINE> lines;
+    std::vector <T_LINE> lines;
 
     int nr_of_coords = coordinates.size();
 
     // take random samples for x iterations, see how well it fits
-    for(int i=0; i<iterations; ++i) {
+    for (int i = 0; i < iterations; ++i) {
         // generate two random numbers to select two coordinates randomly
         int rand1 = std::rand() % nr_of_coords; // 0 to nr_of_coords-1
         int rand2 = rand1;
-        while(rand1 == rand2) { // make sure rand1 != rand2
+        while (rand1 == rand2) { // make sure rand1 != rand2
             rand2 = std::rand() % nr_of_coords;
         }
 
-        std::vector<T_CARTESIAN_COORD> samples;
+        std::vector <T_CARTESIAN_COORD> samples;
         samples.push_back(coordinates[rand1]);
         samples.push_back(coordinates[rand2]);
 
-        T_LINE proposed_line = linear_regression(samples); //TODO: what happens if the line is perfectly vertical? maybe use vectors?
+        T_LINE proposed_line = linear_regression(samples);
+        //TODO: what happens if the line is perfectly vertical? maybe use vectors?
         int nr_of_inliers = 0;
 
         // test how many inliers the line has
-        for (int j=0; j<coordinates.size(); j++) {
+        for (int j = 0; j < coordinates.size(); j++) {
             double dist = distBetweenLineAndPoint(proposed_line, coordinates[j]);
 
             // test if point is in epsilon range
-            if(dist < epsilon) {
+            if (dist < epsilon) {
                 nr_of_inliers += 1;
 
                 // test if we broke the threshold
-                if(nr_of_inliers == inliers_threshold) {
+                if (nr_of_inliers == inliers_threshold) {
                     // see if a similar line exists already: yes -> ignore, no -> add to response
                     bool similar_exists = testLineSimilarity(lines, proposed_line);
-                    if(!similar_exists) {
+                    if (!similar_exists) {
                         lines.push_back(proposed_line);
                     }
                 }
@@ -131,21 +133,21 @@ std::vector<T_LINE> GridPerceptor::ransac(std::vector<T_CARTESIAN_COORD> coordin
 
 double GridPerceptor::distBetweenLineAndPoint(T_LINE line, T_CARTESIAN_COORD point) {
     // make sure not to divide by zero and create M87*
-    if(line.alpha == 0) {
+    if (line.alpha == 0) {
         line.alpha = 1e-6;
     }
 
-    double p2_x = (point.y + 1/line.alpha - line.beta) / (line.alpha + 1/line.alpha);
+    double p2_x = (point.y + 1 / line.alpha - line.beta) / (line.alpha + 1 / line.alpha);
     double p2_y = line.alpha * p2_x + line.beta;
 
     double dist_x = std::abs(p2_x - point.x);
     double dist_y = std::abs(p2_y - point.y);
-    double dist = std::sqrt(std::pow(dist_x,2) + std::pow(dist_y,2));
+    double dist = std::sqrt(std::pow(dist_x, 2) + std::pow(dist_y, 2));
 
     return dist;
 }
 
-bool GridPerceptor::testLineSimilarity(std::vector<T_LINE> lines, T_LINE line) {
+bool GridPerceptor::testLineSimilarity(std::vector <T_LINE> lines, T_LINE line) {
 
     // if the dist between the alphas of the lines are greater than the alpha_threshold -> not similar
     double alpha_threshold = 5;
@@ -154,8 +156,8 @@ bool GridPerceptor::testLineSimilarity(std::vector<T_LINE> lines, T_LINE line) {
     // the dist_threshold how far the lines are apart from each other. if they are close -> similar
     double dist_threshold = 5;
 
-    for(int i=0; i<lines.size(); ++i){
-        if(std::abs(lines[i].alpha - line.alpha) > alpha_threshold) {
+    for (int i = 0; i < lines.size(); ++i) {
+        if (std::abs(lines[i].alpha - line.alpha) > alpha_threshold) {
             continue;
         } else {
             // lines have alpha_diff smaller than the threshold.
@@ -170,7 +172,7 @@ bool GridPerceptor::testLineSimilarity(std::vector<T_LINE> lines, T_LINE line) {
             point1.y = line.alpha * point1.x + line.beta;
 
             double dist = distBetweenLineAndPoint(lines[i], point1);
-            if(dist < dist_threshold) {
+            if (dist < dist_threshold) {
                 // they are close together and have the 'same' alpha -> similar
                 return true;
             }
