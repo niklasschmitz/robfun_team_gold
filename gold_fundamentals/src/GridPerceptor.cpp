@@ -15,13 +15,13 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     //ROS_INFO("min deg %f", msg->angle_increment);
     //ROS_INFO("%f", msg->ranges[msg->ranges.size() / 2]);
 
-    std::vector <T_CARTESIAN_COORD> coordinates;
+    std::vector <T_POINT2D> coordinates;
     for (int i = 0; i < msg->ranges.size(); ++i) {
         double theta = msg->angle_min + msg->angle_increment * i; //might be angle_max - increment * i
         double radius = msg->ranges[i];
 
         if (!isnan(radius)) {  // only consider non-nan points
-            T_CARTESIAN_COORD coord = convertPolarToCartesian(theta, radius);
+            T_POINT2D coord = convertPolarToCartesian(theta, radius);
             coordinates.push_back(coord);
         }
     }
@@ -32,8 +32,8 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
 }
 
 
-T_CARTESIAN_COORD GridPerceptor::convertPolarToCartesian(double theta, double radius) {
-    T_CARTESIAN_COORD coord;
+T_POINT2D GridPerceptor::convertPolarToCartesian(double theta, double radius) {
+    T_POINT2D coord;
     coord.x = radius * std::cos(theta);
     coord.y = radius * std::sin(theta);
 
@@ -41,42 +41,7 @@ T_CARTESIAN_COORD GridPerceptor::convertPolarToCartesian(double theta, double ra
 }
 
 
-T_LINE GridPerceptor::linear_regression(std::vector <T_CARTESIAN_COORD> coordinates) {
-    // assume (x, y)'s in cartesian coordinates.
-    // regress y given x. model: y = alpha + beta*x
-
-    // compute means
-    double x_mean = 0;
-    double y_mean = 0;
-    for (int i = 0; i < coordinates.size(); ++i) {
-        x_mean += coordinates[i].x;
-        y_mean += coordinates[i].y;
-    }
-    x_mean /= coordinates.size();
-    y_mean /= coordinates.size();
-
-    // compute covariance of (x,y) and variance of x
-    double cov_xy = 0;
-    double var_x = 0;
-    double std_xi; //tmp variable
-    for (int i = 0; i < coordinates.size(); ++i) {
-        cov_xy += (coordinates[i].x - x_mean) * (coordinates[i].y - y_mean);
-        std_xi = coordinates[i].x - x_mean;
-        var_x += std_xi * std_xi;
-    }
-
-    // compute alpha and beta
-    double beta = cov_xy / var_x;
-    double alpha = y_mean - beta * x_mean;
-
-    T_LINE line;
-    line.alpha = alpha;
-    line.beta = beta;
-
-    return line;
-}
-
-std::vector <T_LINE> GridPerceptor::ransac(std::vector <T_CARTESIAN_COORD> coordinates) {
+std::vector <T_LINE> GridPerceptor::ransac(std::vector <T_POINT2D> coordinates) {
     // how often do we generate a random sample
     int iterations = 10;
 
@@ -100,7 +65,7 @@ std::vector <T_LINE> GridPerceptor::ransac(std::vector <T_CARTESIAN_COORD> coord
             rand2 = std::rand() % nr_of_coords;
         }
 
-        std::vector <T_CARTESIAN_COORD> samples;
+        std::vector <T_POINT2D> samples;
         samples.push_back(coordinates[rand1]);
         samples.push_back(coordinates[rand2]);
 
@@ -131,53 +96,27 @@ std::vector <T_LINE> GridPerceptor::ransac(std::vector <T_CARTESIAN_COORD> coord
     return lines;
 }
 
-double GridPerceptor::distBetweenLineAndPoint(T_LINE line, T_CARTESIAN_COORD point) {
-    // make sure not to divide by zero and create M87*
-    if (line.alpha == 0) {
-        line.alpha = 1e-6;
-    }
+double GridPerceptor::distBetweenLineAndPoint(T_LINE line, T_POINT2D point) {
+    // TODO: clean up by using vector arithmetic implicitly
 
-    double p2_x = (point.y + 1 / line.alpha - line.beta) / (line.alpha + 1 / line.alpha);
-    double p2_y = line.alpha * p2_x + line.beta;
+    // construct normal vector from line direction
+    T_POINT2D normal;
+    normal.x = line.u.y;
+    normal.y = - line.u.x;
 
-    double dist_x = std::abs(p2_x - point.x);
-    double dist_y = std::abs(p2_y - point.y);
-    double dist = std::sqrt(std::pow(dist_x, 2) + std::pow(dist_y, 2));
+    // construct difference of support vector x0 and point
+    T_POINT2D diff_x0_point;
+    diff_x0_point.x = x0.x - point.x;
+    diff_x0_point.y = x0.y - point.y;
+
+    // project difference onto normal vector to get distance
+    double dist = diff_x0_point.x * normal.x + diff_x0_point.y * normal.y;
 
     return dist;
 }
 
 bool GridPerceptor::testLineSimilarity(std::vector <T_LINE> lines, T_LINE line) {
-
-    // if the dist between the alphas of the lines are greater than the alpha_threshold -> not similar
-    double alpha_threshold = 5;
-
-    // the dist_threshold is tested if the alpha threshold defines the lines as similar
-    // the dist_threshold how far the lines are apart from each other. if they are close -> similar
-    double dist_threshold = 5;
-
-    for (int i = 0; i < lines.size(); ++i) {
-        if (std::abs(lines[i].alpha - line.alpha) > alpha_threshold) {
-            continue;
-        } else {
-            // lines have alpha_diff smaller than the threshold.
-            // now the dist_threshold is tested
-
-            // determine avg_alpha to be able to calculate dist between two parallel lines
-            double avg_alpha = (lines[i].alpha + line.alpha) / 2;
-
-            // take a point on the first line and calculate dist from that point to the other line
-            T_CARTESIAN_COORD point1;
-            point1.x = 0;
-            point1.y = line.alpha * point1.x + line.beta;
-
-            double dist = distBetweenLineAndPoint(lines[i], point1);
-            if (dist < dist_threshold) {
-                // they are close together and have the 'same' alpha -> similar
-                return true;
-            }
-        }
-    }
+    // TODO implement
 
     // tested all lines and didnt find a similar one
     return false;
