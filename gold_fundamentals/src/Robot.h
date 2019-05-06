@@ -33,7 +33,9 @@ public:
     static const double TRACK;
     static const double WHEEL_RADIUS;
 
-    double speed;
+    T_CARTESIAN_COORD position;
+    double theta;
+
     int direction;
     PID controller;
     ros::ServiceClient diff_drive;
