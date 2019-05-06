@@ -27,7 +27,6 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     }
 
     std::vector <T_LINE> lines = ransac(coordinates);
-    //T_LINE line = linear_regression(xy[0], xy[1]);
     //ROS_INFO("alpha %lf, beta %lf", line.alpha, line.beta);
 }
 
@@ -65,12 +64,12 @@ std::vector <T_LINE> GridPerceptor::ransac(std::vector <T_POINT2D> coordinates) 
             rand2 = std::rand() % nr_of_coords;
         }
 
-        std::vector <T_POINT2D> samples;
-        samples.push_back(coordinates[rand1]);
-        samples.push_back(coordinates[rand2]);
+        T_POINT2D x1 = coordinates[rand1];
+        T_POINT2D x2 = coordinates[rand2];
 
-        T_LINE proposed_line = linear_regression(samples);
-        //TODO: what happens if the line is perfectly vertical? maybe use vectors?
+        // construct hypothesis
+        T_LINE proposed_line = constructLineParameterForm(x1, x2);
+
         int nr_of_inliers = 0;
 
         // test how many inliers the line has
@@ -96,13 +95,33 @@ std::vector <T_LINE> GridPerceptor::ransac(std::vector <T_POINT2D> coordinates) 
     return lines;
 }
 
+T_LINE GridPerceptor::constructLineParameterForm(T_POINT2D x1, T_POINT2D x2) {
+    T_LINE line;
+
+    // support vector
+    line.x1 = x1;
+
+    // construct directional vector u
+    T_POINT2D u;
+    u.x = x2.x - x1.x;
+    u.y = x2.y - x1.y;
+
+    // normalize u
+    double u_length = sqrt(u.x * u.x + u.y * u.y);
+    u.x /= u_length;
+    u.y /= u_length;
+    line.u = u;
+
+    return line;
+}
+
 double GridPerceptor::distBetweenLineAndPoint(T_LINE line, T_POINT2D point) {
     // TODO: clean up by using vector arithmetic implicitly
 
     // construct normal vector from line direction
     T_POINT2D normal;
     normal.x = line.u.y;
-    normal.y = - line.u.x;
+    normal.y = -line.u.x;
 
     // construct difference of support vector x0 and point
     T_POINT2D diff_x0_point;
