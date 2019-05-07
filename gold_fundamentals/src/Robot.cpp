@@ -124,7 +124,7 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
 
         this->position.x += r * sin(this->theta + theta) - r * sin(this->theta);
         this->position.y += r * cos(this->theta + theta) + r * cos(this->theta);
-        this->theta = fmod(this->theta + theta, 360);
+        this->theta = fmod(this->theta + theta + 360.0, 360);
     }
     ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
 
