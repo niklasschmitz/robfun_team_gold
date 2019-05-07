@@ -1,7 +1,7 @@
 #include "Robot.h"
 
 
-const double Robot::LOOPRATE = 30;
+const double Robot::LOOPRATE = 60;
 const double Robot::ENCODER_STEPS_PER_REVOLUTION = M_PI * 2.0;
 const double Robot::LASER_OFFSET = 0.12;
 const double Robot::MAX_SPEED = 10.; //15.625
@@ -101,7 +101,6 @@ void Robot::turn(double angle) {
 
         loop_rate.sleep();
     }
-
     brake();
     controller.reset();
 }
@@ -128,6 +127,71 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
     }
     ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
 
+}
+
+double Robot::angleDelta(double theta) {
+    double delta = theta - this->theta;
+
+    if (delta > M_PI)
+        delta -= M_PI;
+    if (delta < -M_PI)
+        delta += M_PI;
+
+    return delta;
+}
+
+void Robot::turnTo(double theta) {
+    PID control = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0);
+
+    while (sensorData == NULL) {
+        ros::spinOnce();
+        ros::Duration(0.1).sleep();T_CARTESIAN_COORD position;
+    }
+
+    double setpoint = angleDelta(theta);
+    double position = 0.0;
+
+    ros::Rate loop_rate(LOOPRATE);
+    while (ros::ok() && fabs(setpoint - position) > 0.1) {
+        ros::spinOnce();
+
+        position = setpoint - angleDelta(theta);
+
+        double out = control.calculate(setpoint, position, 1.0 / LOOPRATE);
+        diffDrive(out, -out);
+        ROS_INFO("pos:%lf, goal:%lf, speed:%lf", position, setpoint, out);
+
+        loop_rate.sleep();
+    }
+
+    this->brake();
+}
+
+void Robot::driveTo(T_CARTESIAN_COORD goal){
+    PID control = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0);
+
+    while (sensorData == NULL) {
+        ros::spinOnce();
+        ros::Duration(0.1).sleep();
+    }
+
+    double setpoint = (this->position - goal).magnitude();
+    double position = 0.0;
+
+    ros::Rate loop_rate(LOOPRATE);
+    while (ros::ok() && fabs(setpoint - position) > 0.1) {
+        ros::spinOnce();
+
+        position = setpoint - (this->position - goal).magnitude();
+
+        double out = control.calculate(setpoint, position, 1.0 / LOOPRATE);
+        diffDrive(out, -out);
+        ROS_INFO("pos:%lf, goal:%lf, speed:%lf", position, setpoint, out);
+
+        loop_rate.sleep();
+    }
+
+    this->brake();
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {

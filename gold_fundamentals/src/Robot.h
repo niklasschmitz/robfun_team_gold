@@ -46,6 +46,12 @@ public:
 
     void calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,
                            const create_fundamentals::SensorPacket::ConstPtr &newData);
+
+    void turnTo(double theta);
+
+    double angleDelta(double theta);
+
+    void driveTo(T_CARTESIAN_COORD position);
 };
 
 #endif //SRC_ROBOT_H
