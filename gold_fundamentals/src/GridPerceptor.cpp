@@ -99,7 +99,7 @@ T_LINE GridPerceptor::constructLineParameterForm(T_POINT2D x1, T_POINT2D x2) {
     T_LINE line;
 
     // support vector
-    line.x1 = x1;
+    line.x0 = x1;
 
     // construct directional vector u
     T_POINT2D u;
