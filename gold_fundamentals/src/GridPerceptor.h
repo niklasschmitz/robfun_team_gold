@@ -30,7 +30,7 @@ private:
     ros::Subscriber sub_laser;
 
     T_POINT2D convertPolarToCartesian(double theta, double r);
-    T_LINE GridPerceptor::constructLineParameterForm(T_POINT2D x1, T_POINT2D x2);
+    T_LINE constructLineParameterForm(T_POINT2D x1, T_POINT2D x2);
     std::vector<T_LINE> ransac(std::vector<T_POINT2D> coordinates);
     double distBetweenLineAndPoint(T_LINE line, T_POINT2D point);
     bool testLineSimilarity(std::vector<T_LINE> lines, T_LINE line);
