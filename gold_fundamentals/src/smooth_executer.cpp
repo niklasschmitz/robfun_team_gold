@@ -53,10 +53,11 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     robot = new Robot();
     robot->direction = gold_fundamentals::ExecutePlanRequest::UP;
-    robot->turn(M_PI * 2); //simulate align
+    robot->drive(1.0);
+    //robot->turn(M_PI * 2); //simulate align
 
     ROS_INFO("Ready to execute.");
-    ros::spin();
+    //ros::spin();
 
     delete(robot);
 
