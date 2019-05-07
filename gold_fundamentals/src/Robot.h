@@ -39,7 +39,7 @@ public:
     int direction;
     PID controller;
     ros::ServiceClient diff_drive;
-    GridPerceptor gp;
+    //GridPerceptor gp;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
 
