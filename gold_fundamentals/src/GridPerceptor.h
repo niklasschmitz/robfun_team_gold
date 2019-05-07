@@ -30,17 +30,17 @@ struct T_POINT2D {
 
     // addition
     T_POINT2D operator+(const T_POINT2D &other) const {
-        return T_POINT2D(other.x + x, other.y + y);
+        return T_POINT2D(x + other.x, y + other.y);
     }
 
     // subtraction
     T_POINT2D operator-(const T_POINT2D &other) const {
-        return T_POINT2D(other.x - x, other.y - y);
+        return T_POINT2D(x - other.x, y - other.y);
     }
 
     // dot product
     double operator*(const T_POINT2D &other) const {
-        return other.x * x + other.y * y;
+        return x * other.x + y * other.y;
     }
 };
 
