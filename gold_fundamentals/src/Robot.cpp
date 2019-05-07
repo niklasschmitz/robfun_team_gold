@@ -145,7 +145,7 @@ void Robot::turnTo(double theta) {
 
     while (sensorData == NULL) {
         ros::spinOnce();
-        ros::Duration(0.1).sleep();T_CARTESIAN_COORD position;
+        ros::Duration(0.1).sleep();
     }
 
     double setpoint = angleDelta(theta);
@@ -167,7 +167,7 @@ void Robot::turnTo(double theta) {
     this->brake();
 }
 
-void Robot::driveTo(T_CARTESIAN_COORD goal){
+void Robot::driveTo(T_CARTESIAN_COORD goal) {
     PID control = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0);
 
     while (sensorData == NULL) {

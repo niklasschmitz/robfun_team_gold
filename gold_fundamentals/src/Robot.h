@@ -11,13 +11,19 @@
 class Robot {
 public:
     Robot();
+
     ~Robot();
 
     void diffDrive(double left, double right);
+
     void brake();
+
     void drive(double distance);
+
     void turn(double angle);
+
     void turnRandom();
+
     void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg);
 
     ros::Subscriber sub_sensor;
