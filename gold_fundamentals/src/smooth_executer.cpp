@@ -9,7 +9,7 @@
 
 double const MAZE_SIDE_LENGTH = 0.8;
 
-Robot* robot;
+Robot *robot;
 
 void turn(int direction) {
     int amount = direction - robot->direction;
@@ -40,7 +40,7 @@ void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
     robot->diffDrive(0.0, 0.0);
 
-    delete(robot);
+    delete (robot);
 
     ros::shutdown();
 }
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     ROS_INFO("Ready to execute.");
     ros::spin();
 
-    delete(robot);
+    delete (robot);
 
     return 0;
 }

@@ -9,14 +9,14 @@
 #include "GridPerceptor.h"
 
 
-Robot* robot;
+Robot *robot;
 
 void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
     robot->diffDrive(0.0, 0.0);
 
     ros::shutdown();
-    delete(robot);
+    delete (robot);
 }
 
 // side_length: side length of square in metres
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
 
     driveSquare(1., 1);
 
-    delete(robot);
+    delete (robot);
     return 0;
 }
 
