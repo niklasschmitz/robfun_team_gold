@@ -141,7 +141,7 @@ double Robot::angleDelta(double theta) {
 }
 
 void Robot::turnTo(double theta) {
-    PID control = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0);
+    PID control = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12.5, 0.0, 0.0);
 
     while (sensorData == NULL) {
         ros::spinOnce();
@@ -168,7 +168,7 @@ void Robot::turnTo(double theta) {
 }
 
 void Robot::driveTo(T_CARTESIAN_COORD goal) {
-    PID control = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0);
+    PID control = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12.5, 0.0, 0.0);
 
     while (sensorData == NULL) {
         ros::spinOnce();
