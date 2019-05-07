@@ -111,19 +111,19 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
     if (!oldData || !newData)
         return;
 
-    double deltaLeft = oldData->encoderLeft - newData->encoderLeft;
-    double deltaRight = oldData->encoderRight - newData->encoderRight;
+    double deltaLeft = (newData->encoderLeft - oldData->encoderLeft) * Robot::WHEEL_RADIUS;
+    double deltaRight = (newData->encoderRight - oldData->encoderRight) * Robot::WHEEL_RADIUS;
 
-    if (fabs(deltaRight - deltaLeft) < std::numeric_limits<float>::epsilon() * 10.0) {
-        this->position.x += deltaLeft * Robot::WHEEL_RADIUS * cos(this->theta);
-        this->position.y += deltaRight * Robot::WHEEL_RADIUS * sin(this->theta);
+    if (fabs(deltaRight - deltaLeft) < std::numeric_limits<float>::epsilon()) {
+        this->position.x += deltaLeft * cos(this->theta);
+        this->position.y += deltaRight * sin(this->theta);
     } else {
-        double theta = (deltaRight - deltaLeft) * Robot::WHEEL_RADIUS / Robot::TRACK;
-        double d = (deltaRight + deltaLeft) * Robot::WHEEL_RADIUS / 2.0;
+        double theta = (deltaRight - deltaLeft) / Robot::TRACK;
+        double d = (deltaRight + deltaLeft) / 2.0;
         double r = d / theta;
 
-        this->position.x += r * sin(this->theta + theta) - r * sin(this->theta);
-        this->position.y += r * cos(this->theta + theta) + r * cos(this->theta);
+        this->position.x += r * sin(this->theta + theta + M_PI_2) - r * sin(this->theta + M_PI_2);
+        this->position.y += r * cos(this->theta + theta + M_PI_2) + r * cos(this->theta + M_PI_2);
         this->theta = fmod(this->theta + theta + 360.0, 360);
     }
     ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
