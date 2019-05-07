@@ -152,13 +152,13 @@ void Robot::turnTo(double theta) {
     double position = 0.0;
 
     ros::Rate loop_rate(LOOPRATE);
-    while (ros::ok() && fabs(setpoint - position) > 0.1) {
+    while (ros::ok() && fabs(setpoint - position) > 0.02) {
         ros::spinOnce();
 
         position = setpoint - angleDelta(theta);
 
         double out = control.calculate(setpoint, position, 1.0 / LOOPRATE);
-        diffDrive(out, -out);
+        diffDrive(-out, out);
         ROS_INFO("pos:%lf, goal:%lf, speed:%lf", position, setpoint, out);
 
         loop_rate.sleep();
@@ -177,16 +177,32 @@ void Robot::driveTo(T_CARTESIAN_COORD goal) {
 
     double setpoint = (this->position - goal).magnitude();
     double position = 0.0;
+    double setangle = angleDelta(theta);
+    double angle = 0.0;
 
     ros::Rate loop_rate(LOOPRATE);
-    while (ros::ok() && fabs(setpoint - position) > 0.1) {
+    while (ros::ok() && fabs(setpoint - position) > 0.003) {
         ros::spinOnce();
 
         position = setpoint - (this->position - goal).magnitude();
+        angle = setangle - angleDelta(theta);
 
         double out = control.calculate(setpoint, position, 1.0 / LOOPRATE);
-        diffDrive(out, -out);
-        ROS_INFO("pos:%lf, goal:%lf, speed:%lf", position, setpoint, out);
+        double turn = control.calculate(setangle, angle, 1.0 / LOOPRATE);
+
+        if (out > 2 * Robot::MAX_SPEED){
+            if (turn > 0) {
+                diffDrive(out - turn, out);
+            } else {
+                diffDrive(out, out + turn);
+            }
+        } else {
+            if (turn > 0) {
+                diffDrive(out, out + turn);
+            } else {
+                diffDrive(out - turn, out);
+            }
+        }
 
         loop_rate.sleep();
     }
