@@ -125,8 +125,8 @@ double GridPerceptor::distBetweenLineAndPoint(T_LINE line, T_POINT2D point) {
 
     // construct difference of support vector x0 and point
     T_POINT2D diff_x0_point;
-    diff_x0_point.x = x0.x - point.x;
-    diff_x0_point.y = x0.y - point.y;
+    diff_x0_point.x = line.x0.x - point.x;
+    diff_x0_point.y = line.x0.y - point.y;
 
     // project difference onto normal vector to get distance
     double dist = diff_x0_point.x * normal.x + diff_x0_point.y * normal.y;
