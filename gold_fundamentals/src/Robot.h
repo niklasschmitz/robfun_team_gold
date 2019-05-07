@@ -43,8 +43,9 @@ public:
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
 
-//private:
 
+    void calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,
+                           const create_fundamentals::SensorPacket::ConstPtr &newData);
 };
 
 #endif //SRC_ROBOT_H

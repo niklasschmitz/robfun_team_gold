@@ -15,7 +15,6 @@ const double Robot::WHEEL_RADIUS = 0.032;
 Robot::Robot() {
     ros::NodeHandle n;
     this->controller = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0);
-    this->gp = GridPerceptor();
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
     this->position.x = 0.0;
@@ -107,13 +106,13 @@ void Robot::turn(double angle) {
     controller.reset();
 }
 
-void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
-    ROS_INFO("left encoder: %lf, right encoder: %lf", msg->encoderLeft, msg->encoderRight);
+void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,
+                              const create_fundamentals::SensorPacket::ConstPtr &newData) {
+    if (!oldData || !newData)
+        return;
 
-    double deltaLeft = this->sensorData->encoderLeft - msg->encoderLeft;
-    double deltaRight = this->sensorData->encoderRight - msg->encoderRight;
-
-    this->sensorData = msg;
+    double deltaLeft = oldData->encoderLeft - newData->encoderLeft;
+    double deltaRight = oldData->encoderRight - newData->encoderRight;
 
     if (fabs(deltaRight - deltaLeft) < std::numeric_limits<float>::epsilon() * 10.0) {
         this->position.x += deltaLeft * Robot::WHEEL_RADIUS * cos(this->theta);
@@ -127,8 +126,15 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
         this->position.y += r * cos(this->theta + theta) + r * cos(this->theta);
         this->theta = fmod(this->theta + theta, 360);
     }
-
     ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
+
+}
+
+void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
+    ROS_INFO("left encoder: %lf, right encoder: %lf", msg->encoderLeft, msg->encoderRight);
+    calculatePosition(this->sensorData, msg);
+
+    this->sensorData = msg;
 }
 
 Robot::~Robot() {}
