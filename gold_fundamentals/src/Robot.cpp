@@ -19,7 +19,7 @@ Robot::Robot() {
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
     this->position = T_CARTESIAN_COORD(0.0, 0.0);
     this->positionGoal = T_CARTESIAN_COORD(0.0, 0.0);
-    this->theta = 0;
+    this->theta = M_PI_2;
     this->thetaGoal = nan("");
 }
 
