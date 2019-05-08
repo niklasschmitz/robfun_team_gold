@@ -13,7 +13,7 @@ Robot *robot;
 
 void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
-    robot->diffDrive(0.0, 0.0);
+    robot->brake();
 
     ros::shutdown();
     delete (robot);

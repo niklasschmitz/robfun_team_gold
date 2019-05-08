@@ -7,6 +7,8 @@
 #include "tools.h"
 #include "PID.h"
 #include "GridPerceptor.h"
+#include <queue>
+
 
 class Robot {
 public:
@@ -43,6 +45,7 @@ public:
     T_CARTESIAN_COORD positionGoal;
     double theta;
     double thetaGoal;
+    std::queue<T_CARTESIAN_COORD> path;
 
     PID controller;
     ros::ServiceClient diff_drive;
@@ -67,6 +70,12 @@ public:
     bool reachedTheta();
 
     void spin();
+
+    void executePath();
+
+    bool isCloseTo(T_CARTESIAN_COORD point);
+
+    void followPath(std::queue<T_CARTESIAN_COORD> path);
 };
 
 #endif //SRC_ROBOT_H

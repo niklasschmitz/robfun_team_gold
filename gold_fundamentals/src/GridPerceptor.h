@@ -34,6 +34,12 @@ typedef struct T_POINT2D {
         return fmod(atan2(y, x) + 2.0 * M_PI, 2.0 * M_PI);
     }
 
+    const T_POINT2D rotate(double theta) {
+        double newX = x * cos(theta) - y * sin(theta);
+        double newY = x * sin(theta) + y * cos(theta);
+        return T_POINT2D(newX, newY);
+    }
+
 } T_CARTESIAN_COORD;
 
 class GridPerceptor {
