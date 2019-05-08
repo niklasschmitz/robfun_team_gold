@@ -51,7 +51,7 @@ void Robot::brake() {
     srv.request.left = 0.0f;
     srv.request.right = 0.0f;
     diff_drive.call(srv);
-    ros::Duration(1).sleep();
+    ros::Duration(0.5).sleep();
 }
 
 void Robot::drive(double distance) {
@@ -129,6 +129,22 @@ void Robot::driveTo(T_CARTESIAN_COORD goal) {
     this->brake();
 }
 
+void Robot::followPath(std::queue<T_CARTESIAN_COORD> path) {
+    this->path = path;
+
+    ros::Rate loop_rate(LOOPRATE);
+    while (ros::ok() && this->path.size() > 0) {
+        ros::spinOnce();
+        loop_rate.sleep();
+    }
+
+    this->brake();
+}
+
+bool Robot::isCloseTo(T_CARTESIAN_COORD point) {
+    return (point - this->position).magnitude() < 0.2;
+}
+
 bool Robot::reachedGoal() {
     return (this->positionGoal - this->position).magnitude() < 0.05;
 }
@@ -144,9 +160,9 @@ void Robot::spin() {
     if (this->reachedTheta())
         return;
 
-    PID control = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
+    PID turnControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
     double error = angleDelta(this->thetaGoal);
-    double out = control.calculate(error, 0.0, 1 / LOOPRATE);
+    double out = turnControl.calculate(error, 0.0, 1 / LOOPRATE);
     diffDrive(-out, out);
 
 }
@@ -156,13 +172,13 @@ void Robot::steer() {
     if (this->reachedGoal())
         return;
 
-    PID control = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
-    PID control2 = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
+    PID driveControl = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
+    PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
 
     T_CARTESIAN_COORD error = this->positionGoal - this->position;
 
-    double out = control.calculate(error.magnitude(), 0.0, 1.0 / LOOPRATE);
-    double turn = control2.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
+    double out = driveControl.calculate(error.magnitude(), 0.0, 1.0 / LOOPRATE);
+    double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
 
     if (out > 2 * Robot::MAX_SPEED) {
         if (turn > 0) {
@@ -180,6 +196,31 @@ void Robot::steer() {
     }
 }
 
+void Robot::executePath() {
+    if (this->path.size() == 0)
+        return;
+
+    while(path.size() > 1 && this->isCloseTo(path.front()))
+        path.pop();
+
+    if (this->path.size() == 1){
+        driveTo(path.front());
+        path.pop();
+    }
+
+    PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
+    T_CARTESIAN_COORD error = this->positionGoal - this->position;
+
+    double speed = Robot::MAX_SPEED;
+    double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
+
+    if (turn > 0) {
+        diffDrive(speed - turn, speed);
+    } else {
+        diffDrive(speed, speed + turn);
+    }
+}
+
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
     //ROS_INFO("left encoder: %lf, right encoder: %lf", msg->encoderLeft, msg->encoderRight);
     calculatePosition(this->sensorData, msg);
@@ -188,6 +229,7 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
 
     steer();
     spin();
+    executePath();
 }
 
 Robot::~Robot() {}

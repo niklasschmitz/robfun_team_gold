@@ -12,15 +12,25 @@ double const MAZE_SIDE_LENGTH = 0.8;
 Robot *robot;
 
 bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::ExecutePlan::Response &res) {
-
-    for (int i = 0; i < req.plan.size(); i++) {
-        ROS_INFO("%d", req.plan[i]);
-        robot->turnTo(req.plan[i] * M_PI_2);
-        robot->drive(MAZE_SIDE_LENGTH);
+    if (req.plan.size() == 0) {
+        res.success = true;
+        return true;
     }
 
-    res.success = true;
+    robot->turnTo(req.plan[0] * M_PI_2);
 
+    T_CARTESIAN_COORD dist(MAZE_SIDE_LENGTH, 0);
+    T_CARTESIAN_COORD next(0, 0);
+    std::queue<T_CARTESIAN_COORD> plan;
+
+    for (int i = 0; i < req.plan.size(); i++) {
+        next = next + dist.rotate(req.plan[i]);
+        plan.push(next);
+    }
+
+    robot->followPath(plan);
+
+    res.success = true;
     return true;
 }
 
@@ -41,9 +51,7 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     robot = new Robot();
 
-    T_CARTESIAN_COORD goal(1.0, 1.0);
-    robot->driveTo(goal);
-    robot->turn(M_PI);
+    ros::spin();
 
     delete (robot);
 
