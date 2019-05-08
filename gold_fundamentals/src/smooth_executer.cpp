@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 
     T_CARTESIAN_COORD goal(1.0,1.0);
     robot->driveTo(goal);
-    //robot->turnTo(1.5 * M_PI);
+    robot->turn(M_PI);
 
     delete (robot);
 

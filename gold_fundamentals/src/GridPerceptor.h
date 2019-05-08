@@ -22,6 +22,10 @@ typedef struct T_POINT2D {
         return T_POINT2D(x - other.x, y - other.y);
     }
 
+    T_POINT2D operator+(const T_POINT2D &other) {
+        return T_POINT2D(x + other.x, y + other.y);
+    }
+
     const double magnitude() {
         return sqrt(pow(x, 2) + pow(y, 2));
     }
