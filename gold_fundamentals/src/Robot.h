@@ -40,7 +40,9 @@ public:
     static const double WHEEL_RADIUS;
 
     T_CARTESIAN_COORD position;
+    T_CARTESIAN_COORD positionGoal;
     double theta;
+    double thetaGoal;
 
     int direction;
     PID controller;

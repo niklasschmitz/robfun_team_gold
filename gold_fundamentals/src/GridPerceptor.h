@@ -23,7 +23,11 @@ typedef struct T_POINT2D {
     }
 
     const double magnitude() {
-        return sqrt(pow(x,2) + pow(y,2));
+        return sqrt(pow(x, 2) + pow(y, 2));
+    }
+
+    const double theta() {
+        return fmod(atan2(y, x) + 2.0 * M_PI, 2.0 * M_PI);
     }
 
 } T_CARTESIAN_COORD;
