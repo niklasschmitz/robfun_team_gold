@@ -42,6 +42,24 @@ struct T_POINT2D {
     double operator*(const T_POINT2D &other) const {
         return x * other.x + y * other.y;
     }
+
+    // length
+    static double getLength(const T_POINT2D &v) {
+        return sqrt(v.x * v.x + v.y * v.y);
+    }
+
+    static void normalize(T_POINT2D &v) {
+        double length = getLength(v);
+        v.x /= length;
+        v.y /= length;
+    }
+
+    // angle between
+    static double angleBetweenVectors(const T_POINT2D &v1, const T_POINT2D &v2) {
+        double cos_between = (v1*v2)/(getLength(v1)*getLength(v2));
+        double angle = std::acos(cos_between);
+        return angle;
+    }
 };
 
 typedef struct {
