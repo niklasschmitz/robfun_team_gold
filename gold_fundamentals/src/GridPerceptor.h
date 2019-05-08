@@ -17,12 +17,8 @@ struct T_POINT2D {
     T_POINT2D(double x = 0, double y = 0)
             : x(x), y(y) {}
 
-    // assignment
-    T_POINT2D &operator=(const T_POINT2D &other) {
-        x = other.x;
-        y = other.y;
-        return *this;
-    }
+    // trivial copy constructor
+    T_POINT2D &operator=(const T_POINT2D &other) = default;
 
     // equality
     bool operator==(const T_POINT2D &other) {
