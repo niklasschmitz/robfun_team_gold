@@ -2,6 +2,7 @@
 #define SRC_GP_H
 
 #include "sensor_msgs/LaserScan.h"
+#include <visualization_msgs/Marker.h>
 #include "ros/ros.h"
 #include <cstdlib>
 #include <cmath>
@@ -67,26 +68,36 @@ typedef struct {
     T_POINT2D u; // (normalized) directional vector
 } T_LINE;
 
+typedef struct {
+    T_LINE line;
+    int inliers;
+} T_RATED_LINE;
+
 class GridPerceptor {
 public:
     GridPerceptor();
 
     ~GridPerceptor();
 
+
 private:
     void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg);
 
+    ros::Publisher marker_pub;
     ros::Subscriber sub_laser;
+
 
     T_POINT2D convertPolarToCartesian(double theta, double r);
 
     T_LINE constructLineParameterForm(T_POINT2D x1, T_POINT2D x2);
 
-    std::vector<T_LINE> ransac(std::vector<T_POINT2D> coordinates);
+    std::vector<T_RATED_LINE> ransac(std::vector<T_POINT2D> coordinates);
 
     double distBetweenLineAndPoint(T_LINE line, T_POINT2D point);
 
-    bool testLineSimilarity(std::vector<T_LINE> lines, T_LINE line);
+    bool testLineSimilarity(std::vector<T_RATED_LINE>& lines, T_RATED_LINE line);
+
+    void publishLines(std::vector<T_RATED_LINE> lines);
 };
 
 #endif //SRC_GP_H
