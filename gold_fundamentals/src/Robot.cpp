@@ -133,9 +133,9 @@ double Robot::angleDelta(double theta) {
     double delta = theta - this->theta;
 
     if (delta > M_PI)
-        delta -= M_PI;
+        delta -= 2.0 * M_PI;
     if (delta < -M_PI)
-        delta += M_PI;
+        delta += 2.0 * M_PI;
 
     return delta;
 }
@@ -150,23 +150,16 @@ void Robot::turnTo(double theta) {
 
     double setpoint = angleDelta(theta);
     double position = 0.0;
-    create_fundamentals::SensorPacket::ConstPtr last = this->sensorData;
 
     ros::Rate loop_rate(LOOPRATE);
     while (ros::ok() && fabs(setpoint - position) > 0.02) {
         ros::spinOnce();
 
-        if(last != this->sensorData){
-            position = setpoint - angleDelta(theta);
+        position = setpoint - angleDelta(theta);
 
-            ros::Duration timedelta = this->sensorData->header.stamp - last->header.stamp;
-            double out = control.calculate(setpoint, position, timedelta.toSec());
-            diffDrive(-out, out);
-            ROS_INFO("pos:%lf, goal:%lf, speed:%lf", position, setpoint, out);
-
-            last = this->sensorData;
-        }
-
+        double out = control.calculate(setpoint, position, 1 / LOOPRATE);
+        diffDrive(-out, out);
+        ROS_INFO("pos:%lf, goal:%lf, speed:%lf", position, setpoint, out);
 
 
         loop_rate.sleep();
