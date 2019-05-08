@@ -159,6 +159,7 @@ void Robot::turnTo(double theta) {
         double out = control.calculate(error, 0.0, 1 / LOOPRATE);
         diffDrive(-out, out);
 
+
         loop_rate.sleep();
     }
 
@@ -175,19 +176,15 @@ void Robot::driveTo(T_CARTESIAN_COORD goal) {
     }
 
     T_CARTESIAN_COORD error = this->position - goal;
-    double pos = 0.0;
 
     ros::Rate loop_rate(LOOPRATE);
     while (ros::ok() && error.magnitude() > 0.05) {
         ros::spinOnce();
 
         error = goal - this->position;
-        double setangle = angleDelta(error.theta());
-        double posangle = setangle - angleDelta(error.theta());
 
-
-        double out = control.calculate(error.magnitude(), pos, 1.0 / LOOPRATE);
-        double turn = control2.calculate(setangle, posangle, 1.0 / LOOPRATE);
+        double out = control.calculate(error.magnitude(), 0.0, 1.0 / LOOPRATE);
+        double turn = control2.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
         //ROS_INFO("error:%lf, x:%lf, goal:%lf", error.magnitude(), this->position.x, goal.x);
 
         if (out > 2 * Robot::MAX_SPEED) {
