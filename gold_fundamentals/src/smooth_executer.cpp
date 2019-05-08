@@ -56,13 +56,7 @@ int main(int argc, char **argv) {
 
     T_CARTESIAN_COORD goal(1.0,1.0);
     robot->driveTo(goal);
-
-    //ROS_INFO("Ready to execute.");
-    //ros::spin();
-
-    robot->diffDrive(10,12);
-    ros::Duration(2).sleep();
-    robot->brake();
+    //robot->turnTo(1.5 * M_PI);
 
     delete (robot);
 
