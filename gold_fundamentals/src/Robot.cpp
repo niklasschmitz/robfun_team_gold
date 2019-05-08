@@ -17,9 +17,10 @@ Robot::Robot() {
     this->controller = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0);
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
-    this->position.x = 0.0;
-    this->position.y = 0.0;
-    this->theta = 0.0;
+    this->position = T_CARTESIAN_COORD(0.0, 0.0);
+    this->positionGoal = T_CARTESIAN_COORD(0.0, 0.0);
+    this->theta = M_PI_2;
+    this->thetaGoal = M_PI_2;
 }
 
 void Robot::diffDrive(double left, double right) {
@@ -141,7 +142,7 @@ double Robot::angleDelta(double theta) {
 }
 
 void Robot::turnTo(double theta) {
-    PID control = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12.5, 0.0, 0.0);
+    PID control = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
 
     while (sensorData == NULL) {
         ros::spinOnce();
@@ -155,6 +156,7 @@ void Robot::turnTo(double theta) {
     while (ros::ok() && fabs(setpoint - position) > 0.02) {
         ros::spinOnce();
 
+        setpoint = angleDelta(theta);
         position = setpoint - angleDelta(theta);
 
         double out = control.calculate(setpoint, position, 1 / LOOPRATE);
@@ -169,46 +171,41 @@ void Robot::turnTo(double theta) {
 }
 
 void Robot::driveTo(T_CARTESIAN_COORD goal) {
-    PID control = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12.5, 0.0, 0.0);
+    PID control = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
 
     while (sensorData == NULL) {
         ros::spinOnce();
         ros::Duration(0.1).sleep();
     }
 
-    double setpoint = (this->position - goal).magnitude();
-    double position = 0.0;
-    double setangle = angleDelta(theta);
-    double angle = 0.0;
-    create_fundamentals::SensorPacket::ConstPtr last = this->sensorData;
+    T_CARTESIAN_COORD error = this->position - goal;
+    double pos = 0.0;
 
     ros::Rate loop_rate(LOOPRATE);
-    while (ros::ok() && fabs(setpoint - position) > 0.003) {
+    while (ros::ok() && error.magnitude() > 0.1) {
         ros::spinOnce();
 
-        if(last != this->sensorData) {
-            position = setpoint - (this->position - goal).magnitude();
-            angle = setangle - angleDelta(theta);
+        error = goal - this->position;
+        double setangle = angleDelta(error.theta());
+        double posangle = setangle - angleDelta(error.theta());
 
-            ros::Duration timedelta = this->sensorData->header.stamp - last->header.stamp;
-            double out = control.calculate(setpoint, position, timedelta.toSec());
-            double turn = control.calculate(setangle, angle, timedelta.toSec());
 
-            if (out > 2 * Robot::MAX_SPEED) {
-                if (turn > 0) {
-                    diffDrive(out - turn, out);
-                } else {
-                    diffDrive(out, out + turn);
-                }
+        double out = control.calculate(error.magnitude(), pos, 1.0 / LOOPRATE);
+        double turn = control.calculate(setangle, posangle, 1.0 / LOOPRATE);
+        //ROS_INFO("error:%lf, x:%lf, goal:%lf", error.magnitude(), this->position.x, goal.x);
+
+        if (out > 2 * Robot::MAX_SPEED) {
+            if (turn > 0) {
+                diffDrive(out - turn, out);
             } else {
-                if (turn > 0) {
-                    diffDrive(out, out + turn);
-                } else {
-                    diffDrive(out - turn, out);
-                }
+                diffDrive(out, out + turn);
             }
-
-            last = this->sensorData;
+        } else {
+            if (turn > 0) {
+                diffDrive(out, out + turn);
+            } else {
+                diffDrive(out - turn, out);
+            }
         }
 
         loop_rate.sleep();
@@ -218,7 +215,7 @@ void Robot::driveTo(T_CARTESIAN_COORD goal) {
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
-    ROS_INFO("left encoder: %lf, right encoder: %lf", msg->encoderLeft, msg->encoderRight);
+    //ROS_INFO("left encoder: %lf, right encoder: %lf", msg->encoderLeft, msg->encoderRight);
     calculatePosition(this->sensorData, msg);
 
     this->sensorData = msg;
