@@ -19,8 +19,8 @@ Robot::Robot() {
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
     this->position = T_CARTESIAN_COORD(0.0, 0.0);
     this->positionGoal = T_CARTESIAN_COORD(0.0, 0.0);
-    this->theta = M_PI_2;
-    this->thetaGoal = M_PI_2;
+    this->theta = 0;
+    this->thetaGoal = 0;
 }
 
 void Robot::diffDrive(double left, double right) {
@@ -123,7 +123,7 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
         double r = d / theta;
 
         this->position.x += r * sin(this->theta + theta) - r * sin(this->theta);
-        this->position.y += r * cos(this->theta + theta) - r * cos(this->theta);
+        this->position.y += -r * cos(this->theta + theta) + r * cos(this->theta);
         this->theta = fmod(this->theta + theta + (M_PI * 2.0), (M_PI * 2.0));
     }
     ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
@@ -172,6 +172,7 @@ void Robot::turnTo(double theta) {
 
 void Robot::driveTo(T_CARTESIAN_COORD goal) {
     PID control = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
+    PID control2 = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 15, 0.0, 0.0);
 
     while (sensorData == NULL) {
         ros::spinOnce();
@@ -182,7 +183,7 @@ void Robot::driveTo(T_CARTESIAN_COORD goal) {
     double pos = 0.0;
 
     ros::Rate loop_rate(LOOPRATE);
-    while (ros::ok() && error.magnitude() > 0.1) {
+    while (ros::ok() && error.magnitude() > 0.05) {
         ros::spinOnce();
 
         error = goal - this->position;
@@ -191,7 +192,7 @@ void Robot::driveTo(T_CARTESIAN_COORD goal) {
 
 
         double out = control.calculate(error.magnitude(), pos, 1.0 / LOOPRATE);
-        double turn = control.calculate(setangle, posangle, 1.0 / LOOPRATE);
+        double turn = control2.calculate(setangle, posangle, 1.0 / LOOPRATE);
         //ROS_INFO("error:%lf, x:%lf, goal:%lf", error.magnitude(), this->position.x, goal.x);
 
         if (out > 2 * Robot::MAX_SPEED) {
