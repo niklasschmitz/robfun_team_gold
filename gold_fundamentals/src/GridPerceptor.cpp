@@ -57,7 +57,7 @@ T_POINT2D GridPerceptor::convertPolarToCartesian(double theta, double radius) {
 std::vector <T_RATED_LINE> GridPerceptor::ransac(std::vector <T_POINT2D> coordinates) {
     // how often do we generate a random sample
 //    ROS_INFO("---- RANSAC ----");
-    int iterations = 10;
+    int iterations = 50; // dont put too low, otherwise we don't find short edges because we miss them when sampling
 
     // number of points that have to be within the epsilon so the sample is qualified as a line
     // +2 as the 2 samples will always be inside
@@ -157,7 +157,7 @@ bool GridPerceptor::testLineSimilarity(std::vector <T_RATED_LINE>& lines, T_RATE
 
     // the dist_threshold is tested if the alpha threshold defines the lines as similar
     // it is measured how far the lines are apart from each other. if they are close -> similar
-    double dist_threshold = 0.05;
+    double dist_threshold = 0.3;
 
     for( int i = 0; i < lines.size(); ++i) {
         double angle = T_POINT2D::angleBetweenVectors(lines[i].line.u, rated_line.line.u);
@@ -167,21 +167,23 @@ bool GridPerceptor::testLineSimilarity(std::vector <T_RATED_LINE>& lines, T_RATE
         //ROS_INFO("angle after %lf", angle);
         if(angle < angle_threshold || angle > M_PI-angle_threshold) {
            // ROS_INFO("__rejected line (similar)");
-            return true;
+//            return true;
             // angles are similar, test distance
             // calc dist between line and support vector, direction used is the one of the already existing line
-//            double dist = distBetweenLineAndPoint(lines[i].line, rated_line.line.x0);
-//            if(dist < dist_threshold) {
-//                // same angle, close to each other -> similar
-//                // now test which line has the better fit
-//                if(lines[i].inliers < rated_line.inliers) {
-//                    // the new line has more inliers
-//                    // delete the old line, move in the other line
-//                    lines[i] = rated_line;
-//                    //ROS_INFO("similar");
-//                    return true;
-//                }
-//            }
+            double dist = distBetweenLineAndPoint(lines[i].line, rated_line.line.x0);
+            if(dist < dist_threshold) {
+                // same angle, close to each other -> similar
+                // now test which line has the better fit
+                if(lines[i].inliers < rated_line.inliers) {
+                    // the new line has more inliers
+                    // delete the old line, move in the other line
+                    lines[i] = rated_line;
+                }
+                //ROS_INFO("similar");
+                return true;
+            } else {
+                //ROS_INFO("unsimilar, dist %lf", dist);
+            }
         }
         //ROS_INFO("____accepted line, angle %lf", angle);
     }
