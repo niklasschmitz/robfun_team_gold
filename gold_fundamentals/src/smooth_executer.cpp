@@ -38,7 +38,7 @@ bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::Ex
 
 void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
-    robot->diffDrive(0.0, 0.0);
+    robot->brake();
 
     delete (robot);
 
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
     robot = new Robot();
     robot->direction = gold_fundamentals::ExecutePlanRequest::UP;
 
-    T_CARTESIAN_COORD goal(1.0,1.0);
+    T_CARTESIAN_COORD goal(1.0, 1.0);
     robot->driveTo(goal);
     robot->turn(M_PI);
 

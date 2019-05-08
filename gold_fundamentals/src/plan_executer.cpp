@@ -11,23 +11,11 @@ double const MAZE_SIDE_LENGTH = 0.8;
 
 Robot *robot;
 
-void turn(int direction) {
-    int amount = direction - robot->direction;
-
-    if (amount == 3)
-        amount = -1;
-    if (amount == -3)
-        amount = 1;
-
-    robot->turn(amount * M_PI_2);
-    robot->direction = direction;
-}
-
 bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::ExecutePlan::Response &res) {
 
     for (int i = 0; i < req.plan.size(); i++) {
         ROS_INFO("%d", req.plan[i]);
-        turn(req.plan[i]);
+        robot->turnTo(req.plan[i] * M_PI_2);
         robot->drive(MAZE_SIDE_LENGTH);
     }
 
@@ -38,7 +26,7 @@ bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::Ex
 
 void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
-    robot->diffDrive(0.0, 0.0);
+    robot->brake();
 
     delete (robot);
 
