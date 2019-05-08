@@ -118,9 +118,7 @@ T_LINE GridPerceptor::constructLineParameterForm(T_POINT2D x1, T_POINT2D x2) {
     line.x0 = x1;
 
     // construct directional vector u
-    T_POINT2D u;
-    u.x = x2.x - x1.x;
-    u.y = x2.y - x1.y;
+    T_POINT2D u = x2 - x1;
 
     // normalize u
     T_POINT2D::normalize(u);
@@ -130,20 +128,16 @@ T_LINE GridPerceptor::constructLineParameterForm(T_POINT2D x1, T_POINT2D x2) {
 }
 
 double GridPerceptor::distBetweenLineAndPoint(T_LINE line, T_POINT2D point) {
-    // TODO: clean up by using vector arithmetic implicitly
-
     // construct normal vector from line direction
     T_POINT2D normal;
     normal.x = line.u.y;
     normal.y = -line.u.x;
 
     // construct difference of support vector x0 and point
-    T_POINT2D diff_x0_point;
-    diff_x0_point.x = line.x0.x - point.x;
-    diff_x0_point.y = line.x0.y - point.y;
+    T_POINT2D diff_x0_point = line.x0 - point;
 
     // project difference onto normal vector to get distance
-    double dist = diff_x0_point.x * normal.x + diff_x0_point.y * normal.y;
+    double dist = diff_x0_point * normal;
 
     return std::fabs(dist);
 }
