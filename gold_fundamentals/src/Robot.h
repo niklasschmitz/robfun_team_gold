@@ -44,7 +44,6 @@ public:
     double theta;
     double thetaGoal;
 
-    int direction;
     PID controller;
     ros::ServiceClient diff_drive;
     //GridPerceptor gp;
