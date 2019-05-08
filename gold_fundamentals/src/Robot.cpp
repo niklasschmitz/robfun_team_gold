@@ -150,16 +150,24 @@ void Robot::turnTo(double theta) {
 
     double setpoint = angleDelta(theta);
     double position = 0.0;
+    create_fundamentals::SensorPacket::ConstPtr last = this->sensorData;
 
     ros::Rate loop_rate(LOOPRATE);
     while (ros::ok() && fabs(setpoint - position) > 0.02) {
         ros::spinOnce();
 
-        position = setpoint - angleDelta(theta);
+        if(last != this->sensorData){
+            position = setpoint - angleDelta(theta);
 
-        double out = control.calculate(setpoint, position, 1.0 / LOOPRATE);
-        diffDrive(-out, out);
-        ROS_INFO("pos:%lf, goal:%lf, speed:%lf", position, setpoint, out);
+            ros::Duration timedelta = this->sensorData->header.stamp - last->header.stamp;
+            double out = control.calculate(setpoint, position, timedelta.toSec());
+            diffDrive(-out, out);
+            ROS_INFO("pos:%lf, goal:%lf, speed:%lf", position, setpoint, out);
+
+            last = this->sensorData;
+        }
+
+
 
         loop_rate.sleep();
     }
@@ -179,29 +187,35 @@ void Robot::driveTo(T_CARTESIAN_COORD goal) {
     double position = 0.0;
     double setangle = angleDelta(theta);
     double angle = 0.0;
+    create_fundamentals::SensorPacket::ConstPtr last = this->sensorData;
 
     ros::Rate loop_rate(LOOPRATE);
     while (ros::ok() && fabs(setpoint - position) > 0.003) {
         ros::spinOnce();
 
-        position = setpoint - (this->position - goal).magnitude();
-        angle = setangle - angleDelta(theta);
+        if(last != this->sensorData) {
+            position = setpoint - (this->position - goal).magnitude();
+            angle = setangle - angleDelta(theta);
 
-        double out = control.calculate(setpoint, position, 1.0 / LOOPRATE);
-        double turn = control.calculate(setangle, angle, 1.0 / LOOPRATE);
+            ros::Duration timedelta = this->sensorData->header.stamp - last->header.stamp;
+            double out = control.calculate(setpoint, position, timedelta.toSec());
+            double turn = control.calculate(setangle, angle, timedelta.toSec());
 
-        if (out > 2 * Robot::MAX_SPEED){
-            if (turn > 0) {
-                diffDrive(out - turn, out);
+            if (out > 2 * Robot::MAX_SPEED) {
+                if (turn > 0) {
+                    diffDrive(out - turn, out);
+                } else {
+                    diffDrive(out, out + turn);
+                }
             } else {
-                diffDrive(out, out + turn);
+                if (turn > 0) {
+                    diffDrive(out, out + turn);
+                } else {
+                    diffDrive(out - turn, out);
+                }
             }
-        } else {
-            if (turn > 0) {
-                diffDrive(out, out + turn);
-            } else {
-                diffDrive(out - turn, out);
-            }
+
+            last = this->sensorData;
         }
 
         loop_rate.sleep();
