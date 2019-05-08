@@ -24,13 +24,13 @@ Robot::Robot() {
 }
 
 void Robot::diffDrive(double left, double right) {
-    ROS_INFO("diffDrive requested %lf %lf", left, right);
+    //ROS_INFO("diffDrive requested %lf %lf", left, right);
     if (left != 0 && fabs(left) < MIN_SPEED) {
-        ROS_INFO("speed to low. adjusting to +- %lf", MIN_SPEED);
+        //ROS_INFO("speed to low. adjusting to +- %lf", MIN_SPEED);
         left = MIN_SPEED * sgn(left);
     }
     if (right != 0 && fabs(right) < MIN_SPEED) {
-        ROS_INFO("speed to low. adjusting to +- %lf", MIN_SPEED);
+        //ROS_INFO("speed to low. adjusting to +- %lf", MIN_SPEED);
         right = MIN_SPEED * sgn(right);
     }
     create_fundamentals::DiffDrive srv;
@@ -149,20 +149,15 @@ void Robot::turnTo(double theta) {
         ros::Duration(0.1).sleep();
     }
 
-    double setpoint = angleDelta(theta);
-    double position = 0.0;
+    double error = angleDelta(theta);
 
     ros::Rate loop_rate(LOOPRATE);
-    while (ros::ok() && fabs(setpoint - position) > 0.02) {
+    while (ros::ok() && fabs(error) > 0.02) {
         ros::spinOnce();
 
-        setpoint = angleDelta(theta);
-        position = setpoint - angleDelta(theta);
-
-        double out = control.calculate(setpoint, position, 1 / LOOPRATE);
+        error = angleDelta(theta);
+        double out = control.calculate(error, 0.0, 1 / LOOPRATE);
         diffDrive(-out, out);
-        ROS_INFO("pos:%lf, goal:%lf, speed:%lf", position, setpoint, out);
-
 
         loop_rate.sleep();
     }
@@ -213,6 +208,42 @@ void Robot::driveTo(T_CARTESIAN_COORD goal) {
     }
 
     this->brake();
+}
+
+bool Robot::reachedGoal() {
+    return (this->positionGoal - this->position).magnitude() < 0.05;
+}
+
+void Robot::steer() {
+
+    if(this->reachedGoal())
+        return;
+
+    PID control = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
+    PID control2 = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
+
+    T_CARTESIAN_COORD error = this->positionGoal - this->position;
+    double angleError = angleDelta(error.theta());
+    double setangle = angleDelta(error.theta());
+    double posangle = setangle - angleDelta(error.theta());
+
+
+    double out = control.calculate(error.magnitude(), 0.0, 1.0 / LOOPRATE);
+    double turn = control2.calculate(angleError, 0.0, 1.0 / LOOPRATE);
+
+    if (out > 2 * Robot::MAX_SPEED) {
+        if (turn > 0) {
+            diffDrive(out - turn, out);
+        } else {
+            diffDrive(out, out + turn);
+        }
+    } else {
+        if (turn > 0) {
+            diffDrive(out, out + turn);
+        } else {
+            diffDrive(out - turn, out);
+        }
+    }
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
