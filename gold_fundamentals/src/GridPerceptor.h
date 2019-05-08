@@ -25,7 +25,7 @@ struct T_POINT2D {
     }
 
     // equality
-    bool operator==(const T_POINT2D& other) {
+    bool operator==(const T_POINT2D &other) {
         return (x == other.x && y == other.y);
     }
 
@@ -57,21 +57,21 @@ struct T_POINT2D {
 
     // angle between
     static double angleBetweenVectors(const T_POINT2D &v1, const T_POINT2D &v2) {
-        double cos_between = (v1*v2)/(getLength(v1)*getLength(v2));
+        double cos_between = (v1 * v2) / (getLength(v1) * getLength(v2));
         double angle = std::acos(cos_between);
         return angle;
     }
 };
 
-typedef struct {
+struct T_LINE {
     T_POINT2D x0; // support vector
     T_POINT2D u; // (normalized) directional vector
-} T_LINE;
+};
 
-typedef struct {
+struct T_RATED_LINE {
     T_LINE line;
     int inliers;
-} T_RATED_LINE;
+};
 
 class GridPerceptor {
 public:
@@ -95,7 +95,7 @@ private:
 
     double distBetweenLineAndPoint(T_LINE line, T_POINT2D point);
 
-    bool testLineSimilarity(std::vector<T_RATED_LINE>& lines, T_RATED_LINE line);
+    bool testLineSimilarity(std::vector<T_RATED_LINE> &lines, T_RATED_LINE line);
 
     void publishLines(std::vector<T_RATED_LINE> lines);
 };
