@@ -26,8 +26,14 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
         }
     }
 
-    std::vector <T_LINE> lines = ransac(coordinates);
-    //T_LINE line = linear_regression(xy[0], xy[1]);
+    std::vector<T_LINE> lines = ransac(coordinates);
+    if(lines.size() == 0) {
+        ROS_INFO("no line in sight");
+    } else {
+        for(int i=0; i<lines.size(); ++i) {
+            ROS_INFO("line %d, alpha %lf, beta %lf", i, lines[i].alpha, lines[i].beta);
+        }
+    }
     //ROS_INFO("alpha %lf, beta %lf", line.alpha, line.beta);
 }
 
@@ -82,7 +88,7 @@ std::vector <T_LINE> GridPerceptor::ransac(std::vector <T_CARTESIAN_COORD> coord
 
     // number of points that have to be within the epsilon so the sample is qualified as a line
     // +2 as the 2 samples will always be inside
-    int inliers_threshold = 20 + 2;
+    int inliers_threshold = 10 + 2;
 
     // boundary around the line. samples within are inliers, others are outliers
     double epsilon = 5;
@@ -149,15 +155,15 @@ double GridPerceptor::distBetweenLineAndPoint(T_LINE line, T_CARTESIAN_COORD poi
 
 bool GridPerceptor::testLineSimilarity(std::vector <T_LINE> lines, T_LINE line) {
 
-    // if the dist between the alphas of the lines are greater than the alpha_threshold -> not similar
-    double alpha_threshold = 5;
+    // if the dist between the angles of the lines is greater than the dist_threshold -> not similar
+    double angle_threshold = 5;
 
     // the dist_threshold is tested if the alpha threshold defines the lines as similar
     // the dist_threshold how far the lines are apart from each other. if they are close -> similar
     double dist_threshold = 5;
 
-    for (int i = 0; i < lines.size(); ++i) {
-        if (std::abs(lines[i].alpha - line.alpha) > alpha_threshold) {
+    for(int i=0; i<lines.size(); ++i){
+        if(std::abs(std::atan2(lines[i].alpha,1) - std::atan2(line.alpha,1)) > dist_threshold) {
             continue;
         } else {
             // lines have alpha_diff smaller than the threshold.
