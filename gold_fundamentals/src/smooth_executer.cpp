@@ -53,16 +53,11 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     robot = new Robot();
     robot->direction = gold_fundamentals::ExecutePlanRequest::UP;
-    robot->drive(1.0);
-    //robot->turn(-M_PI_2); //simulate align
-    //robot->turnTo(M_PI_2);
-    //T_CARTESIAN_COORD goal(1.0,1.0);
-    //double angle = atan2(position.y, position.x);
-    //ROS_INFO("angle:%lf", angle);
-    //robot->driveTo(goal);
-    //robot->turnTo(M_PI);
-    //robot->driveTo(T_CARTESIAN_COORD(0.0,0.0));
-    ROS_INFO("Ready to execute.");
+
+    T_CARTESIAN_COORD goal(1.0,1.0);
+    robot->driveTo(goal);
+
+    //ROS_INFO("Ready to execute.");
     //ros::spin();
 
     robot->diffDrive(10,12);
