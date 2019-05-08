@@ -60,6 +60,10 @@ public:
     double angleDelta(double theta);
 
     void driveTo(T_CARTESIAN_COORD position);
+
+    bool reachedGoal();
+
+    void steer();
 };
 
 #endif //SRC_ROBOT_H
