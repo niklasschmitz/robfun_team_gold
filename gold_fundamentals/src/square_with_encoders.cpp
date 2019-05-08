@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     robot = new Robot();
     signal(SIGINT, mySigintHandler);
 
-    driveSquare(1., 1);
+    driveSquare(1., 4);
 
     delete (robot);
     return 0;

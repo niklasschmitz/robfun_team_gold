@@ -64,6 +64,10 @@ public:
     bool reachedGoal();
 
     void steer();
+
+    bool reachedTheta();
+
+    void spin();
 };
 
 #endif //SRC_ROBOT_H
