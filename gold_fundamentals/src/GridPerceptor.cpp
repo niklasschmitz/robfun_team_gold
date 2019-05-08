@@ -107,9 +107,7 @@ T_LINE GridPerceptor::constructLineParameterForm(T_POINT2D x1, T_POINT2D x2) {
     u.y = x2.y - x1.y;
 
     // normalize u
-    double u_length = sqrt(u.x * u.x + u.y * u.y);
-    u.x /= u_length;
-    u.y /= u_length;
+    T_POINT2D::normalize(u);
     line.u = u;
 
     return line;
@@ -136,6 +134,27 @@ double GridPerceptor::distBetweenLineAndPoint(T_LINE line, T_POINT2D point) {
 
 bool GridPerceptor::testLineSimilarity(std::vector <T_LINE> lines, T_LINE line) {
     // TODO implement
+
+    // if the angle between the lines is greater than the angle_threshold -> not similar
+    double angle_threshold = 5;
+
+    // the dist_threshold is tested if the alpha threshold defines the lines as similar
+    // it is measured how far the lines are apart from each other. if they are close -> similar
+    double dist_threshold = 5;
+
+    for( int i = 0; i < lines.size(); ++i) {
+        double angle = T_POINT2D::angleBetweenVectors(lines[i].u, line.u);
+        angle = fmod(std::abs(angle), 180); // fmod = float modulo, %180 as vectors facing in the opposite direction are a similar line
+        if(angle < angle_threshold) {
+            // angles are similar, test distance
+            // calc dist between line and support vector, direction used is the one of the already existing line
+            double dist = distBetweenLineAndPoint(lines[i], line.x0);
+            if(dist < dist_threshold) {
+                // same angle, close to each other -> similar
+                return true;
+            }
+        }
+    }
 
     // tested all lines and didnt find a similar one
     return false;
