@@ -206,18 +206,17 @@ void Robot::executePath() {
     if (this->path.size() == 1){
         driveTo(path.front());
         path.pop();
-    }
-
-    PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
-    T_CARTESIAN_COORD error = this->positionGoal - this->position;
-
-    double speed = Robot::MAX_SPEED;
-    double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
-
-    if (turn > 0) {
-        diffDrive(speed - turn, speed);
     } else {
-        diffDrive(speed, speed + turn);
+        PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
+        T_CARTESIAN_COORD error = path.front() - this->position;
+
+        double speed = Robot::MAX_SPEED;
+        double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
+
+        if (turn > 0)
+            diffDrive(speed - turn, speed);
+        else
+            diffDrive(speed, speed + turn);
     }
 }
 
