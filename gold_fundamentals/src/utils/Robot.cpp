@@ -177,7 +177,7 @@ void Robot::steer() {
         }
 
         PID driveControl = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
-        PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
+        PID steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 15, 0.0, 0.0);
 
         T_POINT2D error = this->path.front() - this->position;
 
