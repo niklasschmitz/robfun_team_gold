@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="gold_fundamentals" name="smooth_executer" type="smooth_executer"/>
+</launch>

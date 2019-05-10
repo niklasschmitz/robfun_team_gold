@@ -7,17 +7,25 @@
 #include "tools.h"
 #include "PID.h"
 #include "GridPerceptor.h"
+#include <queue>
+
 
 class Robot {
 public:
     Robot();
+
     ~Robot();
 
     void diffDrive(double left, double right);
+
     void brake();
+
     void drive(double distance);
+
     void turn(double angle);
+
     void turnRandom();
+
     void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg);
 
     ros::Subscriber sub_sensor;
@@ -33,16 +41,41 @@ public:
     static const double TRACK;
     static const double WHEEL_RADIUS;
 
-    double speed;
-    int direction;
+    T_CARTESIAN_COORD position;
+    T_CARTESIAN_COORD positionGoal;
+    double theta;
+    double thetaGoal;
+    std::queue<T_CARTESIAN_COORD> path;
+
     PID controller;
     ros::ServiceClient diff_drive;
-    GridPerceptor gp;
+    //GridPerceptor gp;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
 
-//private:
 
+    void calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,
+                           const create_fundamentals::SensorPacket::ConstPtr &newData);
+
+    void turnTo(double theta);
+
+    double angleDelta(double theta);
+
+    void driveTo(T_CARTESIAN_COORD position);
+
+    bool reachedGoal();
+
+    void steer();
+
+    bool reachedTheta();
+
+    void spin();
+
+    void executePath();
+
+    bool isCloseTo(T_CARTESIAN_COORD point);
+
+    void followPath(std::queue<T_CARTESIAN_COORD> path);
 };
 
 #endif //SRC_ROBOT_H

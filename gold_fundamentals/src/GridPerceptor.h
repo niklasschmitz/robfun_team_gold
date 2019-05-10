@@ -57,6 +57,20 @@ struct T_POINT2D {
         double angle = std::acos(cos_between);
         return angle;
     }
+    
+    const double magnitude() {
+        return sqrt(pow(x, 2) + pow(y, 2));
+    }
+
+    const double theta() {
+        return fmod(atan2(y, x) + 2.0 * M_PI, 2.0 * M_PI);
+    }
+
+    const T_POINT2D rotate(double theta) {
+        double newX = x * cos(theta) - y * sin(theta);
+        double newY = x * sin(theta) + y * cos(theta);
+        return T_POINT2D(newX, newY);
+    }
 };
 
 struct T_LINE {
@@ -69,19 +83,17 @@ struct T_RATED_LINE {
     int inliers;
 };
 
+
 class GridPerceptor {
 public:
     GridPerceptor();
-
     ~GridPerceptor();
-
 
 private:
     void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg);
 
     ros::Publisher marker_pub;
     ros::Subscriber sub_laser;
-
 
     T_POINT2D convertPolarToCartesian(double theta, double r);
 

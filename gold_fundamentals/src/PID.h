@@ -4,12 +4,15 @@
 class PID {
 public:
     PID();
+
     PID(double max, double min, double Kp, double Ki, double Kd);
 
     ~PID();
 
     double calculate(double setpoint, double pv, double dt);
+
     void reset();
+
 private:
 
     double _max;
