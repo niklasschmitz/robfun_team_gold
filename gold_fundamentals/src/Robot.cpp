@@ -200,10 +200,10 @@ void Robot::executePath() {
     if (this->path.size() == 0)
         return;
 
-    while(path.size() > 1 && this->isCloseTo(path.front()))
+    while (path.size() > 1 && this->isCloseTo(path.front()))
         path.pop();
 
-    if (this->path.size() == 1){
+    if (this->path.size() == 1) {
         driveTo(path.front());
         path.pop();
     } else {
@@ -213,10 +213,11 @@ void Robot::executePath() {
         double speed = Robot::MAX_SPEED;
         double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
 
-        if (turn > 0)
+        if (turn > 0) {
             diffDrive(speed - turn, speed);
-        else
+        } else {
             diffDrive(speed, speed + turn);
+        }
     }
 }
 
