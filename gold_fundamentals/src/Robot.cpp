@@ -203,8 +203,10 @@ void Robot::executePath() {
         path.pop();
 
     if (this->path.size() == 1) {
-        driveTo(path.front());
-        path.pop();
+        this->positionGoal = this->path.front();
+        if(this->reachedGoal())
+            this->path.pop();
+
     } else {
         PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
         T_CARTESIAN_COORD error = path.front() - this->position;
@@ -226,9 +228,9 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
 
     this->sensorData = msg;
 
+    executePath();
     steer();
     spin();
-    executePath();
 }
 
 Robot::~Robot() {}
