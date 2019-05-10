@@ -66,7 +66,7 @@ catkin_package(
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 # Assignment 1
-add_executable(wanderer src/wanderer.cpp src/utils/Robot.cpp src/utils/Robot.h src/utils/tools.cpp src/utils/tools.h src/utils/PID.cpp src/utils/PID.h src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h)
+add_executable(wanderer src/wanderer.cpp src/utils/Robot.cpp src/utils/Robot.h src/utils/tools.cpp src/utils/tools.h src/utils/PID.cpp src/utils/PID.h src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h src/utils/geometry.cpp)
 target_link_libraries(wanderer ${catkin_LIBRARIES})
 add_dependencies(wanderer create_fundamentals_generate_messages_cpp)
 
@@ -74,7 +74,7 @@ add_executable(square_no_sensors src/square_no_sensors.cpp)
 target_link_libraries(square_no_sensors ${catkin_LIBRARIES})
 add_dependencies(square_no_sensors create_fundamentals_generate_messages_cpp)
 
-add_executable(square_with_encoders src/square_with_encoders.cpp src/utils/Robot.cpp src/utils/Robot.h src/utils/tools.cpp src/utils/tools.h src/utils/PID.cpp src/utils/PID.h src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h)
+add_executable(square_with_encoders src/square_with_encoders.cpp src/utils/Robot.cpp src/utils/Robot.h src/utils/tools.cpp src/utils/tools.h src/utils/PID.cpp src/utils/PID.h src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h src/utils/geometry.cpp)
 target_link_libraries(square_with_encoders ${catkin_LIBRARIES})
 add_dependencies(square_with_encoders create_fundamentals_generate_messages_cpp)
 
