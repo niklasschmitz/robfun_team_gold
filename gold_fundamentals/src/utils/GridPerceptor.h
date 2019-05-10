@@ -13,19 +13,21 @@ public:
     GridPerceptor();
     ~GridPerceptor();
 
+    std::vector<T_RATED_LINE> getLines();
+
 private:
     void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg);
 
     ros::Publisher marker_pub;
     ros::Subscriber sub_laser;
 
+    std::vector<T_RATED_LINE> lines;
+
     T_POINT2D convertPolarToCartesian(double theta, double r);
 
     T_LINE constructLineParameterForm(T_POINT2D x1, T_POINT2D x2);
 
     std::vector<T_RATED_LINE> ransac(std::vector<T_POINT2D> coordinates);
-
-    double distBetweenLineAndPoint(T_LINE line, T_POINT2D point);
 
     bool testLineSimilarity(std::vector<T_RATED_LINE> &lines, T_RATED_LINE line);
 

@@ -19,8 +19,8 @@ void mySigintHandler(int sig) {
     delete(robot);
 }
 
-void align() {
-
+void align_robot() {
+    robot->align();
 }
 
 
@@ -30,8 +30,10 @@ int main(int argc, char **argv) {
     robot = new Robot();
     signal(SIGINT, mySigintHandler);
 
-    //align();
-    ros::spin();
+    while(ros::ok) {
+        align_robot();
+        ros::spinOnce();
+    }
 
     delete(robot);
     return 0;

@@ -6,6 +6,7 @@
 #include <vector>
 
 
+
 struct T_POINT2D {
     double x;
     double y;
@@ -70,6 +71,7 @@ struct T_POINT2D {
         double newY = x * sin(theta) + y * cos(theta);
         return T_POINT2D(newX, newY);
     }
+
 };
 
 struct T_LINE {
@@ -77,9 +79,12 @@ struct T_LINE {
     T_POINT2D u; // (normalized) directional vector
 };
 
+
 struct T_RATED_LINE {
     T_LINE line;
     int inliers;
 };
+
+double distBetweenLineAndPoint(const T_LINE &line, const T_POINT2D &point);
 
 #endif //SRC_GEOMETRY_H
