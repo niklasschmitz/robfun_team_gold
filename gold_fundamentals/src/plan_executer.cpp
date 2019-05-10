@@ -3,8 +3,8 @@
 #include <cmath>
 #include "gold_fundamentals/ExecutePlan.h"
 #include "create_fundamentals/DiffDrive.h"
-#include "Robot.h"
-#include "GridPerceptor.h"
+#include "utils/Robot.h"
+#include "utils/GridPerceptor.h"
 
 
 double const MAZE_SIDE_LENGTH = 0.8;
