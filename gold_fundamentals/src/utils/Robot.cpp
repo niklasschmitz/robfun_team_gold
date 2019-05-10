@@ -141,7 +141,7 @@ bool Robot::isCloseTo(T_POINT2D point) {
 }
 
 bool Robot::reachedGoal(T_POINT2D goal) {
-    return (goal - this->position).magnitude() < 0.05;
+    return (goal - this->position).magnitude() < 0.02;
 }
 
 bool Robot::reachedTheta() {
@@ -183,7 +183,6 @@ void Robot::steer() {
 
         double out = driveControl.calculate(error.magnitude(), 0.0, 1.0 / LOOPRATE);
         double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
-        ROS_INFO("turn:%lf", turn);
 
         if (out > 2 * Robot::MAX_SPEED) {
             if (turn > 0) {
