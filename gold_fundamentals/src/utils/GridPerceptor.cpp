@@ -10,6 +10,10 @@ GridPerceptor::GridPerceptor() {
 GridPerceptor::~GridPerceptor() {
 }
 
+std::vector<T_RATED_LINE> GridPerceptor::getLines() {
+    return this->lines;
+}
+
 void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     //ROS_INFO("GridPerceptor laserCallback");
     //ROS_INFO("%i", msg->ranges.size());
@@ -28,7 +32,7 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     }
 
     if (coordinates.size() != 0) {
-        std::vector<T_RATED_LINE> lines = ransac(coordinates);
+        lines = ransac(coordinates);
         if (lines.size() == 0) {
             //ROS_INFO("no line in sight");
         } else {
@@ -125,21 +129,6 @@ T_LINE GridPerceptor::constructLineParameterForm(T_POINT2D x1, T_POINT2D x2) {
     line.u = u;
 
     return line;
-}
-
-double GridPerceptor::distBetweenLineAndPoint(T_LINE line, T_POINT2D point) {
-    // construct normal vector from line direction
-    T_POINT2D normal;
-    normal.x = line.u.y;
-    normal.y = -line.u.x;
-
-    // construct difference of support vector x0 and point
-    T_POINT2D diff_x0_point = line.x0 - point;
-
-    // project difference onto normal vector to get distance
-    double dist = diff_x0_point * normal;
-
-    return std::fabs(dist);
 }
 
 bool GridPerceptor::testLineSimilarity(std::vector<T_RATED_LINE> &lines, T_RATED_LINE rated_line) {

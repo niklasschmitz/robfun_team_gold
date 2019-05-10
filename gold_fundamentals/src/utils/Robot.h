@@ -26,6 +26,8 @@ public:
 
     void turnRandom();
 
+    void align();
+
     void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg);
 
     ros::Subscriber sub_sensor;
@@ -49,7 +51,7 @@ public:
 
     PID controller;
     ros::ServiceClient diff_drive;
-    //GridPerceptor gp;
+    GridPerceptor gp;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
 

@@ -1,5 +1,6 @@
 #include "Robot.h"
 
+#include "geometry.h"
 
 const double Robot::LOOPRATE = 60;
 const double Robot::ENCODER_STEPS_PER_REVOLUTION = M_PI * 2.0;
@@ -92,7 +93,7 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
         this->theta = fmod(this->theta + theta + (M_PI * 2.0), (M_PI * 2.0));
     }
 
-    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
+    //ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
 }
 
 double Robot::angleDelta(double theta) {
@@ -217,6 +218,19 @@ void Robot::executePath() {
             diffDrive(speed - turn, speed);
         } else {
             diffDrive(speed, speed + turn);
+        }
+    }
+}
+
+void Robot::align() {
+    std::vector<T_RATED_LINE> lines;
+    lines = gp.getLines();
+    T_POINT2D robot_position = T_POINT2D(0.0, 0.0);
+    if(lines.size() == 0) {
+        ROS_INFO("no lines");
+    } else {
+        for (int i = 0; i < lines.size(); ++i) {
+            ROS_INFO("%lf", distBetweenLineAndPoint(lines[i].line, robot_position));
         }
     }
 }
