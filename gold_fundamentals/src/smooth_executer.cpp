@@ -17,9 +17,9 @@ bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::Ex
         return true;
     }
 
-    T_CARTESIAN_COORD dist(MAZE_SIDE_LENGTH, 0);
-    T_CARTESIAN_COORD next(0, 0);
-    std::queue<T_CARTESIAN_COORD> plan;
+    T_POINT2D dist(MAZE_SIDE_LENGTH, 0);
+    T_POINT2D next(0, 0);
+    std::queue<T_POINT2D> plan;
 
     for (int i = 0; i < req.plan.size(); i++) {
         next = next + dist.rotate(req.plan[i] * M_PI_2);
