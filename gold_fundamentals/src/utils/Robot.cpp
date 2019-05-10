@@ -129,7 +129,6 @@ void Robot::followPath(std::queue<T_POINT2D> path) {
 
     ros::Rate loop_rate(LOOPRATE);
     while (ros::ok() && this->path.size() > 0) {
-        ROS_INFO("size:", path.size());
         ros::spinOnce();
         loop_rate.sleep();
     }
@@ -198,7 +197,7 @@ void Robot::steer() {
         }
 
     } else {
-        PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
+        PID steerControl = PID(Robot::MAX_SPEED, 0.0, 20, 0.0, 0.0);
         T_POINT2D error = path.front() - this->position;
 
         double speed = Robot::MAX_SPEED;
@@ -213,15 +212,11 @@ void Robot::steer() {
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
-    //ROS_INFO("left encoder: %lf, right encoder: %lf", msg->encoderLeft, msg->encoderRight);
-
     calculatePosition(this->sensorData, msg);
     this->sensorData = msg;
 
     spin();
     steer();
-    //steer();
-
 }
 
 Robot::~Robot() {}
