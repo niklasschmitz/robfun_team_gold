@@ -18,8 +18,8 @@ Robot::Robot() {
     //this->gp = GridPerceptor();
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
-    this->position = T_CARTESIAN_COORD(0.0, 0.0);
-    this->positionGoal = T_CARTESIAN_COORD(0.0, 0.0);
+    this->position = T_POINT2D(0.0, 0.0);
+    this->positionGoal = T_POINT2D(0.0, 0.0);
     this->theta = M_PI_2;
     this->thetaGoal = nan("");
 }
@@ -56,11 +56,11 @@ void Robot::brake() {
 }
 
 void Robot::drive(double distance) {
-    T_CARTESIAN_COORD dir;
+    T_POINT2D dir;
     dir.x = cos(this->theta) * distance;
     dir.y = sin(this->theta) * distance;
 
-    T_CARTESIAN_COORD goal = this->position + dir;
+    T_POINT2D goal = this->position + dir;
 
     this->driveTo(goal);
 }
@@ -118,7 +118,7 @@ void Robot::turnTo(double theta) {
     this->brake();
 }
 
-void Robot::driveTo(T_CARTESIAN_COORD goal) {
+void Robot::driveTo(T_POINT2D goal) {
     this->positionGoal = goal;
 
     ros::Rate loop_rate(LOOPRATE);
@@ -130,7 +130,7 @@ void Robot::driveTo(T_CARTESIAN_COORD goal) {
     this->brake();
 }
 
-void Robot::followPath(std::queue<T_CARTESIAN_COORD> path) {
+void Robot::followPath(std::queue<T_POINT2D> path) {
     this->path = path;
 
     ros::Rate loop_rate(LOOPRATE);
@@ -142,7 +142,7 @@ void Robot::followPath(std::queue<T_CARTESIAN_COORD> path) {
     this->brake();
 }
 
-bool Robot::isCloseTo(T_CARTESIAN_COORD point) {
+bool Robot::isCloseTo(T_POINT2D point) {
     return (point - this->position).magnitude() < 0.2;
 }
 
@@ -176,7 +176,7 @@ void Robot::steer() {
     PID driveControl = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
     PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
 
-    T_CARTESIAN_COORD error = this->positionGoal - this->position;
+    T_POINT2D error = this->positionGoal - this->position;
 
     double out = driveControl.calculate(error.magnitude(), 0.0, 1.0 / LOOPRATE);
     double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
@@ -210,7 +210,7 @@ void Robot::executePath() {
 
     } else {
         PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
-        T_CARTESIAN_COORD error = path.front() - this->position;
+        T_POINT2D error = path.front() - this->position;
 
         double speed = Robot::MAX_SPEED;
         double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
