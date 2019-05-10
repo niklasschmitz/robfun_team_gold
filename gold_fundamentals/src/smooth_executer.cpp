@@ -51,8 +51,6 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     robot = new Robot();
 
-    robot->driveTo(T_POINT2D(1,1));
-
     ros::spin();
 
     delete (robot);
