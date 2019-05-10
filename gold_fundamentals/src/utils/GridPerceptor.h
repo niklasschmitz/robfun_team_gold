@@ -6,7 +6,7 @@
 
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
-#include "utils/geometry.h"
+#include "geometry.h"
 
 class GridPerceptor {
 public:
