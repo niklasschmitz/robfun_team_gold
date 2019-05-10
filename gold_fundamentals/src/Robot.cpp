@@ -191,7 +191,6 @@ void Robot::steer() {
             diffDrive(out, out + turn);
         } else {
             diffDrive(out - turn, out);
-
         }
     }
 }
