@@ -2,30 +2,62 @@
 #define SRC_GP_H
 
 #include "sensor_msgs/LaserScan.h"
+#include <visualization_msgs/Marker.h>
 #include "ros/ros.h"
 #include <cstdlib>
 #include <cmath>
 #include <vector>
 
-typedef struct {
-    double alpha;
-    double beta;
-} T_LINE;
 
-typedef struct T_POINT2D {
+struct T_POINT2D {
     double x;
     double y;
 
-    T_POINT2D(double x = 0, double y = 0) : x(x), y(y) {}
+    // constructor
+    T_POINT2D(double x = 0, double y = 0)
+            : x(x), y(y) {}
 
-    T_POINT2D operator-(const T_POINT2D &other) {
-        return T_POINT2D(x - other.x, y - other.y);
+    // trivial copy constructor
+    T_POINT2D &operator=(const T_POINT2D &other) = default;
+
+    // equality
+    bool operator==(const T_POINT2D &other) {
+        return (x == other.x && y == other.y);
     }
 
-    T_POINT2D operator+(const T_POINT2D &other) {
+    // addition
+    T_POINT2D operator+(const T_POINT2D &other) const {
         return T_POINT2D(x + other.x, y + other.y);
     }
 
+    // subtraction
+    T_POINT2D operator-(const T_POINT2D &other) const {
+        return T_POINT2D(x - other.x, y - other.y);
+    }
+
+    // dot product
+    double operator*(const T_POINT2D &other) const {
+        return x * other.x + y * other.y;
+    }
+
+    // length
+    static double getLength(const T_POINT2D &v) {
+        return sqrt(v.x * v.x + v.y * v.y);
+    }
+
+    static void normalize(T_POINT2D &v) {
+        double length = getLength(v);
+        v.x /= length;
+        v.y /= length;
+    }
+
+    // angle between
+    static double angleBetweenVectors(const T_POINT2D &v1, const T_POINT2D &v2) {
+        double cos_between = (v1 * v2) / (getLength(v1) * getLength(v2));
+        double angle = std::acos(cos_between);
+        return angle;
+    }
+    
     const double magnitude() {
         return sqrt(pow(x, 2) + pow(y, 2));
     }
@@ -39,29 +71,41 @@ typedef struct T_POINT2D {
         double newY = x * sin(theta) + y * cos(theta);
         return T_POINT2D(newX, newY);
     }
+};
 
-} T_CARTESIAN_COORD;
+struct T_LINE {
+    T_POINT2D x0; // support vector
+    T_POINT2D u; // (normalized) directional vector
+};
+
+struct T_RATED_LINE {
+    T_LINE line;
+    int inliers;
+};
+
 
 class GridPerceptor {
 public:
     GridPerceptor();
-
     ~GridPerceptor();
 
 private:
     void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg);
 
+    ros::Publisher marker_pub;
     ros::Subscriber sub_laser;
 
-    T_CARTESIAN_COORD convertPolarToCartesian(double theta, double r);
+    T_POINT2D convertPolarToCartesian(double theta, double r);
 
-    T_LINE linear_regression(std::vector<T_CARTESIAN_COORD> coordinates);
+    T_LINE constructLineParameterForm(T_POINT2D x1, T_POINT2D x2);
 
-    std::vector<T_LINE> ransac(std::vector<T_CARTESIAN_COORD> coordinates);
+    std::vector<T_RATED_LINE> ransac(std::vector<T_POINT2D> coordinates);
 
-    double distBetweenLineAndPoint(T_LINE line, T_CARTESIAN_COORD point);
+    double distBetweenLineAndPoint(T_LINE line, T_POINT2D point);
 
-    bool testLineSimilarity(std::vector<T_LINE> lines, T_LINE line);
+    bool testLineSimilarity(std::vector<T_RATED_LINE> &lines, T_RATED_LINE line);
+
+    void publishLines(std::vector<T_RATED_LINE> lines);
 };
 
 #endif //SRC_GP_H
