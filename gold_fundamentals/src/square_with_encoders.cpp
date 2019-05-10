@@ -4,16 +4,16 @@
 #include <cstdlib>
 #include "create_fundamentals/DiffDrive.h"
 #include "create_fundamentals/SensorPacket.h"
-#include "Robot.h"
-#include "tools.h"
-#include "GridPerceptor.h"
+#include "utils/Robot.h"
+#include "utils/tools.h"
+#include "utils/GridPerceptor.h"
 
 
 Robot *robot;
 
 void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
-    robot->diffDrive(0.0, 0.0);
+    robot->brake();
 
     ros::shutdown();
     delete (robot);
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     robot = new Robot();
     signal(SIGINT, mySigintHandler);
 
-    driveSquare(1., 1);
+    driveSquare(1., 4);
 
     delete (robot);
     return 0;
