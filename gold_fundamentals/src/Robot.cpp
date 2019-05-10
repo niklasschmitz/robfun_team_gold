@@ -190,7 +190,7 @@ void Robot::spin() {
 //    }
 //}
 
-void Robot::executePath() {
+void Robot::steer() {
     if (this->path.size() == 0)
         return;
 
@@ -248,7 +248,7 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
     this->sensorData = msg;
 
     spin();
-    executePath();
+    steer();
     //steer();
 
 }
