@@ -22,6 +22,7 @@ Robot::Robot() {
     this->position = T_POINT2D(0.0, 0.0);
     this->theta = M_PI_2;
     this->thetaGoal = nan("");
+    this->sensorTime = ros::Time::now();
 }
 
 void Robot::diffDrive(double left, double right) {
@@ -92,7 +93,7 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
         this->theta = fmod(this->theta + theta + (M_PI * 2.0), (M_PI * 2.0));
     }
 
-    //ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
+    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
 }
 
 double Robot::angleDelta(double theta) {
@@ -158,7 +159,7 @@ void Robot::spin() {
 
     PID turnControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
     double error = angleDelta(this->thetaGoal);
-    double out = turnControl.calculate(error, 0.0, 1 / LOOPRATE);
+    double out = turnControl.calculate(error, 0.0, this->timeDelta);
     diffDrive(-out, out);
 
 }
@@ -171,19 +172,21 @@ void Robot::steer() {
         path.pop();
     }
 
+    ROS_INFO("goal  x:%lf, y=%lf", this->path.front().x, this->path.front().y);
+
     if (this->path.size() == 1) {
         if(this->reachedGoal(path.front())) {
             path.pop();
             return;
         }
 
-        PID driveControl = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
+        PID driveControl = PID(Robot::MAX_SPEED - 3, Robot::MIN_SPEED, 12, 0.0, 0.0);
         PID steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 15, 0.0, 0.0);
 
         T_POINT2D error = this->path.front() - this->position;
 
-        double out = driveControl.calculate(error.magnitude(), 0.0, 1.0 / LOOPRATE);
-        double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
+        double out = driveControl.calculate(error.magnitude(), 0.0, this->timeDelta);
+        double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
 
         if (out > 2 * Robot::MAX_SPEED) {
             if (turn > 0) {
@@ -200,11 +203,11 @@ void Robot::steer() {
         }
 
     } else {
-        PID steerControl = PID(Robot::MAX_SPEED, 0.0, 20, 0.0, 0.0);
+        PID steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
         T_POINT2D error = path.front() - this->position;
 
         double speed = Robot::MAX_SPEED;
-        double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
+        double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
 
         if (turn > 0) {
             diffDrive(speed - turn, speed);
@@ -228,6 +231,10 @@ void Robot::align() {
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
+    ros::Time time = ros::Time::now();
+    this->timeDelta = (time - this->sensorTime).toSec();
+    this->sensorTime = time;
+
     calculatePosition(this->sensorData, msg);
     this->sensorData = msg;
 
