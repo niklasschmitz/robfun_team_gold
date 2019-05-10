@@ -41,11 +41,11 @@ public:
     static const double TRACK;
     static const double WHEEL_RADIUS;
 
-    T_CARTESIAN_COORD position;
-    T_CARTESIAN_COORD positionGoal;
+    T_POINT2D position;
+    T_POINT2D positionGoal;
     double theta;
     double thetaGoal;
-    std::queue<T_CARTESIAN_COORD> path;
+    std::queue<T_POINT2D> path;
 
     PID controller;
     ros::ServiceClient diff_drive;
@@ -61,7 +61,7 @@ public:
 
     double angleDelta(double theta);
 
-    void driveTo(T_CARTESIAN_COORD position);
+    void driveTo(T_POINT2D position);
 
     bool reachedGoal();
 
@@ -73,9 +73,9 @@ public:
 
     void executePath();
 
-    bool isCloseTo(T_CARTESIAN_COORD point);
+    bool isCloseTo(T_POINT2D point);
 
-    void followPath(std::queue<T_CARTESIAN_COORD> path);
+    void followPath(std::queue<T_POINT2D> path);
 };
 
 #endif //SRC_ROBOT_H
