@@ -67,7 +67,7 @@ public:
 
     void spin();
 
-    void executePath();
+    void steer();
 
     bool isCloseTo(T_POINT2D point);
 
