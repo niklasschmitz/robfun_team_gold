@@ -166,14 +166,16 @@ void Robot::steer() {
     if (this->path.size() == 0)
         return;
 
-    while (path.size() > 1 && this->isCloseTo(path.front()))
+    while (path.size() > 1 && this->isCloseTo(path.front())) {
         path.pop();
-
-    if(path.size() == 1 && this->reachedGoal(path.front()))
-        path.pop();
-
+    }
 
     if (this->path.size() == 1) {
+        if(this->reachedGoal(path.front())) {
+            path.pop();
+            return;
+        }
+
         PID driveControl = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
         PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
 
@@ -181,6 +183,7 @@ void Robot::steer() {
 
         double out = driveControl.calculate(error.magnitude(), 0.0, 1.0 / LOOPRATE);
         double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
+        ROS_INFO("turn:%lf", turn);
 
         if (out > 2 * Robot::MAX_SPEED) {
             if (turn > 0) {
