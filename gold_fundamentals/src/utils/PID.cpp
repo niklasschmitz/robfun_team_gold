@@ -15,6 +15,9 @@ PID::PID(double max, double min, double Kp, double Ki, double Kd) :
 }
 
 double PID::calculate(double setpoint, double pv, double dt) {
+    // avoid devision by zero
+    if (dt < 0.0)
+        dt = 0.001;
 
     // Calculate error
     double error = setpoint - pv;
