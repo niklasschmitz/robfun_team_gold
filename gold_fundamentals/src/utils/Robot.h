@@ -54,7 +54,8 @@ public:
     GridPerceptor gp;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
-
+    ros::Time sensorTime;
+    double timeDelta;
 
     void calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,
                            const create_fundamentals::SensorPacket::ConstPtr &newData);
