@@ -7,6 +7,8 @@
 #include "tools.h"
 #include "PID.h"
 #include "GridPerceptor.h"
+#include <queue>
+
 
 class Robot {
 public:
@@ -39,10 +41,12 @@ public:
     static const double TRACK;
     static const double WHEEL_RADIUS;
 
-    T_CARTESIAN_COORD position;
+    T_POINT2D position;
+    T_POINT2D positionGoal;
     double theta;
+    double thetaGoal;
+    std::queue<T_POINT2D> path;
 
-    int direction;
     PID controller;
     ros::ServiceClient diff_drive;
     //GridPerceptor gp;
@@ -57,7 +61,21 @@ public:
 
     double angleDelta(double theta);
 
-    void driveTo(T_CARTESIAN_COORD position);
+    void driveTo(T_POINT2D position);
+
+    bool reachedGoal();
+
+    void steer();
+
+    bool reachedTheta();
+
+    void spin();
+
+    void executePath();
+
+    bool isCloseTo(T_POINT2D point);
+
+    void followPath(std::queue<T_POINT2D> path);
 };
 
 #endif //SRC_ROBOT_H
