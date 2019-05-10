@@ -24,10 +24,11 @@ bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::Ex
     std::queue<T_CARTESIAN_COORD> plan;
 
     for (int i = 0; i < req.plan.size(); i++) {
-        next = next + dist.rotate(req.plan[i]);
+        next = next + dist.rotate(req.plan[i] * M_PI_2);
         plan.push(next);
     }
 
+    robot->turnTo(req.plan[0] * M_PI_2);
     robot->followPath(plan);
 
     res.success = true;
