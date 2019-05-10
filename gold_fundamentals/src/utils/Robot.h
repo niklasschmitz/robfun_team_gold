@@ -43,11 +43,11 @@ public:
     static const double TRACK;
     static const double WHEEL_RADIUS;
 
-    T_POINT2D position;
-    //T_POINT2D *positionGoal;
+    T_VECTOR2D position;
+    //T_VECTOR2D *positionGoal;
     double theta;
     double thetaGoal;
-    std::queue<T_POINT2D> path;
+    std::queue<T_VECTOR2D> path;
 
     PID controller;
     ros::ServiceClient diff_drive;
@@ -63,7 +63,7 @@ public:
 
     double angleDelta(double theta);
 
-    void driveTo(T_POINT2D position);
+    void driveTo(T_VECTOR2D position);
 
     bool reachedTheta();
 
@@ -71,11 +71,11 @@ public:
 
     void steer();
 
-    bool isCloseTo(T_POINT2D point);
+    bool isCloseTo(T_VECTOR2D point);
 
-    void followPath(std::queue<T_POINT2D> path);
+    void followPath(std::queue<T_VECTOR2D> path);
 
-    bool reachedGoal(T_POINT2D goal);
+    bool reachedGoal(T_VECTOR2D goal);
 };
 
 #endif //SRC_ROBOT_H

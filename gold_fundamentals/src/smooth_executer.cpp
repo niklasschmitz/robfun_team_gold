@@ -17,10 +17,10 @@ bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::Ex
         return true;
     }
 
-    T_POINT2D dist(MAZE_SIDE_LENGTH, 0);
-    T_POINT2D next = robot->position;
+    T_VECTOR2D dist(MAZE_SIDE_LENGTH, 0);
+    T_VECTOR2D next = robot->position;
 
-    std::queue<T_POINT2D> plan;
+    std::queue<T_VECTOR2D> plan;
 
     for (int i = 0; i < req.plan.size(); i++) {
         next = next + dist.rotate(req.plan[i] * M_PI_2);

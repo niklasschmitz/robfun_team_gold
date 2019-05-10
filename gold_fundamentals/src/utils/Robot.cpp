@@ -19,7 +19,7 @@ Robot::Robot() {
     //this->gp = GridPerceptor();
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
-    this->position = T_POINT2D(0.0, 0.0);
+    this->position = T_VECTOR2D(0.0, 0.0);
     this->theta = M_PI_2;
     this->thetaGoal = nan("");
 }
@@ -56,11 +56,11 @@ void Robot::brake() {
 }
 
 void Robot::drive(double distance) {
-    T_POINT2D dir;
+    T_VECTOR2D dir;
     dir.x = cos(this->theta) * distance;
     dir.y = sin(this->theta) * distance;
 
-    T_POINT2D goal = this->position + dir;
+    T_VECTOR2D goal = this->position + dir;
 
     this->driveTo(goal);
 }
@@ -118,14 +118,14 @@ void Robot::turnTo(double theta) {
     this->brake();
 }
 
-void Robot::driveTo(T_POINT2D goal) {
-    std::queue<T_POINT2D> path;
+void Robot::driveTo(T_VECTOR2D goal) {
+    std::queue<T_VECTOR2D> path;
     path.push(goal);
 
     this->followPath(path);
 }
 
-void Robot::followPath(std::queue<T_POINT2D> path) {
+void Robot::followPath(std::queue<T_VECTOR2D> path) {
     this->path = path;
 
     ros::Rate loop_rate(LOOPRATE);
@@ -137,11 +137,11 @@ void Robot::followPath(std::queue<T_POINT2D> path) {
     this->brake();
 }
 
-bool Robot::isCloseTo(T_POINT2D point) {
+bool Robot::isCloseTo(T_VECTOR2D point) {
     return (point - this->position).magnitude() < 0.4;
 }
 
-bool Robot::reachedGoal(T_POINT2D goal) {
+bool Robot::reachedGoal(T_VECTOR2D goal) {
     return (goal - this->position).magnitude() < 0.02;
 }
 
@@ -180,7 +180,7 @@ void Robot::steer() {
         PID driveControl = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
         PID steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 15, 0.0, 0.0);
 
-        T_POINT2D error = this->path.front() - this->position;
+        T_VECTOR2D error = this->path.front() - this->position;
 
         double out = driveControl.calculate(error.magnitude(), 0.0, 1.0 / LOOPRATE);
         double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
@@ -201,7 +201,7 @@ void Robot::steer() {
 
     } else {
         PID steerControl = PID(Robot::MAX_SPEED, 0.0, 20, 0.0, 0.0);
-        T_POINT2D error = path.front() - this->position;
+        T_VECTOR2D error = path.front() - this->position;
 
         double speed = Robot::MAX_SPEED;
         double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
@@ -217,12 +217,13 @@ void Robot::steer() {
 void Robot::align() {
     std::vector<T_RATED_LINE> lines;
     lines = gp.getLines();
-    T_POINT2D robot_position = T_POINT2D(0.0, 0.0);
+    T_VECTOR2D robot_position = T_VECTOR2D(0.0, 0.0);
     if(lines.size() == 0) {
         ROS_INFO("no lines");
     } else {
         for (int i = 0; i < lines.size(); ++i) {
-            ROS_INFO("%lf", distBetweenLineAndPoint(lines[i].line, robot_position));
+            //ROS_INFO("%lf", distBetweenLineAndPoint(lines[i].line, robot_position));
+
         }
     }
 }
