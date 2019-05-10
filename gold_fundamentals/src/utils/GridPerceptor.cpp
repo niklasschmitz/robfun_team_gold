@@ -1,5 +1,6 @@
 #include "GridPerceptor.h"
 
+#include "geometry.h"
 
 GridPerceptor::GridPerceptor() {
     ros::NodeHandle n;
@@ -20,13 +21,13 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     //ROS_INFO("min deg %f", msg->angle_min);
     //ROS_INFO("min deg %f", msg->angle_increment);
     //ROS_INFO("%f", msg->ranges[msg->ranges.size() / 2]);
-    std::vector<T_POINT2D> coordinates;
+    std::vector<T_VECTOR2D> coordinates;
     for (int i = 0; i < msg->ranges.size(); ++i) {
         double theta = msg->angle_min + msg->angle_increment * i; //might be angle_max - increment * i
         double radius = msg->ranges[i];
 
         if (!isnan(radius)) {  // only consider non-nan points
-            T_POINT2D coord = convertPolarToCartesian(theta, radius);
+            T_VECTOR2D coord = convertPolarToCartesian(theta, radius);
             coordinates.push_back(coord);
         }
     }
@@ -48,8 +49,8 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
 }
 
 
-T_POINT2D GridPerceptor::convertPolarToCartesian(double theta, double radius) {
-    T_POINT2D coord;
+T_VECTOR2D GridPerceptor::convertPolarToCartesian(double theta, double radius) {
+    T_VECTOR2D coord;
     coord.x = radius * std::cos(theta);
     coord.y = radius * std::sin(theta);
 
@@ -57,7 +58,7 @@ T_POINT2D GridPerceptor::convertPolarToCartesian(double theta, double radius) {
 }
 
 
-std::vector<T_RATED_LINE> GridPerceptor::ransac(std::vector<T_POINT2D> coordinates) {
+std::vector<T_RATED_LINE> GridPerceptor::ransac(std::vector<T_VECTOR2D> coordinates) {
     // how often do we generate a random sample
 //    ROS_INFO("---- RANSAC ----");
     int iterations = 50; // dont put too low, otherwise we don't find short edges because we miss them when sampling
@@ -82,8 +83,8 @@ std::vector<T_RATED_LINE> GridPerceptor::ransac(std::vector<T_POINT2D> coordinat
             rand2 = std::rand() % nr_of_coords;
         }
 
-        T_POINT2D x1 = coordinates[rand1];
-        T_POINT2D x2 = coordinates[rand2];
+        T_VECTOR2D x1 = coordinates[rand1];
+        T_VECTOR2D x2 = coordinates[rand2];
 
         // construct hypothesis
         T_LINE proposed_line = constructLineParameterForm(x1, x2);
@@ -115,17 +116,17 @@ std::vector<T_RATED_LINE> GridPerceptor::ransac(std::vector<T_POINT2D> coordinat
     return lines;
 }
 
-T_LINE GridPerceptor::constructLineParameterForm(T_POINT2D x1, T_POINT2D x2) {
+T_LINE GridPerceptor::constructLineParameterForm(T_VECTOR2D x1, T_VECTOR2D x2) {
     T_LINE line;
 
     // support vector
     line.x0 = x1;
 
     // construct directional vector u
-    T_POINT2D u = x2 - x1;
+    T_VECTOR2D u = x2 - x1;
 
     // normalize u
-    T_POINT2D::normalize(u);
+    T_VECTOR2D::normalize(u);
     line.u = u;
 
     return line;
@@ -142,7 +143,7 @@ bool GridPerceptor::testLineSimilarity(std::vector<T_RATED_LINE> &lines, T_RATED
     double dist_threshold = 0.3;
 
     for (int i = 0; i < lines.size(); ++i) {
-        double angle = T_POINT2D::angleBetweenVectors(lines[i].line.u, rated_line.line.u);
+        double angle = T_VECTOR2D::angleBetweenVectors(lines[i].line.u, rated_line.line.u);
         //ROS_INFO("angle before %lf", angle);
         //ROS_INFO("nr of lines %d", static_cast<int>(lines.size()));
         angle = fmod(std::fabs(angle),

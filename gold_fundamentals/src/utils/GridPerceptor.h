@@ -23,11 +23,11 @@ private:
 
     std::vector<T_RATED_LINE> lines;
 
-    T_POINT2D convertPolarToCartesian(double theta, double r);
+    T_VECTOR2D convertPolarToCartesian(double theta, double r);
 
-    T_LINE constructLineParameterForm(T_POINT2D x1, T_POINT2D x2);
+    T_LINE constructLineParameterForm(T_VECTOR2D x1, T_VECTOR2D x2);
 
-    std::vector<T_RATED_LINE> ransac(std::vector<T_POINT2D> coordinates);
+    std::vector<T_RATED_LINE> ransac(std::vector<T_VECTOR2D> coordinates);
 
     bool testLineSimilarity(std::vector<T_RATED_LINE> &lines, T_RATED_LINE line);
 
