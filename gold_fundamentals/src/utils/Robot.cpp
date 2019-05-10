@@ -1,7 +1,7 @@
 #include "Robot.h"
 
 
-const double Robot::LOOPRATE = 60;
+const double Robot::LOOPRATE = 100;
 const double Robot::ENCODER_STEPS_PER_REVOLUTION = M_PI * 2.0;
 const double Robot::LASER_OFFSET = 0.12;
 const double Robot::MAX_SPEED = 10.; //15.625
