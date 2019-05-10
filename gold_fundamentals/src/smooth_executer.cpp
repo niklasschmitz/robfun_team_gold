@@ -17,8 +17,6 @@ bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::Ex
         return true;
     }
 
-    robot->turnTo(req.plan[0] * M_PI_2);
-
     T_CARTESIAN_COORD dist(MAZE_SIDE_LENGTH, 0);
     T_CARTESIAN_COORD next(0, 0);
     std::queue<T_CARTESIAN_COORD> plan;
