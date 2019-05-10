@@ -1,10 +1,7 @@
-#ifndef SRC_GP_H
-#define SRC_GP_H
 
-#include "sensor_msgs/LaserScan.h"
-#include <visualization_msgs/Marker.h>
-#include "ros/ros.h"
-#include <cstdlib>
+#ifndef SRC_GEOMETRY_H
+#define SRC_GEOMETRY_H
+
 #include <cmath>
 #include <vector>
 
@@ -41,27 +38,29 @@ struct T_POINT2D {
     }
 
     // length
-    static double getLength(const T_POINT2D &v) {
-        return sqrt(v.x * v.x + v.y * v.y);
+    const double length() const {
+        return sqrt(x * x + y * y);
+    }
+
+    // alias for length()
+    const double magnitude() const {
+        return length();
     }
 
     static void normalize(T_POINT2D &v) {
-        double length = getLength(v);
+        double length = v.length();
         v.x /= length;
         v.y /= length;
     }
 
     // angle between
     static double angleBetweenVectors(const T_POINT2D &v1, const T_POINT2D &v2) {
-        double cos_between = (v1 * v2) / (getLength(v1) * getLength(v2));
-        double angle = std::acos(cos_between);
+        double cos_between = (v1 * v2) / (v1.length() * v2.length());
+        double angle = acos(cos_between);
         return angle;
     }
-    
-    const double magnitude() {
-        return sqrt(pow(x, 2) + pow(y, 2));
-    }
 
+    // returns angle theta of the complex number interpretation
     const double theta() {
         return fmod(atan2(y, x) + 2.0 * M_PI, 2.0 * M_PI);
     }
@@ -83,29 +82,4 @@ struct T_RATED_LINE {
     int inliers;
 };
 
-
-class GridPerceptor {
-public:
-    GridPerceptor();
-    ~GridPerceptor();
-
-private:
-    void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg);
-
-    ros::Publisher marker_pub;
-    ros::Subscriber sub_laser;
-
-    T_POINT2D convertPolarToCartesian(double theta, double r);
-
-    T_LINE constructLineParameterForm(T_POINT2D x1, T_POINT2D x2);
-
-    std::vector<T_RATED_LINE> ransac(std::vector<T_POINT2D> coordinates);
-
-    double distBetweenLineAndPoint(T_LINE line, T_POINT2D point);
-
-    bool testLineSimilarity(std::vector<T_RATED_LINE> &lines, T_RATED_LINE line);
-
-    void publishLines(std::vector<T_RATED_LINE> lines);
-};
-
-#endif //SRC_GP_H
+#endif //SRC_GEOMETRY_H

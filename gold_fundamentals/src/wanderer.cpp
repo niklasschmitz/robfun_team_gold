@@ -4,9 +4,9 @@
 #include <cstdlib>
 #include "sensor_msgs/LaserScan.h"
 #include "create_fundamentals/DiffDrive.h"
-#include "tools.h"
-#include "Robot.h"
-#include "GridPerceptor.h"
+#include "utils/tools.h"
+#include "utils/Robot.h"
+#include "utils/GridPerceptor.h"
 
 Robot* robot;
 
