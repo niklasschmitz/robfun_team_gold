@@ -19,7 +19,6 @@ Robot::Robot() {
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
     this->position = T_POINT2D(0.0, 0.0);
-    this->positionGoal = T_POINT2D(0.0, 0.0);
     this->theta = M_PI_2;
     this->thetaGoal = nan("");
 }
@@ -119,15 +118,10 @@ void Robot::turnTo(double theta) {
 }
 
 void Robot::driveTo(T_POINT2D goal) {
-    this->positionGoal = goal;
+    std::queue<T_POINT2D> path;
+    path.push(goal);
 
-    ros::Rate loop_rate(LOOPRATE);
-    while (ros::ok() && !this->reachedGoal()) {
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
-
-    this->brake();
+    this->followPath(path);
 }
 
 void Robot::followPath(std::queue<T_POINT2D> path) {
@@ -146,8 +140,8 @@ bool Robot::isCloseTo(T_POINT2D point) {
     return (point - this->position).magnitude() < 0.2;
 }
 
-bool Robot::reachedGoal() {
-    return (this->positionGoal - this->position).magnitude() < 0.05;
+bool Robot::reachedGoal(T_POINT2D goal) {
+    return (goal - this->position).magnitude() < 0.05;
 }
 
 bool Robot::reachedTheta() {
@@ -168,15 +162,46 @@ void Robot::spin() {
 
 }
 
-void Robot::steer() {
+//void Robot::steer() {
+//
+//    if (this->reachedGoal())
+//        return;
+//
+//    PID driveControl = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
+//    PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
+//
+//    T_POINT2D error = this->positionGoal - this->position;
+//
+//    double out = driveControl.calculate(error.magnitude(), 0.0, 1.0 / LOOPRATE);
+//    double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
+//
+//    if (out > 2 * Robot::MAX_SPEED) {
+//        if (turn > 0) {
+//            diffDrive(out - turn, out);
+//        } else {
+//            diffDrive(out, out + turn);
+//        }
+//    } else {
+//        if (turn > 0) {
+//            diffDrive(out, out + turn);
+//        } else {
+//            diffDrive(out - turn, out);
+//        }
+//    }
+//}
 
-    if (this->reachedGoal())
+void Robot::executePath() {
+    if (this->path.size() == 0)
         return;
+
+    while (path.size() > 1 && this->isCloseTo(path.front()))
+        path.pop();
+
 
     PID driveControl = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
     PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
 
-    T_POINT2D error = this->positionGoal - this->position;
+    T_POINT2D error = this->path.front() - this->position;
 
     double out = driveControl.calculate(error.magnitude(), 0.0, 1.0 / LOOPRATE);
     double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
@@ -194,33 +219,26 @@ void Robot::steer() {
             diffDrive(out - turn, out);
         }
     }
-}
 
-void Robot::executePath() {
-    if (this->path.size() == 0)
-        return;
 
-    while (path.size() > 1 && this->isCloseTo(path.front()))
-        path.pop();
-
-    if (this->path.size() == 1) {
-        this->positionGoal = this->path.front();
-        if(this->reachedGoal())
-            this->path.pop();
-
-    } else {
-        PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
-        T_POINT2D error = path.front() - this->position;
-
-        double speed = Robot::MAX_SPEED;
-        double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
-
-        if (turn > 0) {
-            diffDrive(speed - turn, speed);
-        } else {
-            diffDrive(speed, speed + turn);
-        }
-    }
+//    if (this->path.size() == 1) {
+//        this->positionGoal = this->path.front();
+//        if(this->reachedGoal())
+//            this->path.pop();
+//
+//    } else {
+//        PID steerControl = PID(Robot::MAX_SPEED, 0.0, 15, 0.0, 0.0);
+//        T_POINT2D error = path.front() - this->position;
+//
+//        double speed = Robot::MAX_SPEED;
+//        double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, 1.0 / LOOPRATE);
+//
+//        if (turn > 0) {
+//            diffDrive(speed - turn, speed);
+//        } else {
+//            diffDrive(speed, speed + turn);
+//        }
+//    }
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
@@ -229,9 +247,10 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
     calculatePosition(this->sensorData, msg);
     this->sensorData = msg;
 
-    executePath();
-    steer();
     spin();
+    executePath();
+    //steer();
+
 }
 
 Robot::~Robot() {}

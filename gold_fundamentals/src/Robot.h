@@ -42,7 +42,7 @@ public:
     static const double WHEEL_RADIUS;
 
     T_POINT2D position;
-    T_POINT2D positionGoal;
+    //T_POINT2D *positionGoal;
     double theta;
     double thetaGoal;
     std::queue<T_POINT2D> path;
@@ -63,10 +63,6 @@ public:
 
     void driveTo(T_POINT2D position);
 
-    bool reachedGoal();
-
-    void steer();
-
     bool reachedTheta();
 
     void spin();
@@ -76,6 +72,8 @@ public:
     bool isCloseTo(T_POINT2D point);
 
     void followPath(std::queue<T_POINT2D> path);
+
+    bool reachedGoal(T_POINT2D goal);
 };
 
 #endif //SRC_ROBOT_H
