@@ -73,9 +73,10 @@ struct T_VECTOR2D {
         return angle;
     }
 
-//    static double angleBetweenVectors360(const T_VECTOR2D &v1, const T_VECTOR2D &v2) {
-//        return
-//    }
+    // returns the angle one would have to add to v1 to reach v2
+    static double signedAngleBetweenVectors(const T_VECTOR2D &v1, const T_VECTOR2D &v2) {
+        return atan2(v1.y, v1.x) - atan2(v2.y, v2.x);
+    }
 
     // returns angle theta of the complex number interpretation
     const double theta() {
