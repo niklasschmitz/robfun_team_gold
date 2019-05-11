@@ -1,6 +1,6 @@
 #include "PID.h"
 
-PID::PID(){
+PID::PID() {
 
 }
 
@@ -15,13 +15,8 @@ PID::PID(double max, double min, double Kp, double Ki, double Kd) :
 }
 
 double PID::calculate(double setpoint, double pv, double dt) {
-    // avoid devision by zero
-    if (dt < 0.0)
-        dt = 0.001;
-
     // Calculate error
     double error = setpoint - pv;
-
 
     // Proportional term
     double Pout = _Kp * error;
@@ -29,6 +24,9 @@ double PID::calculate(double setpoint, double pv, double dt) {
     // Integral term
     _integral += error * dt;
     double Iout = _Ki * _integral;
+
+    // avoid division by zero
+    if (dt < 0.001) dt = 0.001;
 
     // Derivative term
     double derivative = (error - _pre_error) / dt;
