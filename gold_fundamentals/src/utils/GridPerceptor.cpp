@@ -65,14 +65,14 @@ T_VECTOR2D GridPerceptor::convertPolarToCartesian(double theta, double radius) {
 std::vector<T_RATED_LINE> GridPerceptor::ransac(std::vector<T_VECTOR2D> coordinates) {
     // how often do we generate a random sample
 //    ROS_INFO("---- RANSAC ----");
-    int iterations = 50; // dont put too low, otherwise we don't find short edges because we miss them when sampling
+    int iterations = 300; // dont put too low, otherwise we don't find short edges because we miss them when sampling
 
     // number of points that have to be within the epsilon so the sample is qualified as a line
     // +2 as the 2 samples will always be inside
-    int inliers_threshold = 20 + 2;
+    int inliers_threshold = 30 + 2;
 
     // boundary around the line. samples within are inliers, others are outliers
-    double epsilon = 0.005;
+    double epsilon = 0.003;
 
     std::vector<T_RATED_LINE> lines;
 
@@ -137,14 +137,14 @@ T_LINE GridPerceptor::constructLineParameterForm(T_VECTOR2D x1, T_VECTOR2D x2) {
 }
 
 bool GridPerceptor::testLineSimilarity(std::vector<T_RATED_LINE> &lines, T_RATED_LINE rated_line) {
-    // TODO implement
+    // TODO fix distance measurement
 
     // if the angle between the lines is greater than the angle_threshold -> not similar
-    double angle_threshold = 45 * M_PI / 180.0;
+    double angle_threshold = 70 * M_PI / 180.0;
 
     // the dist_threshold is tested if the alpha threshold defines the lines as similar
     // it is measured how far the lines are apart from each other. if they are close -> similar
-    double dist_threshold = 0.3;
+    double dist_threshold = 0.7;
 
     for (int i = 0; i < lines.size(); ++i) {
         double angle = T_VECTOR2D::angleBetweenVectors(lines[i].line.u, rated_line.line.u);
