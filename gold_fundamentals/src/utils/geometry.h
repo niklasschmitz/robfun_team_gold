@@ -5,6 +5,8 @@
 #include <cmath>
 #include <vector>
 
+#include "tools.h"
+
 
 
 struct T_VECTOR2D {
@@ -73,9 +75,31 @@ struct T_VECTOR2D {
         return angle;
     }
 
-    // returns the angle one would have to add to v1 to reach v2
-    static double signedAngleBetweenVectors(const T_VECTOR2D &v1, const T_VECTOR2D &v2) {
-        return atan2(v1.y, v1.x) - atan2(v2.y, v2.x);
+    // calculates the angle between the robot (0,1) and any direction vector
+    static double angleBetweenRobotAndVector(const T_VECTOR2D &vec) {
+        T_VECTOR2D v1 = T_VECTOR2D(0,1);
+        T_VECTOR2D vec_mapped = map_to_positive_y_space(vec);
+        double angle = angleBetweenVectors(v1, vec);
+        if(angle == M_PI_2) {
+            return M_PI_2;
+        }
+
+        double signed_angle = (-1) * fmod(angleBetweenVectors(v1,vec), M_PI_2) * sgn(vec_mapped.x);
+        return signed_angle;
+    }
+
+    // maps a 360° space to space where y>=0, if y=0 x will be > 0
+    static T_VECTOR2D map_to_positive_y_space(const T_VECTOR2D &vec) {
+       if(vec.y < 0) {
+           return T_VECTOR2D(vec.x*(-1), vec.y*(-1));
+       }  else if (vec.y == 0) {
+           // handles edge case y=0, maps x to space >0
+           if(vec.x < 0) {
+               return T_VECTOR2D(vec.x*(-1), vec.y);
+           }
+       }
+
+       return vec;
     }
 
     // returns angle theta of the complex number interpretation
