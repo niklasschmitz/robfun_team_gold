@@ -2,6 +2,9 @@
 
 #include "geometry.h"
 
+// laser is located 11cm to the front
+const T_VECTOR2D LASER_OFFSET = T_VECTOR2D(0., 0.11);
+
 GridPerceptor::GridPerceptor() {
     ros::NodeHandle n;
     sub_laser = n.subscribe("scan_filtered", 1, &GridPerceptor::laserCallback, this);
@@ -28,6 +31,7 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
 
         if (!isnan(radius)) {  // only consider non-nan points
             T_VECTOR2D coord = convertPolarToCartesian(theta, radius);
+            coord = coord - LASER_OFFSET;
             coordinates.push_back(coord);
         }
     }
@@ -176,8 +180,11 @@ bool GridPerceptor::testLineSimilarity(std::vector<T_RATED_LINE> &lines, T_RATED
     return false;
 }
 
-
-T_VECTOR2D GridPerceptor::getAlignmentTargetPosition() {
+T_VECTOR2D GridPerceptor::getAlignmentTargetPositionDifference() {
+    // as the GridPerceptor does not know the global position,
+    // its reference frame is centered at (0, 0) (the laser head).
+    // the returned target will have to be added to the global position vector
+    // to get the target position in the global frame
 
     //find  two walls which form a corner
     T_LINE wall1 = getLines()[0].line;
@@ -191,11 +198,18 @@ T_VECTOR2D GridPerceptor::getAlignmentTargetPosition() {
 
     // solve for position which is equidistant to both walls
     // we want the center of a cell so that should be 0.5 * MAZE_SIDE_LENGTH
-    T_VECTOR2D intersection = intersection(wall1, wall2);
+    T_VECTOR2D intersection = intersection(wall1, wall2); //TODO implement intersection
 
+    // make sure u vectors point inside the cell
+    if (wall1.u * intersection > 0.) { wall1.u = (-1.) * wall1.u }
+    if (wall2.u * intersection < 0.) { wall2.u = (-1.) * wall2.u }
 
+    // construct target
+    T_VECTOR2D target = intersection;
+    target += 0.5 * MAZE_SIDE_LENGTH * wall1.u;
+    target += 0.5 * MAZE_SIDE_LENGTH * wall2.u;
 
-
+    return target;
 }
 
 
