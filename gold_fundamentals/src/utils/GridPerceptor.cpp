@@ -107,7 +107,7 @@ std::vector<T_RATED_LINE> GridPerceptor::ransac(std::vector<T_VECTOR2D> coordina
 
         // test if we broke the threshold
         if (nr_of_inliers >= inliers_threshold) {
-            T_RATED_LINE rated_line = {proposed_line, nr_of_inliers};
+            T_RATED_LINE rated_line = T_RATED_LINE(proposed_line, nr_of_inliers);
             // see if a similar line exists already: yes -> ignore, no -> add to response
             bool similar_exists = testLineSimilarity(lines, rated_line);
             if (!similar_exists) {
