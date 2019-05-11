@@ -126,7 +126,7 @@ T_LINE GridPerceptor::constructLineParameterForm(T_VECTOR2D x1, T_VECTOR2D x2) {
     T_VECTOR2D u = x2 - x1;
 
     // normalize u
-    T_VECTOR2D::normalize(u);
+    u.normalize();
     line.u = u;
 
     return line;

@@ -48,10 +48,19 @@ struct T_VECTOR2D {
         return length();
     }
 
-    static void normalize(T_VECTOR2D &v) {
+    // normalizes in place
+    void normalize() {
+        x /= length();
+        y /= length();
+    }
+
+    // returns new normalized vector
+    static T_VECTOR2D normalize(const T_VECTOR2D &v) {
+        T_VECTOR2D normalized_vec;
         double length = v.length();
-        v.x /= length;
-        v.y /= length;
+        normalized_vec.x = v.x / length;
+        normalized_vec.y = v.y / length;
+        return normalized_vec;
     }
 
     // angle between
@@ -72,7 +81,34 @@ struct T_VECTOR2D {
         return T_VECTOR2D(newX, newY);
     }
 
+    // scalar vector multiplication
+    T_VECTOR2D operator*(const double scalar) const {
+        return T_VECTOR2D(scalar * x, scalar * y);
+    }
+
+//    static const T_VECTOR2D mirror(const T_VECTOR2D &vec_to_mirror, const T_VECTOR2D &mirror_axis) {
+//        T_VECTOR2D norm_mirror_axis = normalizeR(mirror_axis);
+//        double tmp_x_value = 2 * (vec_to_mirror*norm_mirror_axis) * mirror_axis.x;
+//        double tmp_y_value = 2 * (vec_to_mirror*norm_mirror_axis) * mirror_axis.y;
+//        T_VECTOR2D tmp_vec = T_VECTOR2D(tmp_x_value, tmp_y_value);
+//        return vec_to_mirror - tmp_vec;// * mirror_axis;
+//    }
+
+    static const T_VECTOR2D mirror(const T_VECTOR2D &vec_to_mirror, const T_VECTOR2D &mirror_axis) {
+        double tmp_val = 2 * (vec_to_mirror*mirror_axis) / (mirror_axis*mirror_axis);
+
+        T_VECTOR2D tmp_vec;
+        tmp_vec.x = tmp_val * mirror_axis.x;
+        tmp_vec.y = tmp_val * mirror_axis.y;
+
+        return tmp_vec - vec_to_mirror;
+    }
 };
+
+T_VECTOR2D operator*(const double scalar, const T_VECTOR2D vec) {
+    return T_VECTOR2D(scalar * vec.x, scalar * vec.y);
+}
+
 
 struct T_LINE {
     T_VECTOR2D x0; // support vector
