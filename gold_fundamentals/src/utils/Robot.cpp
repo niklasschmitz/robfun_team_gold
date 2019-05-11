@@ -4,7 +4,7 @@
 
 const double Robot::LOOPRATE = 100;
 const double Robot::ENCODER_STEPS_PER_REVOLUTION = M_PI * 2.0;
-const double Robot::LASER_OFFSET = 0.12;
+const double Robot::LASER_OFFSET = 0.11;
 const double Robot::MAX_SPEED = 10.; //15.625
 const double Robot::MIN_SPEED = 1.;
 const double Robot::RADIUS = 0.17425;

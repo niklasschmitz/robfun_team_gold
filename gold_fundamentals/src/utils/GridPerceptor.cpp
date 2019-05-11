@@ -2,6 +2,9 @@
 
 #include "geometry.h"
 
+// laser is located 11cm to the front
+const T_VECTOR2D LASER_OFFSET = T_VECTOR2D(0., 0.11);
+
 GridPerceptor::GridPerceptor() {
     ros::NodeHandle n;
     sub_laser = n.subscribe("scan_filtered", 1, &GridPerceptor::laserCallback, this);
@@ -28,6 +31,7 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
 
         if (!isnan(radius)) {  // only consider non-nan points
             T_VECTOR2D coord = convertPolarToCartesian(theta, radius);
+            coord = coord - LASER_OFFSET;
             coordinates.push_back(coord);
         }
     }
