@@ -146,9 +146,26 @@ struct T_VECTOR2D {
 T_VECTOR2D operator*(const double scalar, const T_VECTOR2D vec);
 
 
+struct T_MATRIX2D {
+    T_VECTOR2D column1_vec;
+    T_VECTOR2D column2_vec;
+
+    T_MATRIX2D(T_VECTOR2D column1_vec, T_VECTOR2D column2_vec)
+            : column1_vec(column1_vec), column2_vec(column2_vec) {}
+
+    const double determinant() {
+        return column1_vec.x * column2_vec.y - column1_vec.y * column2_vec.x;
+    }
+};
+
 struct T_LINE {
     T_VECTOR2D x0; // support vector
     T_VECTOR2D u; // (normalized) directional vector
+
+    T_LINE() {}
+
+    T_LINE(T_VECTOR2D x0, T_VECTOR2D u)
+    : x0(x0), u(u) {}
 };
 
 
@@ -158,5 +175,7 @@ struct T_RATED_LINE {
 };
 
 double distBetweenLineAndPoint(const T_LINE &line, const T_VECTOR2D &point);
+T_VECTOR2D intersectionOfTwoLines(const T_LINE &line1, const T_LINE &line2);
+
 
 #endif //SRC_GEOMETRY_H
