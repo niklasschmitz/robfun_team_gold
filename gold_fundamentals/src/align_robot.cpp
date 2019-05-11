@@ -57,6 +57,22 @@ int main(int argc, char **argv) {
     v2 = T_VECTOR2D(-1,0); // the wall
     ROS_INFO("angle10 %lf", T_VECTOR2D::angleBetweenRobotAndVector(v2));
 
+    T_VECTOR2D vec1 = T_VECTOR2D(0,1);
+    T_VECTOR2D vec2 = T_VECTOR2D(0,-1);
+    ROS_INFO("vector angle %lf", T_VECTOR2D::angleBetweenVectors(vec1, vec2));
+
+    T_VECTOR2D sup_vec1 = T_VECTOR2D(0,0);
+    T_VECTOR2D sup_vec2 = T_VECTOR2D(0,1);
+    T_VECTOR2D dir_vec1 = T_VECTOR2D(1/sqrt(2),1/sqrt(2));
+    T_VECTOR2D dir_vec2 = T_VECTOR2D(1/sqrt(2),-1/sqrt(2));
+
+    T_LINE line1 = T_LINE(sup_vec1, dir_vec1);
+    T_LINE line2 = T_LINE(sup_vec2, dir_vec2);
+
+    T_VECTOR2D intersection_vec = intersectionOfTwoLines(line1, line2);
+
+    ROS_INFO("intersection x %lf, y %lf", intersection_vec.x, intersection_vec.y);
+
     while(ros::ok) {
         align_robot();
         ros::spinOnce();
