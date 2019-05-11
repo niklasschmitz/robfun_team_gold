@@ -16,6 +16,7 @@ public:
     ~GridPerceptor();
 
     std::vector<T_RATED_LINE> getLines();
+    T_RATED_LINE getLineWithMostInliers();
 
 private:
     void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg);

@@ -18,6 +18,18 @@ std::vector<T_RATED_LINE> GridPerceptor::getLines() {
     return this->lines;
 }
 
+T_RATED_LINE GridPerceptor::getLineWithMostInliers() {
+    T_RATED_LINE best_line;
+
+    for( int i=0; i<this->lines.size(); ++i) {
+        if(lines[i].inliers > best_line.inliers) {
+            best_line = lines[i];
+        }
+    }
+
+    return best_line;
+}
+
 void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     //ROS_INFO("GridPerceptor laserCallback");
     //ROS_INFO("%i", msg->ranges.size());
