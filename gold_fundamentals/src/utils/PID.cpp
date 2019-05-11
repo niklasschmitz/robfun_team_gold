@@ -26,7 +26,7 @@ double PID::calculate(double setpoint, double pv, double dt) {
     double Iout = _Ki * _integral;
 
     // avoid division by zero
-    if (dt < 0.001) dt = 0.001;
+    if (dt < 0.001) { dt = 0.001; }
 
     // Derivative term
     double derivative = (error - _pre_error) / dt;
