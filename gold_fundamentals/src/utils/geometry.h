@@ -74,6 +74,13 @@ struct T_VECTOR2D {
         return normalized_vec;
     }
 
+    const bool isvalid() const {
+        if(isnan(x) || isnan(y)) {
+            return false;
+        }
+        return true;
+    }
+
     // angle between
     static double angleBetweenVectors(const T_VECTOR2D &v1, const T_VECTOR2D &v2) {
         double cos_between = (v1 * v2) / (v1.length() * v2.length());
@@ -156,22 +163,51 @@ struct T_MATRIX2D {
     const double determinant() {
         return column1_vec.x * column2_vec.y - column1_vec.y * column2_vec.x;
     }
+
+    const bool isvalid() const {
+        if(column1_vec.isvalid() && column2_vec.isvalid()) {
+            return true;
+        }
+        return false;
+    }
 };
 
 struct T_LINE {
     T_VECTOR2D x0; // support vector
     T_VECTOR2D u; // (normalized) directional vector
 
-    T_LINE() {}
+    T_LINE()
+    : x0(T_VECTOR2D(NAN,NAN)), u(T_VECTOR2D(NAN,NAN)) {}
 
     T_LINE(T_VECTOR2D x0, T_VECTOR2D u)
     : x0(x0), u(u) {}
+
+    const bool isvalid() const {
+        if(x0.isvalid() && u.isvalid()) {
+            return true;
+        }
+        return false;
+    }
 };
 
 
 struct T_RATED_LINE {
     T_LINE line;
     int inliers;
+
+    T_RATED_LINE()
+    : line(T_VECTOR2D(NAN,NAN), T_VECTOR2D(NAN,NAN)), inliers(0) {}
+
+    T_RATED_LINE(T_LINE line, int inliers)
+    : line(line), inliers(inliers) {}
+
+    const bool isvalid() const {
+        if(line.isvalid() && inliers > 0) {
+            return true;
+        }
+        return false;
+    }
+
 };
 
 double distBetweenLineAndPoint(const T_LINE &line, const T_VECTOR2D &point);
