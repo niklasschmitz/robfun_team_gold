@@ -217,12 +217,21 @@ void Robot::steer() {
 void Robot::align() {
     std::vector<T_RATED_LINE> lines;
     lines = gp.getLines();
+    T_VECTOR2D x_axis = T_VECTOR2D(1.0, 0);
     T_VECTOR2D robot_position = T_VECTOR2D(0.0, 0.0);
     if (lines.size() == 0) {
         ROS_INFO("no lines");
     } else {
         for (int i = 0; i < lines.size(); ++i) {
             //ROS_INFO("%lf", distBetweenLineAndPoint(lines[i].line, robot_position));
+//            double dir_vec_x = lines[i].line.u.x;
+//            double dir_vec_y = lines[i].line.u.y;
+
+            //ROS_INFO("before mirror: u.x %lf, u.y %lf", lines[i].line.u.x, lines[i].line.u.y);
+            //T_VECTOR2D mirrored = T_VECTOR2D::mirror(lines[i].line.u, x_axis);
+            // map the vector to only be in the first 180°
+            //if((dir_vec_x<))
+            //ROS_INFO("after mirror: u.x %lf, u.y %lf", mirrored.x, mirrored.y);
 
         }
     }
