@@ -43,6 +43,12 @@ struct T_VECTOR2D {
         return x * other.x + y * other.y;
     }
 
+    // add and assignment
+    void operator+=(const T_VECTOR2D &other) {
+        x = x + other.x;
+        y = y + other.y;
+    }
+
     // length
     const double length() const {
         return sqrt(x * x + y * y);
