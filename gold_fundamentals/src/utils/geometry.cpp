@@ -13,4 +13,9 @@ double distBetweenLineAndPoint(const T_LINE &line, const T_VECTOR2D &point) {
     double dist = diff_x0_point * normal;
 
     return std::fabs(dist);
+
+}
+
+T_VECTOR2D operator*(const double scalar, const T_VECTOR2D vec) {
+return T_VECTOR2D(scalar * vec.x, scalar * vec.y);
 }

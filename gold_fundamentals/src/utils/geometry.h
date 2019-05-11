@@ -70,6 +70,10 @@ struct T_VECTOR2D {
         return angle;
     }
 
+//    static double angleBetweenVectors360(const T_VECTOR2D &v1, const T_VECTOR2D &v2) {
+//        return
+//    }
+
     // returns angle theta of the complex number interpretation
     const double theta() {
         return fmod(atan2(y, x) + 2.0 * M_PI, 2.0 * M_PI);
@@ -105,9 +109,7 @@ struct T_VECTOR2D {
     }
 };
 
-T_VECTOR2D operator*(const double scalar, const T_VECTOR2D vec) {
-    return T_VECTOR2D(scalar * vec.x, scalar * vec.y);
-}
+T_VECTOR2D operator*(const double scalar, const T_VECTOR2D vec);
 
 
 struct T_LINE {
