@@ -73,8 +73,7 @@ void Robot::turn(double angle) {
 
 void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,
                               const create_fundamentals::SensorPacket::ConstPtr &newData) {
-    if (!oldData || !newData)
-        return;
+    if (!oldData || !newData) { return; }
 
     double deltaLeft = (newData->encoderLeft - oldData->encoderLeft) * Robot::WHEEL_RADIUS;
     double deltaRight = (newData->encoderRight - oldData->encoderRight) * Robot::WHEEL_RADIUS;
@@ -99,10 +98,8 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
 double Robot::angleDelta(double theta) {
     double delta = theta - this->theta;
 
-    if (delta > M_PI)
-        delta -= 2.0 * M_PI;
-    if (delta < -M_PI)
-        delta += 2.0 * M_PI;
+    if (delta > M_PI) { delta -= 2.0 * M_PI; }
+    if (delta < -M_PI) { delta += 2.0 * M_PI; }
 
     return delta;
 }
@@ -175,7 +172,7 @@ void Robot::steer() {
     ROS_INFO("goal  x:%lf, y=%lf", this->path.front().x, this->path.front().y);
 
     if (this->path.size() == 1) {
-        if(this->reachedGoal(path.front())) {
+        if (this->reachedGoal(path.front())) {
             path.pop();
             return;
         }
@@ -221,7 +218,7 @@ void Robot::align() {
     std::vector<T_RATED_LINE> lines;
     lines = gp.getLines();
     T_POINT2D robot_position = T_POINT2D(0.0, 0.0);
-    if(lines.size() == 0) {
+    if (lines.size() == 0) {
         ROS_INFO("no lines");
     } else {
         for (int i = 0; i < lines.size(); ++i) {
