@@ -16,7 +16,10 @@ struct T_VECTOR2D {
             : x(x), y(y) {}
 
     // trivial copy constructor
-    T_VECTOR2D &operator=(const T_VECTOR2D &other) = default;
+    T_VECTOR2D &operator=(const T_VECTOR2D &other) {
+        x = other.x;
+        y = other.y;
+    }
 
     // equality
     bool operator==(const T_VECTOR2D &other) {
