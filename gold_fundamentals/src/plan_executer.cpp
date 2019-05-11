@@ -7,8 +7,6 @@
 #include "utils/GridPerceptor.h"
 
 
-double const MAZE_SIDE_LENGTH = 0.8;
-
 Robot *robot;
 
 bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::ExecutePlan::Response &res) {
