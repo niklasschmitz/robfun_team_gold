@@ -176,6 +176,29 @@ bool GridPerceptor::testLineSimilarity(std::vector<T_RATED_LINE> &lines, T_RATED
     return false;
 }
 
+
+T_VECTOR2D GridPerceptor::getAlignmentTargetPosition() {
+
+    //find  two walls which form a corner
+    T_LINE wall1 = getLines()[0].line;
+    T_LINE wall2;
+    for (const T_RATED_LINE &rated_line : getLines()) {
+        if (fabs(wall1.u * rated_line.line.u) < 0.4) {
+            wall2 = rated_line.line;
+            break;
+        }
+    }
+
+    // solve for position which is equidistant to both walls
+    // we want the center of a cell so that should be 0.5 * MAZE_SIDE_LENGTH
+    T_VECTOR2D intersection = intersection(wall1, wall2);
+
+
+
+
+}
+
+
 void GridPerceptor::publishLines(std::vector<T_RATED_LINE> lines) {
     visualization_msgs::Marker line_list; // line_list is a term from ros
 
