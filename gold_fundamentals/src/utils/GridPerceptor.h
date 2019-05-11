@@ -8,6 +8,8 @@
 #include "sensor_msgs/LaserScan.h"
 #include "geometry.h"
 
+double const MAZE_SIDE_LENGTH = 0.8;
+
 class GridPerceptor {
 public:
     GridPerceptor();

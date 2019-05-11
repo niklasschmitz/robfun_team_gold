@@ -220,7 +220,7 @@ void Robot::align() {
     T_VECTOR2D x_axis = T_VECTOR2D(1.0, 0);
     T_VECTOR2D robot_position = T_VECTOR2D(0.0, 0.0);
     if (lines.size() == 0) {
-        ROS_INFO("no lines");
+        ROS_INFO("ALIGNMENT ERROR: no walls detected");
     } else {
         for (int i = 0; i < lines.size(); ++i) {
             //ROS_INFO("%lf", distBetweenLineAndPoint(lines[i].line, robot_position));
