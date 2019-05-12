@@ -38,7 +38,7 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     //ROS_INFO("%f", msg->ranges[msg->ranges.size() / 2]);
     std::vector<T_VECTOR2D> coordinates;
     for (int i = 0; i < msg->ranges.size(); ++i) {
-        double theta = msg->angle_min + msg->angle_increment * i; //might be angle_max - increment * i
+        double theta = msg->angle_min + msg->angle_increment * i + M_PI_2; //might be angle_max - increment * i
         double radius = msg->ranges[i];
 
         if (!isnan(radius)) {  // only consider non-nan points
@@ -232,7 +232,7 @@ T_VECTOR2D GridPerceptor::getAlignmentTargetPositionDifference() {
     target += 0.5 * (MAZE_SIDE_LENGTH+0.1) * wall1.u;
     target += 0.5 * (MAZE_SIDE_LENGTH+0.1) * wall2.u;
 
-    return target;
+    return target.rotate(M_PI_2);
 }
 
 
