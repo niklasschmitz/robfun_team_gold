@@ -99,7 +99,7 @@ struct T_VECTOR2D {
         //ROS_INFO("vec theta %lf", vec.theta());
         //T_VECTOR2D new_vec;
         //new_vec = vec.rotate(M_PI_2);
-        double angle = vec.theta() ;
+        double angle = vec.theta()+M_PI_2;
 
         if(angle > M_PI) {
             angle = angle - M_PI;
