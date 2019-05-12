@@ -38,12 +38,12 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     //ROS_INFO("%f", msg->ranges[msg->ranges.size() / 2]);
     std::vector<T_VECTOR2D> coordinates;
     for (int i = 0; i < msg->ranges.size(); ++i) {
-        double theta = msg->angle_min + msg->angle_increment * i; //might be angle_max - increment * i
+        double theta = msg->angle_min + msg->angle_increment * i + M_PI_2; //might be angle_max - increment * i
         double radius = msg->ranges[i];
 
         if (!isnan(radius)) {  // only consider non-nan points
             T_VECTOR2D coord = convertPolarToCartesian(theta, radius);
-            coord = coord - LASER_OFFSET;
+            coord = coord + LASER_OFFSET;
             coordinates.push_back(coord);
         }
     }
@@ -229,10 +229,10 @@ T_VECTOR2D GridPerceptor::getAlignmentTargetPositionDifference() {
 
     // construct target
     T_VECTOR2D target = intersection;
-    target += 0.5 * (MAZE_SIDE_LENGTH+0.1) * wall1.u;
-    target += 0.5 * (MAZE_SIDE_LENGTH+0.1) * wall2.u;
+    target += 0.5 * (MAZE_SIDE_LENGTH) * wall1.u;
+    target += 0.5 * (MAZE_SIDE_LENGTH) * wall2.u;
 
-    return target.rotate(M_PI_2);
+    return target;
 }
 
 
@@ -251,9 +251,9 @@ void GridPerceptor::publishLines(std::vector<T_RATED_LINE> lines) {
     line_list.color.a = 1.0;
     line_list.lifetime = ros::Duration();
 
+    geometry_msgs::Point p1;
+    geometry_msgs::Point p2;
     for (int i = 0; i < lines.size(); ++i) {
-        geometry_msgs::Point p1;
-        geometry_msgs::Point p2;
         T_LINE cur_line = lines[i].line;
         p1.x = cur_line.x0.x - 20 * cur_line.u.x;
         p1.y = cur_line.x0.y - 20 * cur_line.u.y;
@@ -263,6 +263,25 @@ void GridPerceptor::publishLines(std::vector<T_RATED_LINE> lines) {
         line_list.points.push_back(p1);
         line_list.points.push_back(p2);
     }
+
+    T_LINE robot_line_x = T_LINE(T_VECTOR2D(0,0), T_VECTOR2D(1,0));
+    T_LINE robot_line_y = T_LINE(T_VECTOR2D(0,0), T_VECTOR2D(0,1));
+
+    p1.x = robot_line_x.x0.x - 1 * robot_line_x.u.x;
+    p1.y = robot_line_x.x0.y - 1 * robot_line_x.u.y;
+    p2.x = robot_line_x.x0.x + 1 * robot_line_x.u.x;
+    p2.y = robot_line_x.x0.y + 1 * robot_line_x.u.y;
+
+    line_list.points.push_back(p1);
+    line_list.points.push_back(p2);
+
+    p1.x = robot_line_y.x0.x - 0.5 * robot_line_y.u.x;
+    p1.y = robot_line_y.x0.y - 0.5 * robot_line_y.u.y;
+    p2.x = robot_line_y.x0.x + 0.5 * robot_line_y.u.x;
+    p2.y = robot_line_y.x0.y + 0.5 * robot_line_y.u.y;
+
+    line_list.points.push_back(p1);
+    line_list.points.push_back(p2);
 
     // Publish the marker
     if (marker_pub) {
