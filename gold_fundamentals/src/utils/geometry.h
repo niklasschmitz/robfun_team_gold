@@ -61,8 +61,9 @@ struct T_VECTOR2D {
 
     // normalizes in place
     void normalize() {
-        x /= length();
-        y /= length();
+        double len = length();
+        x /= len;
+        y /= len;
     }
 
     // returns new normalized vector
