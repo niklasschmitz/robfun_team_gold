@@ -33,9 +33,6 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
 
     align_robot();
-//    align_robot();
-//    align_robot();
-    ros::spin();
 
     delete(robot);
     return 0;

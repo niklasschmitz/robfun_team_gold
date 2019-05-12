@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     ros::ServiceServer service = n.advertiseService("execute_plan", execute);
     signal(SIGINT, mySigintHandler);
     robot = new Robot();
-    //TODO: insert align call
+    robot->align();
 
     ROS_INFO("Ready to execute.");
     ros::spin();

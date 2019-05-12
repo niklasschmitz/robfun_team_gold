@@ -81,6 +81,8 @@ public:
     bool goalBehindRobot(T_VECTOR2D goal, T_VECTOR2D error);
 
     void alignToWall();
+
+    void resetPosition();
 };
 
 #endif //SRC_ROBOT_H

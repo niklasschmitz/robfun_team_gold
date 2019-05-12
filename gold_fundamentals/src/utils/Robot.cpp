@@ -19,10 +19,9 @@ Robot::Robot() {
     //this->gp = GridPerceptor();
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
-    this->position = T_VECTOR2D(0.0, 0.0);
-    this->theta = M_PI_2;
     this->thetaGoal = nan("");
     this->sensorTime = ros::Time::now();
+    this->resetPosition();
 }
 
 void Robot::diffDrive(double left, double right) {
@@ -71,6 +70,11 @@ void Robot::turn(double angle) {
     this->turnTo(this->theta + angle);
 }
 
+void Robot::resetPosition(){
+    this->position = T_VECTOR2D(0.0,0.0);
+    this->theta = M_PI_2;
+}
+
 void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,
                               const create_fundamentals::SensorPacket::ConstPtr &newData) {
     if (!oldData || !newData) { return; }
@@ -92,7 +96,7 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
         this->theta = fmod(this->theta + theta + (M_PI * 2.0), (M_PI * 2.0));
     }
 
-//    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
+    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
 }
 
 double Robot::angleDelta(double theta) {
@@ -173,8 +177,6 @@ void Robot::steer() {
         path.pop();
     }
 
-    ROS_INFO("goal  x:%lf, y=%lf", this->path.front().x, this->path.front().y);
-
     if (this->path.size() == 1) {
         if (this->reachedGoal(path.front())) {
             path.pop();
@@ -250,6 +252,7 @@ void Robot::align() {
         alignToWall();
     }
 
+    this->resetPosition();
 }
 
 
