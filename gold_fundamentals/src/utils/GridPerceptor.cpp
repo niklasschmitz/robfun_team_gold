@@ -60,6 +60,8 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
         }
         publishLines(lines);
     }
+
+//    ROS_INFO("laser cb");
     //ROS_INFO("nr of lines %d" , static_cast<int>(lines.size()));
     //ROS_INFO("alpha %lf, beta %lf", line.alpha, line.beta);
 }
@@ -227,8 +229,8 @@ T_VECTOR2D GridPerceptor::getAlignmentTargetPositionDifference() {
 
     // construct target
     T_VECTOR2D target = intersection;
-    target += 0.5 * MAZE_SIDE_LENGTH * wall1.u;
-    target += 0.5 * MAZE_SIDE_LENGTH * wall2.u;
+    target += 0.5 * (MAZE_SIDE_LENGTH+0.1) * wall1.u;
+    target += 0.5 * (MAZE_SIDE_LENGTH+0.1) * wall2.u;
 
     return target;
 }

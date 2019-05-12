@@ -92,7 +92,7 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
         this->theta = fmod(this->theta + theta + (M_PI * 2.0), (M_PI * 2.0));
     }
 
-    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
+//    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
 }
 
 double Robot::angleDelta(double theta) {
@@ -161,6 +161,10 @@ void Robot::spin() {
 
 }
 
+bool Robot::goalBehindRobot(T_VECTOR2D goal, T_VECTOR2D error){
+    return goal * error < 0.0;
+}
+
 void Robot::steer() {
     if (this->path.size() == 0)
         return;
@@ -184,6 +188,7 @@ void Robot::steer() {
 
         double out = driveControl.calculate(error.magnitude(), 0.0, this->timeDelta);
         double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
+
 
         if (out > 2 * Robot::MAX_SPEED) {
             if (turn > 0) {
@@ -214,56 +219,95 @@ void Robot::steer() {
     }
 }
 
-//void Robot::align() {
-//    static int i = 0;
-//    std::vector<T_RATED_LINE> lines;
-//    lines = gp.getLines();
-//    if (lines.size() == 0 || lines.size() == 1) {
-//        if(fmod(i, 100000) == 0) {
-//            ROS_INFO("ALIGNMENT ERROR: not enough walls detected");
-//        }
-//    } else {
-//        T_VECTOR2D goal_vec = this->position + gp.getAlignmentTargetPositionDifference();
-//        if(fmod(i,500000) == 0) {
-//            ROS_INFO("our position is , x = %lf y = %lf", this->position.x, this->position.y);
-//            ROS_INFO("the goal is , x = %lf y = %lf", goal_vec.x, goal_vec.y);
-//        }
-//        // drive to middle of cell
-//        if(isnan(goal_vec.x) || isnan(goal_vec.y)) {
-//            //turnTo(this->theta + M_PI);
-//        } else {
-//            //driveTo(goal_vec);
-//        }
-//
-//        if(reachedGoal(goal_vec)) {
-//            // align to wall
-//
-//        }
-//    }
-//    i += 1;
-//}
-
 void Robot::align() {
     std::vector<T_RATED_LINE> lines;
     lines = gp.getLines();
-    T_VECTOR2D x_axis = T_VECTOR2D(1.0, 0);
-    T_VECTOR2D robot_position = T_VECTOR2D(0.0, 0.0);
-    if (lines.size() == 0) {
-        ROS_INFO("ALIGNMENT ERROR: no walls detected");
-    } else {
-        for (int i = 0; i < lines.size(); ++i) {
-            //ROS_INFO("%lf", distBetweenLineAndPoint(lines[i].line, robot_position));
-//            double dir_vec_x = lines[i].line.u.x;
-//            double dir_vec_y = lines[i].line.u.y;
+    while (lines.size() == 0 || lines.size() == 1) {
+        ros::spinOnce();
+        lines = gp.getLines();
+        //turn(5/180*M_PI);
 
-            //ROS_INFO("before mirror: u.x %lf, u.y %lf", lines[i].line.u.x, lines[i].line.u.y);
-            //T_VECTOR2D mirrored = T_VECTOR2D::mirror(lines[i].line.u, x_axis);
-            // map the vector to only be in the first 180°
-            //if((dir_vec_x<))
-            //ROS_INFO("after mirror: u.x %lf, u.y %lf", mirrored.x, mirrored.y);
-
-        }
+        //TODO fallback
+        ROS_INFO("ALIGNMENT ERROR: not enough walls detected");
     }
+
+    T_VECTOR2D diff_vec = gp.getAlignmentTargetPositionDifference();
+    T_VECTOR2D goal_vec = this->position + diff_vec;
+
+    ROS_INFO("our position is , x = %lf y = %lf", this->position.x, this->position.y);
+    ROS_INFO("the goal is , x = %lf y = %lf", goal_vec.x, goal_vec.y);
+
+    // drive to middle of cell
+    if(!goal_vec.isvalid()) {
+        turn(M_PI_2);
+    } else {
+        turnTo(diff_vec.theta());
+        driveTo(goal_vec);
+    }
+
+    if(reachedGoal(goal_vec)) {
+        // align to wall
+        alignToWall();
+    }
+
+}
+
+
+void Robot::alignToWall() {
+    std::vector<T_RATED_LINE> lines;
+    lines = gp.getLines();
+
+    // get line with most inliers
+    T_RATED_LINE best_line = gp.getLineWithMostInliers();
+
+    std::vector<T_VECTOR2D> angles;
+
+    ros::spinOnce();
+
+    while(!best_line.isvalid()) {
+        turn(M_PI_2);
+        best_line = gp.getLineWithMostInliers();
+    }
+
+    //angles.push_back(angle);
+
+    double angle = T_VECTOR2D::angleBetweenRobotAndVector(best_line.line.u);
+    double turn_value = angle - M_PI_2;
+    //ROS_INFO("angle %lf", angle * 180/M_PI);
+
+
+    // align to the wall
+    while(fabs(turn_value) > 10/180.0*M_PI) {
+        turn(angle - M_PI_2);
+        best_line = gp.getLineWithMostInliers();
+        angle = T_VECTOR2D::angleBetweenRobotAndVector(best_line.line.u);
+        turn_value = angle - M_PI_2;
+    }
+
+    //best_line = gp.getLineWithMostInliers();
+    //double dist = distBetweenLineAndPoint(best_line, T_VECTOR2D(0,0));
+
+
+    //turn(M_PI_2);
+
+    ROS_INFO("terminated");
+
+
+//        if(angle - M_PI_2 < M_PI_2) {
+//        }
+
+//        if(i%300000 == 0) {
+//            double sum = 0;
+//            for(int j=0; j<angles.size(); j++) {
+//                if(!isnan(angle)) {
+//                    sum+=angle;
+//                }
+//            }
+//
+//            ROS_INFO("angle %lf", sum/angles.size());
+//        }
+
+
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
