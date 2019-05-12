@@ -247,7 +247,7 @@ void Robot::align() {
 
     if(reachedGoal(goal_vec)) {
         // align to wall
-        alignToWall();
+        //alignToWall();
     }
 
 }
