@@ -214,6 +214,35 @@ void Robot::steer() {
     }
 }
 
+//void Robot::align() {
+//    static int i = 0;
+//    std::vector<T_RATED_LINE> lines;
+//    lines = gp.getLines();
+//    if (lines.size() == 0 || lines.size() == 1) {
+//        if(fmod(i, 100000) == 0) {
+//            ROS_INFO("ALIGNMENT ERROR: not enough walls detected");
+//        }
+//    } else {
+//        T_VECTOR2D goal_vec = this->position + gp.getAlignmentTargetPositionDifference();
+//        if(fmod(i,500000) == 0) {
+//            ROS_INFO("our position is , x = %lf y = %lf", this->position.x, this->position.y);
+//            ROS_INFO("the goal is , x = %lf y = %lf", goal_vec.x, goal_vec.y);
+//        }
+//        // drive to middle of cell
+//        if(isnan(goal_vec.x) || isnan(goal_vec.y)) {
+//            //turnTo(this->theta + M_PI);
+//        } else {
+//            //driveTo(goal_vec);
+//        }
+//
+//        if(reachedGoal(goal_vec)) {
+//            // align to wall
+//
+//        }
+//    }
+//    i += 1;
+//}
+
 void Robot::align() {
     std::vector<T_RATED_LINE> lines;
     lines = gp.getLines();

@@ -199,22 +199,31 @@ T_VECTOR2D GridPerceptor::getAlignmentTargetPositionDifference() {
     // to get the target position in the global frame
 
     //find  two walls which form a corner
+    std::vector<T_RATED_LINE> rated_lines = getLines();
     T_LINE wall1 = getLines()[0].line;
     T_LINE wall2;
-    for (const T_RATED_LINE &rated_line : getLines()) {
-        if (fabs(wall1.u * rated_line.line.u) < 0.4) {
-            wall2 = rated_line.line;
+    for (int i = 0; i < rated_lines.size(); ++i) {
+        if (fabs(wall1.u * rated_lines[i].line.u) < 0.4) {
+            wall2 = rated_lines[i].line;
             break;
         }
     }
 
+    if ( wall2.x0.x == NAN) {
+        ROS_INFO("coudlnt find valid wall2");
+        return T_VECTOR2D(NAN,NAN);
+    }
+
+
+    // TODO handle case where we dont find a wall2
+
     // solve for position which is equidistant to both walls
     // we want the center of a cell so that should be 0.5 * MAZE_SIDE_LENGTH
-    T_VECTOR2D intersection = intersection(wall1, wall2); //TODO implement intersection
+    T_VECTOR2D intersection = intersectionOfTwoLines(wall1, wall2);
 
     // make sure u vectors point inside the cell
-    if (wall1.u * intersection > 0.) { wall1.u = (-1.) * wall1.u }
-    if (wall2.u * intersection < 0.) { wall2.u = (-1.) * wall2.u }
+    if (wall1.u * intersection > 0.) { wall1.u = (-1.) * wall1.u; }
+    if (wall2.u * intersection > 0.) { wall2.u = (-1.) * wall2.u; }
 
     // construct target
     T_VECTOR2D target = intersection;
