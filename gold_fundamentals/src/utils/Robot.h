@@ -77,6 +77,10 @@ public:
     void followPath(std::queue<T_VECTOR2D> path);
 
     bool reachedGoal(T_VECTOR2D goal);
+
+    bool goalBehindRobot(T_VECTOR2D goal, T_VECTOR2D error);
+
+    void alignToWall();
 };
 
 #endif //SRC_ROBOT_H
