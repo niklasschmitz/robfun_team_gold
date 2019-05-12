@@ -247,7 +247,7 @@ void Robot::align() {
 
     if(reachedGoal(goal_vec)) {
         // align to wall
-        //alignToWall();
+        alignToWall();
     }
 
 }
@@ -277,7 +277,7 @@ void Robot::alignToWall() {
 
 
     // align to the wall
-    while(fabs(turn_value) > 10/180.0*M_PI) {
+    while(fabs(turn_value) > 5/180.0*M_PI) {
         turn(angle - M_PI_2);
         best_line = gp.getLineWithMostInliers();
         angle = T_VECTOR2D::angleBetweenRobotAndVector(best_line.line.u);
