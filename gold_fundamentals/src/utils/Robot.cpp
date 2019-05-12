@@ -323,6 +323,13 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
     calculatePosition(this->sensorData, msg);
     this->sensorData = msg;
 
+    ROS_INFO("left:%u, right:%u", this->sensorData->bumpLeft, this->sensorData->bumpRight);
+    if(this->sensorData->bumpLeft || this->sensorData->bumpRight){
+        ROS_INFO("OH NO!");
+        this->brake();
+        exit(1);
+    }
+
     spin();
     steer();
 }
