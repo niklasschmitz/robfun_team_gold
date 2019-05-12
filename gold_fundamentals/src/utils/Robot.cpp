@@ -191,6 +191,7 @@ void Robot::steer() {
         double out = driveControl.calculate(error.magnitude(), 0.0, this->timeDelta);
         double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
 
+        ROS_INFO("angleDelta:%lf, turn:%lf", angleDelta(error.theta()), turn);
 
         if (out > 2 * Robot::MAX_SPEED) {
             if (turn > 0) {
@@ -225,10 +226,9 @@ void Robot::align() {
     std::vector<T_RATED_LINE> lines;
     lines = gp.getLines();
     while (lines.size() == 0 || lines.size() == 1) {
+        turn(M_PI_2);
         ros::spinOnce();
         lines = gp.getLines();
-        //turn(5/180*M_PI);
-
         //TODO fallback
         ROS_INFO("ALIGNMENT ERROR: not enough walls detected");
     }
@@ -238,6 +238,8 @@ void Robot::align() {
 
     ROS_INFO("our position is , x = %lf y = %lf", this->position.x, this->position.y);
     ROS_INFO("the goal is , x = %lf y = %lf", goal_vec.x, goal_vec.y);
+
+    resetPosition();
 
     // drive to middle of cell
     if(!goal_vec.isvalid()) {
