@@ -61,7 +61,7 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
         publishLines(lines);
     }
 
-//    ROS_INFO("laser cb");
+    //ROS_INFO("laser cb");
     //ROS_INFO("nr of lines %d" , static_cast<int>(lines.size()));
     //ROS_INFO("alpha %lf, beta %lf", line.alpha, line.beta);
 }

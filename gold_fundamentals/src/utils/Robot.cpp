@@ -16,7 +16,6 @@ const double Robot::WHEEL_RADIUS = 0.032;
 Robot::Robot() {
     ros::NodeHandle n;
     this->controller = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0);
-    //this->gp = GridPerceptor();
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
     this->thetaGoal = nan("");
@@ -289,30 +288,7 @@ void Robot::alignToWall() {
         turn_value = angle - M_PI_2;
     }
 
-    //best_line = gp.getLineWithMostInliers();
-    //double dist = distBetweenLineAndPoint(best_line, T_VECTOR2D(0,0));
-
-
-    //turn(M_PI_2);
-
     ROS_INFO("terminated");
-
-
-//        if(angle - M_PI_2 < M_PI_2) {
-//        }
-
-//        if(i%300000 == 0) {
-//            double sum = 0;
-//            for(int j=0; j<angles.size(); j++) {
-//                if(!isnan(angle)) {
-//                    sum+=angle;
-//                }
-//            }
-//
-//            ROS_INFO("angle %lf", sum/angles.size());
-//        }
-
-
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
