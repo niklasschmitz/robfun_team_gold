@@ -18,10 +18,12 @@ public:
     std::vector<T_RATED_LINE> getLines();
     T_RATED_LINE getLineWithMostInliers();
 
+    T_VECTOR2D getAlignmentTargetPositionDifference();
 private:
-    void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg);
 
+    void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg);
     ros::Publisher marker_pub;
+
     ros::Subscriber sub_laser;
 
     std::vector<T_RATED_LINE> lines;
