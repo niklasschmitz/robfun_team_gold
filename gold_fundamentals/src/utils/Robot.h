@@ -8,6 +8,8 @@
 #include "PID.h"
 #include "GridPerceptor.h"
 #include <queue>
+#include "gold_fundamentals/Pose.h"
+#include "gold_fundamentals/Grid.h"
 
 
 class Robot {
@@ -57,6 +59,8 @@ public:
     ros::Time sensorTime;
     double timeDelta;
 
+    ros::Publisher pose_pub;
+
     void calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,
                            const create_fundamentals::SensorPacket::ConstPtr &newData);
 
@@ -83,6 +87,8 @@ public:
     void alignToWall();
 
     void resetPosition();
+
+    void publishPosition();
 };
 
 #endif //SRC_ROBOT_H

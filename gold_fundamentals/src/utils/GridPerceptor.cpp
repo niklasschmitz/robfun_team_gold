@@ -196,7 +196,7 @@ bool GridPerceptor::testLineSimilarity(std::vector<T_RATED_LINE> &lines, T_RATED
 
 T_VECTOR2D GridPerceptor::getAlignmentTargetPositionDifference() {
     // as the GridPerceptor does not know the global position,
-    // its reference frame is centered at (0, 0) (the laser head).
+    // its reference frame is centered at (0, 0) (the robot center).
     // the returned target will have to be added to the global position vector
     // to get the target position in the global frame
 
