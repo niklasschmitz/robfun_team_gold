@@ -21,6 +21,7 @@ Robot::Robot() {
     this->thetaGoal = nan("");
     this->sensorTime = ros::Time::now();
     this->resetPosition();
+    this->pose_pub = n.advertise<gold_fundamentals::Pose>("pose", 1);
 }
 
 void Robot::diffDrive(double left, double right) {
@@ -74,6 +75,14 @@ void Robot::resetPosition(){
     this->theta = M_PI_2;
 }
 
+void Robot::publishPosition(){
+    gold_fundamentals::Pose msg;
+    msg.orientation = (int)round(this->theta / M_PI_2) + 3 % 4;
+    msg.row = round(this->position.x);
+    msg.column = round(this->position.y);
+    this->pose_pub.publish(msg);
+}
+
 void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,
                               const create_fundamentals::SensorPacket::ConstPtr &newData) {
     if (!oldData || !newData) { return; }
@@ -95,6 +104,7 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
         this->theta = fmod(this->theta + theta + (M_PI * 2.0), (M_PI * 2.0));
     }
 
+    this->publishPosition();
     ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
 }
 
@@ -233,7 +243,7 @@ void Robot::align() {
     }
 
     T_VECTOR2D diff_vec = gp.getAlignmentTargetPositionDifference();
-    T_VECTOR2D goal_vec = this->position + diff_vec;
+    T_VECTOR2D goal_vec = this->position + diff_vec;//.rotate(this->theta);
 
     ROS_INFO("our position is , x = %lf y = %lf", this->position.x, this->position.y);
     ROS_INFO("the goal is , x = %lf y = %lf", goal_vec.x, goal_vec.y);
