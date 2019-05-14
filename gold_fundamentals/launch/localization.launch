@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="gold_fundamentals" name="localization" type="localization"/>
+</launch>
