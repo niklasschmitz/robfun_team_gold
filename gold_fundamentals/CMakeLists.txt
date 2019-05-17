@@ -82,6 +82,7 @@ add_executable(square_with_encoders src/square_with_encoders.cpp src/utils/Robot
 target_link_libraries(square_with_encoders ${catkin_LIBRARIES})
 add_dependencies(square_with_encoders create_fundamentals_generate_messages_cpp)
 
+# Assignment 2
 add_executable(align_robot src/align_robot.cpp src/utils/tools.cpp src/utils/tools.h src/utils/Robot.cpp src/utils/Robot.h src/utils/PID.cpp src/utils/PID.h src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h src/utils/geometry.h src/utils/geometry.cpp)
 target_link_libraries(align_robot ${catkin_LIBRARIES})
 add_dependencies(align_robot create_fundamentals_generate_messages_cpp)
@@ -93,3 +94,5 @@ add_dependencies(plan_executer create_fundamentals_generate_messages_cpp)
 add_executable(smooth_executer src/smooth_executer.cpp src/utils/Robot.cpp src/utils/Robot.h src/utils/tools.cpp src/utils/tools.h src/utils/PID.cpp src/utils/PID.h src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h src/utils/geometry.cpp)
 target_link_libraries(smooth_executer ${catkin_LIBRARIES})
 add_dependencies(smooth_executer create_fundamentals_generate_messages_cpp)
+
+# Assignment 3
