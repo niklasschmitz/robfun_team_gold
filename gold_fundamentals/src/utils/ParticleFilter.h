@@ -11,6 +11,11 @@
 #include <ctime>
 #include "OccupancyGrid.h"
 
+#include "gold_fundamentals/Pose.h"
+#include "gold_fundamentals/Grid.h"
+#include "gold_fundamentals/Cell.h"
+#include "gold_fundamentals/Row.h"
+
 class Particle {
 
 public:
@@ -78,8 +83,11 @@ private:
 
 public:
     ParticleFilter();
-	ParticleFilter( int numberOfParticles );
+	//ParticleFilter( int numberOfParticles );
 	~ParticleFilter();
+
+    ros::Subscriber map_sub;
+    void mapCallback(const gold_fundamentals::Grid::ConstPtr &msg);
 	
 	int getNumberOfParticles();
 	std::vector<Particle*>* getParticleSet();

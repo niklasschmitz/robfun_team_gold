@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
 
     localize();
+    ros::spin();
 
     delete(robot);
     return 0;

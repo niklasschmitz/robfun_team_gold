@@ -5,25 +5,28 @@
 
 //using namespace std;
 
-ParticleFilter::ParticleFilter(int numberOfParticles) {
-	this->numberOfParticles = numberOfParticles;
-
-	// initialize particles
-	for (int i = 0; i <this->numberOfParticles; i++) {
-		this->particleSet.push_back(new Particle());
-	}
-
-	// this variable holds the estimated robot pose
-	this->bestHypothesis = new Particle();
-
-	// at each correction step of the filter only the laserSkip-th beam of a scan should be integrated
-	this->laserSkip = 5;
-
-	// distance map used for computing the likelihood field
-	this->distMap = NULL;
-}
+//ParticleFilter::ParticleFilter(int numberOfParticles) {
+//	this->numberOfParticles = numberOfParticles;
+//
+//	// initialize particles
+//	for (int i = 0; i <this->numberOfParticles; i++) {
+//		this->particleSet.push_back(new Particle());
+//	}
+//
+//	// this variable holds the estimated robot pose
+//	this->bestHypothesis = new Particle();
+//
+//	// at each correction step of the filter only the laserSkip-th beam of a scan should be integrated
+//	this->laserSkip = 5;
+//
+//	// distance map used for computing the likelihood field
+//	this->distMap = NULL;
+//}
 
 ParticleFilter::ParticleFilter() {
+    ros::NodeHandle n;
+    map_sub = n.subscribe("map", 1, &ParticleFilter::mapCallback, this);
+
     this->numberOfParticles = 1000;
 
     // initialize particles
@@ -57,6 +60,10 @@ ParticleFilter::~ParticleFilter() {
 
 	if (this->distMap)
 		delete[] this->distMap;
+}
+
+void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg) {
+    ROS_INFO("map callback %d", msg->rows[0].cells[0].walls[2]);
 }
 
 int ParticleFilter::getNumberOfParticles() {
