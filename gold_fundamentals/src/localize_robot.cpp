@@ -21,7 +21,8 @@ void mySigintHandler(int sig) {
 }
 
 void localize() {
-
+//    robot->pf.setUpdateMap();
+//    ros::Duration(0.5).sleep();
 }
 
 
@@ -31,8 +32,10 @@ int main(int argc, char **argv) {
     robot = new Robot();
     signal(SIGINT, mySigintHandler);
 
-    localize();
-    ros::spin();
+    while(ros::ok()) {
+        localize();
+        ros::spinOnce();
+    }
 
     delete(robot);
     return 0;

@@ -1,3 +1,5 @@
+/* NOTE: Some of the code was developed by some group members during another course and was integrated here */
+
 #include "ParticleFilter.h"
 #include "Probability.h"
 
@@ -26,6 +28,8 @@
 ParticleFilter::ParticleFilter() {
     ros::NodeHandle n;
     map_sub = n.subscribe("map", 1, &ParticleFilter::mapCallback, this);
+    updatemap_service = n.advertiseService("update_map", &ParticleFilter::setUpdateMap, this);
+    this->update_map = true;
 
     this->numberOfParticles = 1000;
 
@@ -63,7 +67,16 @@ ParticleFilter::~ParticleFilter() {
 }
 
 void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg) {
-    ROS_INFO("map callback %d", msg->rows[0].cells[0].walls[2]);
+    if(update_map) {
+        ROS_INFO("map callback %d", msg->rows[0].cells[0].walls[0]);
+        update_map = false;
+    }
+}
+
+bool ParticleFilter::setUpdateMap(gold_fundamentals::UpdateMap::Request &req, gold_fundamentals::UpdateMap::Response &res) {
+    update_map = true;
+    res.success = true;
+    return true;
 }
 
 int ParticleFilter::getNumberOfParticles() {

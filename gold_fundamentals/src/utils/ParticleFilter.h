@@ -15,6 +15,7 @@
 #include "gold_fundamentals/Grid.h"
 #include "gold_fundamentals/Cell.h"
 #include "gold_fundamentals/Row.h"
+#include "gold_fundamentals/UpdateMap.h"
 
 class Particle {
 
@@ -80,6 +81,7 @@ private:
 	// two-dimensional coordinate (x,y)
 	int computeMapIndex(int width, int height, int x, int y);
 
+    bool update_map;
 
 public:
     ParticleFilter();
@@ -87,8 +89,10 @@ public:
 	~ParticleFilter();
 
     ros::Subscriber map_sub;
+    ros::ServiceServer updatemap_service;
     void mapCallback(const gold_fundamentals::Grid::ConstPtr &msg);
-	
+    bool setUpdateMap(gold_fundamentals::UpdateMap::Request &req, gold_fundamentals::UpdateMap::Response &res);
+
 	int getNumberOfParticles();
 	std::vector<Particle*>* getParticleSet();
 	
