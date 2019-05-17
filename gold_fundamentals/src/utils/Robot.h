@@ -7,6 +7,7 @@
 #include "tools.h"
 #include "PID.h"
 #include "GridPerceptor.h"
+#include "ParticleFilter.h"
 #include <queue>
 #include "gold_fundamentals/Pose.h"
 #include "gold_fundamentals/Grid.h"
@@ -54,6 +55,7 @@ public:
     PID controller;
     ros::ServiceClient diff_drive;
     GridPerceptor gp;
+    ParticleFilter pf;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
     ros::Time sensorTime;

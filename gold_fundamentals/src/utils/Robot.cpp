@@ -19,6 +19,7 @@ Robot::Robot() {
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
     this->thetaGoal = nan("");
+    //this->pf;
     this->sensorTime = ros::Time::now();
     this->resetPosition();
     this->pose_pub = n.advertise<gold_fundamentals::Pose>("pose", 1);
@@ -90,7 +91,7 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
     double deltaLeft = (newData->encoderLeft - oldData->encoderLeft) * Robot::WHEEL_RADIUS;
     double deltaRight = (newData->encoderRight - oldData->encoderRight) * Robot::WHEEL_RADIUS;
 
-    if (fabs(deltaRight - deltaLeft) < 1.0e-6) {
+    if (fabs(deltaRight - deltaLeft) < std::numeric_limits<float>::epsilon() * 10.0) {
         double d = (deltaRight + deltaLeft) / 2.0;
         this->position.x += d * cos(this->theta);
         this->position.y += d * sin(this->theta);
