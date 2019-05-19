@@ -10,6 +10,7 @@
 #include <queue>
 #include "gold_fundamentals/Pose.h"
 #include "gold_fundamentals/Grid.h"
+#include "geometry.h"
 
 
 class Robot {

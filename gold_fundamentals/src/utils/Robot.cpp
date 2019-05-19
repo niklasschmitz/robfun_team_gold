@@ -1,7 +1,5 @@
 #include "Robot.h"
 
-#include "geometry.h"
-
 const double Robot::LASER_OFFSET = 0.11;
 const double Robot::LOOPRATE = 100;
 const double Robot::MAX_SPEED = 10.; //15.625
