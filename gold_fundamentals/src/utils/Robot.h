@@ -48,8 +48,8 @@ public:
     T_VECTOR2D position;
     //T_VECTOR2D *positionGoal;
     double theta;
-    double thetaGoal;
-    std::queue<T_VECTOR2D> path;
+    //double thetaGoal;
+    //std::queue<T_VECTOR2D> path;
 
     PID controller;
     ros::ServiceClient diff_drive;
@@ -58,6 +58,8 @@ public:
     create_fundamentals::SensorPacket::ConstPtr sensorData;
     ros::Time sensorTime;
     double timeDelta;
+
+    //const enum direction{RIGHT = 0, UP = 1, LEFT = 2, DOWN = 3};
 
     ros::Publisher pose_pub;
 
@@ -70,11 +72,11 @@ public:
 
     void driveTo(T_VECTOR2D position);
 
-    bool reachedTheta();
+    //bool reachedTheta();
 
-    void spin();
+    //void spin();
 
-    void steer();
+    //void steer();
 
     bool isCloseTo(T_VECTOR2D point);
 
@@ -89,6 +91,12 @@ public:
     void resetPosition();
 
     void publishPosition();
+
+    void spin(double thetaGoal);
+
+    void steer(std::queue<T_VECTOR2D> path);
+
+    bool reachedTheta(double thetaGoal);
 };
 
 #endif //SRC_ROBOT_H

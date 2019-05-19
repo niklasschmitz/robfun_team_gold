@@ -18,7 +18,7 @@ Robot::Robot() {
     this->controller = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0);
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
-    this->thetaGoal = nan("");
+    //this->thetaGoal = nan("");
     this->sensorTime = ros::Time::now();
     this->resetPosition();
     this->pose_pub = n.advertise<gold_fundamentals::Pose>("pose", 1);
@@ -76,6 +76,7 @@ void Robot::resetPosition(){
 }
 
 void Robot::publishPosition(){
+    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
     gold_fundamentals::Pose msg;
     msg.orientation = (int)round(this->theta / M_PI_2) + 3 % 4;
     msg.row = round(this->position.x);
@@ -105,7 +106,6 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
     }
 
     this->publishPosition();
-    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
 }
 
 double Robot::angleDelta(double theta) {
@@ -118,10 +118,15 @@ double Robot::angleDelta(double theta) {
 }
 
 void Robot::turnTo(double theta) {
-    this->thetaGoal = fmod(theta + (M_PI * 2.0), (M_PI * 2.0));
+    double thetaGoal = fmod(theta + (M_PI * 2.0), (M_PI * 2.0));
 
     ros::Rate loop_rate(LOOPRATE);
-    while (ros::ok() && !this->reachedTheta()) {
+    create_fundamentals::SensorPacket_<std::allocator<void> >::ConstPtr last = this->sensorData;
+    while (ros::ok() && !this->reachedTheta(thetaGoal)) {
+        if(last != this->sensorData){
+            last = this->sensorData;
+            spin(thetaGoal);
+        }
         ros::spinOnce();
         loop_rate.sleep();
     }
@@ -137,10 +142,14 @@ void Robot::driveTo(T_VECTOR2D goal) {
 }
 
 void Robot::followPath(std::queue<T_VECTOR2D> path) {
-    this->path = path;
-
     ros::Rate loop_rate(LOOPRATE);
-    while (ros::ok() && this->path.size() > 0) {
+    create_fundamentals::SensorPacket_<std::allocator<void> >::ConstPtr last = this->sensorData;
+    while (ros::ok() && path.size() > 0) {
+        if(last != this->sensorData){
+            last = this->sensorData;
+            steer(path);
+        }
+
         ros::spinOnce();
         loop_rate.sleep();
     }
@@ -156,19 +165,19 @@ bool Robot::reachedGoal(T_VECTOR2D goal) {
     return (goal - this->position).magnitude() < 0.02;
 }
 
-bool Robot::reachedTheta() {
-    if (fabs(this->thetaGoal - this->theta) < 0.02)
-        this->thetaGoal = nan("");
+bool Robot::reachedTheta(double thetaGoal) {
+    if (fabs(thetaGoal - this->theta) < 0.02)
+        thetaGoal = nan("");
 
-    return isnan(this->thetaGoal);
+    return isnan(thetaGoal);
 }
 
-void Robot::spin() {
-    if (this->reachedTheta())
+void Robot::spin(double thetaGoal) {
+    if (this->reachedTheta(thetaGoal))
         return;
 
     PID turnControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
-    double error = angleDelta(this->thetaGoal);
+    double error = angleDelta(thetaGoal);
     double out = turnControl.calculate(error, 0.0, this->timeDelta);
     diffDrive(-out, out);
 
@@ -178,15 +187,15 @@ bool Robot::goalBehindRobot(T_VECTOR2D goal, T_VECTOR2D error){
     return goal * error < 0.0;
 }
 
-void Robot::steer() {
-    if (this->path.size() == 0)
+void Robot::steer(std::queue<T_VECTOR2D> path) {
+    if (path.size() == 0)
         return;
 
     while (path.size() > 1 && this->isCloseTo(path.front())) {
         path.pop();
     }
 
-    if (this->path.size() == 1) {
+    if (path.size() == 1) {
         if (this->reachedGoal(path.front())) {
             path.pop();
             return;
@@ -195,7 +204,7 @@ void Robot::steer() {
         PID driveControl = PID(Robot::MAX_SPEED - 3, Robot::MIN_SPEED, 12, 0.0, 0.0);
         PID steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 15, 0.0, 0.0);
 
-        T_VECTOR2D error = this->path.front() - this->position;
+        T_VECTOR2D error = path.front() - this->position;
 
         double out = driveControl.calculate(error.magnitude(), 0.0, this->timeDelta);
         double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
@@ -316,8 +325,8 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
         exit(1);
     }
 
-    spin();
-    steer();
+    //spin();
+    //steer();
 }
 
 Robot::~Robot() {}
