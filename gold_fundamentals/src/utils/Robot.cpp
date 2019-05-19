@@ -2,8 +2,8 @@
 
 #include "geometry.h"
 
-const double Robot::LOOPRATE = 100;
 const double Robot::LASER_OFFSET = 0.11;
+const double Robot::LOOPRATE = 100;
 const double Robot::MAX_SPEED = 10.; //15.625
 const double Robot::MIN_SPEED = 1.;
 const double Robot::RADIUS = 0.17425;
@@ -78,7 +78,9 @@ void Robot::publishPosition() {
 
 void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,
                               const create_fundamentals::SensorPacket::ConstPtr &newData) {
-    if (!oldData || !newData) { return; }
+    if (!oldData || !newData) {
+        return;
+    }
 
     double deltaLeft = (newData->encoderLeft - oldData->encoderLeft) * Robot::WHEEL_RADIUS;
     double deltaRight = (newData->encoderRight - oldData->encoderRight) * Robot::WHEEL_RADIUS;
@@ -94,23 +96,27 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
 
         this->position.x += r * sin(this->theta + theta) - r * sin(this->theta);
         this->position.y += -r * cos(this->theta + theta) + r * cos(this->theta);
-        this->theta = fmod(this->theta + theta + (M_PI * 2.0), (M_PI * 2.0));
+        this->theta = normalizeAngle(this->theta + theta);
     }
 
     this->publishPosition();
 }
 
 double Robot::angleDelta(double theta) {
-    double delta = theta - this->theta;
+    double delta = normalizeAngle(theta) - this->theta;
 
-    if (delta > M_PI) { delta -= 2.0 * M_PI; }
-    if (delta < -M_PI) { delta += 2.0 * M_PI; }
+    if (delta > M_PI) {
+        delta -= 2.0 * M_PI;
+    }
+    if (delta < -M_PI) {
+        delta += 2.0 * M_PI;
+    }
 
     return delta;
 }
 
 void Robot::turnTo(double theta) {
-    double thetaGoal = fmod(theta + (M_PI * 2.0), (M_PI * 2.0));
+    double thetaGoal = normalizeAngle(theta);
 
     ros::Rate loop_rate(LOOPRATE);
     create_fundamentals::SensorPacket_<std::allocator<void> >::ConstPtr last = this->sensorData;
@@ -184,7 +190,6 @@ void Robot::steer(std::queue<T_VECTOR2D> path) {
             path.pop();
             return;
         }
-
 
         T_VECTOR2D error = path.front() - this->position;
 
