@@ -3,7 +3,6 @@
 #include "geometry.h"
 
 const double Robot::LOOPRATE = 100;
-const double Robot::ENCODER_STEPS_PER_REVOLUTION = M_PI * 2.0;
 const double Robot::LASER_OFFSET = 0.11;
 const double Robot::MAX_SPEED = 10.; //15.625
 const double Robot::MIN_SPEED = 1.;
@@ -15,23 +14,22 @@ const double Robot::WHEEL_RADIUS = 0.032;
 
 Robot::Robot() {
     ros::NodeHandle n;
-    this->controller = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 0.4, 0.0, 0.0);
+    this->turnControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
+    this->speedControl = PID(Robot::MAX_SPEED - 3, Robot::MIN_SPEED, 12, 0.0, 0.0);
+    this->steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 15, 0.0, 0.0);
+    this->steerMaxControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
-    //this->thetaGoal = nan("");
     this->sensorTime = ros::Time::now();
     this->resetPosition();
     this->pose_pub = n.advertise<gold_fundamentals::Pose>("pose", 1);
 }
 
 void Robot::diffDrive(double left, double right) {
-    //ROS_INFO("diffDrive requested %lf %lf", left, right);
     if (left != 0 && fabs(left) < MIN_SPEED) {
-        //ROS_INFO("speed to low. adjusting to +- %lf", MIN_SPEED);
         left = MIN_SPEED * sgn(left);
     }
     if (right != 0 && fabs(right) < MIN_SPEED) {
-        //ROS_INFO("speed to low. adjusting to +- %lf", MIN_SPEED);
         right = MIN_SPEED * sgn(right);
     }
     create_fundamentals::DiffDrive srv;
@@ -176,15 +174,10 @@ void Robot::spin(double thetaGoal) {
     if (this->reachedTheta(thetaGoal))
         return;
 
-    PID turnControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
     double error = angleDelta(thetaGoal);
     double out = turnControl.calculate(error, 0.0, this->timeDelta);
     diffDrive(-out, out);
 
-}
-
-bool Robot::goalBehindRobot(T_VECTOR2D goal, T_VECTOR2D error){
-    return goal * error < 0.0;
 }
 
 void Robot::steer(std::queue<T_VECTOR2D> path) {
@@ -201,15 +194,11 @@ void Robot::steer(std::queue<T_VECTOR2D> path) {
             return;
         }
 
-        PID driveControl = PID(Robot::MAX_SPEED - 3, Robot::MIN_SPEED, 12, 0.0, 0.0);
-        PID steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 15, 0.0, 0.0);
 
         T_VECTOR2D error = path.front() - this->position;
 
-        double out = driveControl.calculate(error.magnitude(), 0.0, this->timeDelta);
+        double out = speedControl.calculate(error.magnitude(), 0.0, this->timeDelta);
         double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
-
-        ROS_INFO("angleDelta:%lf, turn:%lf", angleDelta(error.theta()), turn);
 
         if (out > 2 * Robot::MAX_SPEED) {
             if (turn > 0) {
@@ -226,11 +215,10 @@ void Robot::steer(std::queue<T_VECTOR2D> path) {
         }
 
     } else {
-        PID steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
         T_VECTOR2D error = path.front() - this->position;
 
         double speed = Robot::MAX_SPEED;
-        double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
+        double turn = steerMaxControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
 
         if (turn > 0) {
             diffDrive(speed - turn, speed);
@@ -318,15 +306,11 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
     calculatePosition(this->sensorData, msg);
     this->sensorData = msg;
 
-    ROS_INFO("left:%u, right:%u", this->sensorData->bumpLeft, this->sensorData->bumpRight);
     if(this->sensorData->bumpLeft || this->sensorData->bumpRight){
         ROS_INFO("OH NO!");
         this->brake();
         exit(1);
     }
-
-    //spin();
-    //steer();
 }
 
 Robot::~Robot() {}
