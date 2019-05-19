@@ -235,24 +235,18 @@ void Robot::align() {
         ROS_INFO("ALIGNMENT ERROR: not enough walls detected");
     }
 
-    T_VECTOR2D diff_vec = gp.getAlignmentTargetPositionDifference();
-    T_VECTOR2D goal_vec = this->position + diff_vec.rotate(this->theta);
+    T_VECTOR2D diff_vec = gp.getAlignmentTargetPositionDifference().rotate(this->theta);
+    T_VECTOR2D goal_vec = this->position + diff_vec;
 
     ROS_INFO("our position is , x = %lf y = %lf", this->position.x, this->position.y);
     ROS_INFO("the goal is , x = %lf y = %lf", goal_vec.x, goal_vec.y);
 
-    resetPosition();
-
     // drive to middle of cell
     if (!goal_vec.isvalid()) {
-        turn(M_PI_2);
+        ROS_INFO("ALIGNMENT ERROR: goal vec is invalid");
     } else {
         turnTo(diff_vec.theta());
         driveTo(goal_vec);
-    }
-
-    if (reachedGoal(goal_vec)) {
-        // align to wall
         alignToWall();
     }
 
@@ -261,37 +255,22 @@ void Robot::align() {
 
 
 void Robot::alignToWall() {
-    std::vector<T_RATED_LINE> lines;
-    lines = gp.getLines();
-
-    // get line with most inliers
     T_RATED_LINE best_line = gp.getLineWithMostInliers();
-
-    std::vector<T_VECTOR2D> angles;
-
-    ros::spinOnce();
 
     while (!best_line.isvalid()) {
         turn(M_PI_2);
         best_line = gp.getLineWithMostInliers();
     }
 
-    //angles.push_back(angle);
+    double angle = T_VECTOR2D::angleBetweenRobotAndVector(best_line.line.u); //TODO: check if still correct
+    double turn_value = angle - M_PI_2; //TODO: check if still correct
 
-    double angle = T_VECTOR2D::angleBetweenRobotAndVector(best_line.line.u);
-    double turn_value = angle - M_PI_2;
-    //ROS_INFO("angle %lf", angle * 180/M_PI);
-
-
-    // align to the wall
     while (fabs(turn_value) > 5 / 180.0 * M_PI) {
-        turn(angle - M_PI_2);
+        turn(turn_value);
         best_line = gp.getLineWithMostInliers();
-        angle = T_VECTOR2D::angleBetweenRobotAndVector(best_line.line.u);
-        turn_value = angle - M_PI_2;
+        angle = T_VECTOR2D::angleBetweenRobotAndVector(best_line.line.u); //TODO: check if still correct
+        turn_value = angle - M_PI_2; //TODO: check if still correct
     }
-
-    ROS_INFO("terminated");
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
