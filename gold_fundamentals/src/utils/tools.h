@@ -14,7 +14,7 @@ inline double distanceToTime(double distance, double speed, double radius) {
 }
 
 inline double normalizeAngle(double theta){
-    return fmod(theta + (M_PI * 2.0), (M_PI * 2.0));
+    return fmod(theta + (2.0 * M_PI), (2.0 * M_PI));
 }
 
 
