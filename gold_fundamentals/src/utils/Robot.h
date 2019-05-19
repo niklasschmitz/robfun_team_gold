@@ -4,6 +4,8 @@
 #include "ros/ros.h"
 #include "create_fundamentals/DiffDrive.h"
 #include "create_fundamentals/SensorPacket.h"
+#include "create_fundamentals/PlaySong.h"
+#include "create_fundamentals/StoreSong.h"
 #include "tools.h"
 #include "PID.h"
 #include "GridPerceptor.h"
@@ -54,6 +56,9 @@ public:
     PID steerMaxControl;
 
     ros::ServiceClient diff_drive;
+    ros::ServiceClient store_song;
+    ros::ServiceClient play_song;
+
     GridPerceptor gp;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
@@ -88,6 +93,10 @@ public:
     void steer(std::queue<T_VECTOR2D> path);
 
     bool reachedTheta(double thetaGoal);
+
+    void storeSong();
+
+    void playSong(int number, double duration);
 };
 
 #endif //SRC_ROBOT_H
