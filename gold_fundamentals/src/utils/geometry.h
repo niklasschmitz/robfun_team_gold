@@ -82,23 +82,13 @@ struct T_VECTOR2D {
         return true;
     }
 
-    // angle between
     static double angleBetweenVectors(const T_VECTOR2D &v1, const T_VECTOR2D &v2) {
         double cos_between = (v1 * v2) / (v1.length() * v2.length());
         double angle = acos(cos_between);
         return angle;
     }
 
-    // calculates the angle between the robot (0,1) and any direction vector
     static double angleBetweenRobotAndVector(const T_VECTOR2D &vec) {
-        T_VECTOR2D v1 = T_VECTOR2D(0,1);
-        //T_VECTOR2D vec_mapped = map_to_positive_y_space(vec.rotate(-M_PI_2));
-
-        //ROS_INFO("vec x %lf, y %lf", vec_mapped.x, vec_mapped.y);
-//        ROS_INFO("vec x %lf, y %lf", vec.x, vec.y);
-        //ROS_INFO("vec theta %lf", vec.theta());
-        //T_VECTOR2D new_vec;
-        //new_vec = vec.rotate(M_PI_2);
         double angle = vec.theta()+M_PI_2;
 
         if(angle > M_PI) {
@@ -106,16 +96,6 @@ struct T_VECTOR2D {
         }
 
         return angle;
-
-
-
-//        double angle = angleBetweenVectors(v1, vec);
-//        if(angle == M_PI_2) {
-//            return M_PI_2;
-//        }
-//
-//        double signed_angle = (-1) * fmod(angleBetweenVectors(v1,vec), M_PI_2) * sgn(vec_mapped.x);
-        //return signed_angle;
     }
 
     // maps a 360° space to space where y>=0, if y=0 x will be > 0
@@ -134,7 +114,7 @@ struct T_VECTOR2D {
 
     // returns angle theta of the complex number interpretation
     const double theta() const {
-        return fmod(atan2(y, x) + 2.0 * M_PI, 2.0 * M_PI);
+        return normalizeAngle(atan2(y, x));
     }
 
     const T_VECTOR2D rotate(double theta) const {

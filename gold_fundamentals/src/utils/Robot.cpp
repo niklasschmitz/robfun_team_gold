@@ -247,6 +247,7 @@ void Robot::align() {
     } else {
         turnTo(diff_vec.theta());
         driveTo(goal_vec);
+        this->resetPosition();
         alignToWall();
     }
 
@@ -263,13 +264,11 @@ void Robot::alignToWall() {
     }
 
     double angle = T_VECTOR2D::angleBetweenRobotAndVector(best_line.line.u); //TODO: check if still correct
-    double turn_value = angle - M_PI_2; //TODO: check if still correct
 
-    while (fabs(turn_value) > 5 / 180.0 * M_PI) {
-        turn(turn_value);
+    while (fabs(angle) > 5 / 180.0 * M_PI) {
+        turn(angle);
         best_line = gp.getLineWithMostInliers();
         angle = T_VECTOR2D::angleBetweenRobotAndVector(best_line.line.u); //TODO: check if still correct
-        turn_value = angle - M_PI_2; //TODO: check if still correct
     }
 }
 
