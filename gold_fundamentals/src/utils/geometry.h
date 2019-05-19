@@ -89,7 +89,7 @@ struct T_VECTOR2D {
     }
 
     static double angleBetweenRobotAndVector(const T_VECTOR2D &vec) {
-        double angle = vec.theta()+M_PI_2;
+        double angle = vec.rotate(M_PI_2).theta();
 
         if(angle > M_PI) {
             angle = angle - M_PI;
