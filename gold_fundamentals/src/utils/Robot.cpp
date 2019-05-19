@@ -45,7 +45,6 @@ void Robot::turnRandom() {
 }
 
 void Robot::brake() {
-    ROS_INFO("braking: diffDrive 0 0");
     create_fundamentals::DiffDrive srv;
     srv.request.left = 0.0f;
     srv.request.right = 0.0f;
@@ -54,12 +53,7 @@ void Robot::brake() {
 }
 
 void Robot::drive(double distance) {
-    T_VECTOR2D dir;
-    dir.x = cos(this->theta) * distance;
-    dir.y = sin(this->theta) * distance;
-
-    T_VECTOR2D goal = this->position + dir;
-
+    T_VECTOR2D goal = this->position + T_VECTOR2D(distance, 0.0).rotate(this->theta);
     this->driveTo(goal);
 }
 
@@ -68,15 +62,15 @@ void Robot::turn(double angle) {
     this->turnTo(this->theta + angle);
 }
 
-void Robot::resetPosition(){
-    this->position = T_VECTOR2D(0.0,0.0);
+void Robot::resetPosition() {
+    this->position = T_VECTOR2D(0.0, 0.0);
     this->theta = M_PI_2;
 }
 
-void Robot::publishPosition(){
+void Robot::publishPosition() {
     ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
     gold_fundamentals::Pose msg;
-    msg.orientation = (int)round(this->theta / M_PI_2) + 3 % 4;
+    msg.orientation = (int) round(this->theta / M_PI_2) + 3 % 4;
     msg.row = round(this->position.x);
     msg.column = round(this->position.y);
     this->pose_pub.publish(msg);
@@ -121,7 +115,7 @@ void Robot::turnTo(double theta) {
     ros::Rate loop_rate(LOOPRATE);
     create_fundamentals::SensorPacket_<std::allocator<void> >::ConstPtr last = this->sensorData;
     while (ros::ok() && !this->reachedTheta(thetaGoal)) {
-        if(last != this->sensorData){
+        if (last != this->sensorData) {
             last = this->sensorData;
             spin(thetaGoal);
         }
@@ -142,8 +136,8 @@ void Robot::driveTo(T_VECTOR2D goal) {
 void Robot::followPath(std::queue<T_VECTOR2D> path) {
     ros::Rate loop_rate(LOOPRATE);
     create_fundamentals::SensorPacket_<std::allocator<void> >::ConstPtr last = this->sensorData;
-    while (ros::ok() && path.size() > 0) {
-        if(last != this->sensorData){
+    while (ros::ok() && !path.empty()) {
+        if (last != this->sensorData) {
             last = this->sensorData;
             steer(path);
         }
@@ -164,10 +158,7 @@ bool Robot::reachedGoal(T_VECTOR2D goal) {
 }
 
 bool Robot::reachedTheta(double thetaGoal) {
-    if (fabs(thetaGoal - this->theta) < 0.02)
-        thetaGoal = nan("");
-
-    return isnan(thetaGoal);
+    return fabs(thetaGoal - this->theta) < 0.02;
 }
 
 void Robot::spin(double thetaGoal) {
@@ -181,7 +172,7 @@ void Robot::spin(double thetaGoal) {
 }
 
 void Robot::steer(std::queue<T_VECTOR2D> path) {
-    if (path.size() == 0)
+    if (path.empty())
         return;
 
     while (path.size() > 1 && this->isCloseTo(path.front())) {
@@ -248,14 +239,14 @@ void Robot::align() {
     resetPosition();
 
     // drive to middle of cell
-    if(!goal_vec.isvalid()) {
+    if (!goal_vec.isvalid()) {
         turn(M_PI_2);
     } else {
         turnTo(diff_vec.theta());
         driveTo(goal_vec);
     }
 
-    if(reachedGoal(goal_vec)) {
+    if (reachedGoal(goal_vec)) {
         // align to wall
         alignToWall();
     }
@@ -275,7 +266,7 @@ void Robot::alignToWall() {
 
     ros::spinOnce();
 
-    while(!best_line.isvalid()) {
+    while (!best_line.isvalid()) {
         turn(M_PI_2);
         best_line = gp.getLineWithMostInliers();
     }
@@ -288,7 +279,7 @@ void Robot::alignToWall() {
 
 
     // align to the wall
-    while(fabs(turn_value) > 5/180.0*M_PI) {
+    while (fabs(turn_value) > 5 / 180.0 * M_PI) {
         turn(angle - M_PI_2);
         best_line = gp.getLineWithMostInliers();
         angle = T_VECTOR2D::angleBetweenRobotAndVector(best_line.line.u);
@@ -306,7 +297,7 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
     calculatePosition(this->sensorData, msg);
     this->sensorData = msg;
 
-    if(this->sensorData->bumpLeft || this->sensorData->bumpRight){
+    if (this->sensorData->bumpLeft || this->sensorData->bumpRight) {
         ROS_INFO("OH NO!");
         this->brake();
         exit(1);
