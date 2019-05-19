@@ -236,7 +236,7 @@ void Robot::align() {
     }
 
     T_VECTOR2D diff_vec = gp.getAlignmentTargetPositionDifference();
-    T_VECTOR2D goal_vec = this->position + diff_vec;//.rotate(this->theta);
+    T_VECTOR2D goal_vec = this->position + diff_vec.rotate(this->theta);
 
     ROS_INFO("our position is , x = %lf y = %lf", this->position.x, this->position.y);
     ROS_INFO("the goal is , x = %lf y = %lf", goal_vec.x, goal_vec.y);
