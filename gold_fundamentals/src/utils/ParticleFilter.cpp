@@ -32,6 +32,7 @@ ParticleFilter::ParticleFilter() {
     this->update_map = true;
 
     this->numberOfParticles = 1000;
+    this->inverse_resolution = 100; // pixel / meter
 
     // initialize particles
     for (int i = 0; i <this->numberOfParticles; i++) {
@@ -66,12 +67,17 @@ ParticleFilter::~ParticleFilter() {
 		delete[] this->distMap;
 }
 
-void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg) {
+void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
     if(update_map) {
-        ROS_INFO("map callback %d", msg->rows[0].cells[0].walls[0]);
+//        ROS_INFO("map callback %d", msg_grid->rows[0].cells[0].walls[0]);
+//        ROS_INFO("map callback %d", msg_grid->rows[0].cells[1].walls.size());
+        oc_grid.convertMsgGridToOccupancyGrid(msg_grid, inverse_resolution);
+        oc_grid.printGrid();
+        //map.publishToRviz();
         update_map = false;
     }
 }
+
 
 bool ParticleFilter::setUpdateMap(gold_fundamentals::UpdateMap::Request &req, gold_fundamentals::UpdateMap::Response &res) {
     update_map = true;
@@ -95,7 +101,7 @@ void ParticleFilter::initParticlesUniform() {
     	this->getLikelihoodField(mapWidth, mapHeight,mapResolution);
 
 	for (int i = 0; i <this->numberOfParticles; i++) {
-		//particle position needs to be expressed in [meter] while the mapWidth and mapHeight are given in [pixel]
+		// particle position needs to be expressed in [meter] while the mapWidth and mapHeight are given in [pixel]
 		// therefore the dimensions have to be multiplied by the resolution [meter/pixel]
 		this->particleSet[i]->x = Probability::uniformRandom(0,mapWidth*mapResolution);
 		this->particleSet[i]->y = Probability::uniformRandom(0,mapHeight*mapResolution);

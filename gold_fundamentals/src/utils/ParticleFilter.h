@@ -69,6 +69,9 @@ private:
 	
 	void likelihoodFieldRangeFinderModel( const sensor_msgs::LaserScanConstPtr& laserScan );
 
+	OccupancyGrid oc_grid;
+	int inverse_resolution; // pixel / meter
+
 	double* distMap;
 
 	// Calculate the binary distance map (also known as distance transform).

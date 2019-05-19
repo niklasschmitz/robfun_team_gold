@@ -6,6 +6,7 @@
 #include "nav_msgs/OccupancyGrid.h"
 
 #include "geometry.h"
+#include "gold_fundamentals/Grid.h"
 
 #include <cstdlib>
 #include <ctime>
@@ -18,8 +19,9 @@ class OccupancyGrid {
 public:
 
     OccupancyGrid();
+    ~OccupancyGrid();
 
-    struct MapWallData {
+    struct WallData {
         bool Top;
         bool Right;
         bool Bot;
@@ -31,26 +33,25 @@ public:
 
         uint8_t cell_pos_x;
         uint8_t cell_pos_y;
+        int sideLengthInPixels;
 
-        Box(int inverse_resolution);
-        void setBorders(MapWallData mwp);
+        Box(uint8_t cell_pos_x, uint8_t cell_pos_y, int inverse_resolution);
+        ~Box();
+        void setBorders(WallData mwp);
 
+        void setSingleBoxPixel(int x, int y, bool occupied);
+        uint8_t getSingleBoxPixel(int x, int y);
     private:
-        uint8_t* data;
+        uint8_t* box_data; // occupation information, 0-100% (likeliness to be occupied)
 
     };
 
-    void convertMapToOccupancyGrid(std::vector<int> map, int inverse_resolution);
+    void convertMsgGridToOccupancyGrid(const gold_fundamentals::Grid::ConstPtr &grid, int inverse_resolution);
 
-    // sets occupancy (0 = not occupied, 1 = occupied)
-    void setMazeBoxOccupancy(int row, int col, MapWallData);
+    void printGrid();
 
-    // the maze consists of boxes. x and y are the horizontal and vertical.
-    // row and col are the cell params in the box. box cell side length is the side lenght of a box measured in cells.
-
-    //nt computeGridCellIndex(int box_x, int box_y, int row, int col, int box_cell_side_length);
-    // gets width and height of the map coming from the node
-    T_VECTOR2D getMapSizeData();
+    // the maze consists of cells. x and y represent horizontal and vertical.
+    // row and col are the box params in the cell. box pixel side length is the side lenght of a box measured in pixels.
 
 private:
     // cells are those in the actual labyrinth
@@ -60,9 +61,17 @@ private:
     int max_cells_y;
     int width; // in pixel
     int height; // in pixel
-    double resolution; // meter / pixel
-    uint8_t* data;
+    //double resolution; // meter / pixel
+    uint8_t* grid_data; // occupation information, 0-100% (likeliness to be occupied)
 
+    static T_VECTOR2D getMsgGridDimensions(const gold_fundamentals::Grid::ConstPtr &msg_grid);
+
+    // box is a single cell expressed in pixels
+    static int getBoxSideLengthInPixels(int inverse_resolution);
+
+    std::vector<Box*> createBoxesFromMsgGrid(const gold_fundamentals::Grid::ConstPtr &msg_grid, int inverse_resolution);
+
+    void setSingleGridPixel(int cell_x, int cell_y, int box_x, int box_y, uint8_t value, int inverse_resolution);
 };
 
 #endif
