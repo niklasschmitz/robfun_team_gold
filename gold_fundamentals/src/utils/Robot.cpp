@@ -297,7 +297,7 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
 
     if (this->sensorData->bumpLeft || this->sensorData->bumpRight) {
         ROS_INFO("OH NO!");
-        this->play_song(0,0);
+        this->playSong(0,0);
         this->brake();
         exit(1);
     }
