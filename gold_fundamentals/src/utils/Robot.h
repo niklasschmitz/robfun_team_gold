@@ -36,7 +36,6 @@ public:
 
     static const double LOOPRATE;
 
-    static const double ENCODER_STEPS_PER_REVOLUTION;
     static const double LASER_OFFSET;
     static const double MAX_SPEED;
     static const double MIN_SPEED;
@@ -46,20 +45,19 @@ public:
     static const double WHEEL_RADIUS;
 
     T_VECTOR2D position;
-    //T_VECTOR2D *positionGoal;
     double theta;
-    //double thetaGoal;
-    //std::queue<T_VECTOR2D> path;
 
-    PID controller;
+    PID turnControl;
+    PID speedControl;
+    PID steerControl;
+    PID steerMaxControl;
+
     ros::ServiceClient diff_drive;
     GridPerceptor gp;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
     ros::Time sensorTime;
     double timeDelta;
-
-    //const enum direction{RIGHT = 0, UP = 1, LEFT = 2, DOWN = 3};
 
     ros::Publisher pose_pub;
 
@@ -72,19 +70,11 @@ public:
 
     void driveTo(T_VECTOR2D position);
 
-    //bool reachedTheta();
-
-    //void spin();
-
-    //void steer();
-
     bool isCloseTo(T_VECTOR2D point);
 
     void followPath(std::queue<T_VECTOR2D> path);
 
     bool reachedGoal(T_VECTOR2D goal);
-
-    bool goalBehindRobot(T_VECTOR2D goal, T_VECTOR2D error);
 
     void alignToWall();
 
