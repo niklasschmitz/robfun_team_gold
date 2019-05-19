@@ -3,7 +3,7 @@
 #include "geometry.h"
 
 // laser is located 11cm to the front
-const T_VECTOR2D LASER_OFFSET = T_VECTOR2D(0., 0.11);
+const T_VECTOR2D LASER_OFFSET = T_VECTOR2D(0.11, 0.0);
 
 GridPerceptor::GridPerceptor() {
     ros::NodeHandle n;
@@ -38,7 +38,7 @@ void GridPerceptor::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     //ROS_INFO("%f", msg->ranges[msg->ranges.size() / 2]);
     std::vector<T_VECTOR2D> coordinates;
     for (int i = 0; i < msg->ranges.size(); ++i) {
-        double theta = msg->angle_min + msg->angle_increment * i + M_PI_2; //might be angle_max - increment * i
+        double theta = msg->angle_min + msg->angle_increment * i; //might be angle_max - increment * i
         double radius = msg->ranges[i];
 
         if (!isnan(radius)) {  // only consider non-nan points
