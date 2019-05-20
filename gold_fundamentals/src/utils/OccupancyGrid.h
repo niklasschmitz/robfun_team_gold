@@ -33,11 +33,7 @@ public:
     void printGrid();
 
     // the maze consists of cells. x and y represent horizontal and vertical.
-    // row and col are the box params in the cell. box pixel side length is the side lenght of a box measured in pixels.
-
-private:
     // cells are those in the actual labyrinth
-    // boxes are discretized versions of cells, they have pixels
 
     int max_cells_x; // how many cells there are in the x direction
     int max_cells_y;
@@ -45,6 +41,9 @@ private:
     int height; // in pixel
     int inverse_resolution; // pixel / meter
     uint8_t* grid_data; // occupation information, 0-100% (likeliness to be occupied)
+
+private:
+    // boxes are discretized versions of cells, they have pixels
 
     static T_VECTOR2D getMsgGridDimensions(const gold_fundamentals::Grid::ConstPtr &msg_grid);
 

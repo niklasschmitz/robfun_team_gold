@@ -12,6 +12,7 @@ void OccupancyGrid::printGrid() {
     ROS_INFO("PRINTING GRID");
     for( int row=0; row<height; row++) {
         std::ostringstream row_string;
+        //row_string << row+1;
         for( int col=0; col<width; col++) {
             uint8_t val = grid_data[row * width + col];
             if(val == 0) {

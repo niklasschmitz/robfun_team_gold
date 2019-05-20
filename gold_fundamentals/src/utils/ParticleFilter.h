@@ -3,7 +3,6 @@
 
 #include "sensor_msgs/LaserScan.h"
 #include "nav_msgs/Odometry.h"
-#include "nav_msgs/OccupancyGrid.h"
 
 #include "geometry.h"
 
@@ -61,6 +60,9 @@ private:
 	// motion model error parameters
 	double odomAlpha1, odomAlpha2, odomAlpha3, odomAlpha4;
 
+	double minLikelihood;
+	double standardDev;
+
 	// the sensor model (scan-based)
 	double* likelihoodField;
 	int likelihoodFieldWidth, likelihoodFieldHeight;
@@ -78,7 +80,7 @@ private:
 	// The distance map contains in every cell the distance from this cell
 	// to the next obstacle.
 	// After calculation, the distance map will be stored in the member variable distMap.
-	void calculateDistanceMap(const nav_msgs::OccupancyGrid& map);
+	void calculateDistanceMap(const OccupancyGrid& map);
 
 	// Compute the index to address a one-dimensional array from a
 	// two-dimensional coordinate (x,y)
@@ -98,7 +100,8 @@ public:
 
 	int getNumberOfParticles();
 	std::vector<Particle*>* getParticleSet();
-	
+
+	void init();
 	void initParticlesUniform();
 	void initParticlesGaussian( double mean_x, double mean_y, double mean_theta, double std_xx, double std_yy, double std_tt );
 	
@@ -112,7 +115,7 @@ public:
 	// compute the initial likehood field given the map occupancy grid
 	// @param double zRand 		the minimum likelihood of every cell (pRand=1, zHit+zRand=1)
 	// @param double sigmaHit 	the standard deviation of the gaussian likelihood distribution (mean is 0)
-	void setMeasurementModelLikelihoodField( const nav_msgs::OccupancyGrid& map, double zRand, double sigmaHit );
+	void setMeasurementModelLikelihoodField( const OccupancyGrid& map, double zRand, double sigmaHit );
 	double* getLikelihoodField( int& width, int& height, double& resolution );
 	
 	// resample (importance sampling)

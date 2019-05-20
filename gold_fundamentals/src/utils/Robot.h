@@ -55,7 +55,7 @@ public:
     PID controller;
     ros::ServiceClient diff_drive;
     GridPerceptor gp;
-    ParticleFilter pf;
+    ParticleFilter particleFilter;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
     ros::Time sensorTime;

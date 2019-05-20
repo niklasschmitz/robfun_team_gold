@@ -47,6 +47,16 @@ ParticleFilter::ParticleFilter() {
 
     // distance map used for computing the likelihood field
     this->distMap = NULL;
+
+    this->odomAlpha1 = 0.2;
+    this->odomAlpha2 = 0.2;
+    this->odomAlpha3 = 0.2;
+    this->odomAlpha4 = 0.2;
+
+    this->minLikelihood = 0.8;
+    this->standardDev = 0.3;
+
+    init();
 }
 
 ParticleFilter::~ParticleFilter() {
@@ -67,13 +77,19 @@ ParticleFilter::~ParticleFilter() {
 		delete[] this->distMap;
 }
 
+void ParticleFilter::init() {
+    this->setMotionModelOdometry(odomAlpha1, odomAlpha2, odomAlpha3, odomAlpha4);
+    this->setMeasurementModelLikelihoodField(oc_grid, minLikelihood, standardDev);
+    this->initParticlesUniform();
+}
+
 void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
     if(update_map) {
 //        ROS_INFO("map callback %d", msg_grid->rows[0].cells[0].walls[0]);
 //        ROS_INFO("map callback %d", msg_grid->rows[0].cells[1].walls.size());
         oc_grid.convertMsgGridToOccupancyGrid(msg_grid, inverse_resolution);
         oc_grid.printGrid();
-        //map.publishToRviz();
+        //oc_grid.publishToRviz();
         update_map = false;
     }
 }
@@ -127,14 +143,14 @@ void ParticleFilter::initParticlesGaussian(double mean_x, double mean_y,
  *  Initializes the likelihood field as our sensor model.
  */
 void ParticleFilter::setMeasurementModelLikelihoodField(
-		const nav_msgs::OccupancyGrid& map, double zRand, double sigmaHit) {
+		const OccupancyGrid& map, double zRand, double sigmaHit) {
 	ROS_INFO("Creating likelihood field for laser range finder...");
 
 	// create the likelihood field - with the same discretization as the occupancy grid map
-	this->likelihoodField = new double[map.info.height * map.info.width];
-	this->likelihoodFieldWidth = map.info.width;
-	this->likelihoodFieldHeight = map.info.height;
-	this->likelihoodFieldResolution = map.info.resolution;
+	this->likelihoodField = new double[map.height * map.width];
+	this->likelihoodFieldWidth = map.width;
+	this->likelihoodFieldHeight = map.height;
+	this->likelihoodFieldResolution = 1.0/map.inverse_resolution;
 
     // calculates the distance map and stores it in member variable 'distMap'
 	// for every map position it contains the distance to the nearest occupied cell.
@@ -191,7 +207,7 @@ void ParticleFilter::setMeasurementModelLikelihoodField(
 
 }
 
-void ParticleFilter::calculateDistanceMap(const nav_msgs::OccupancyGrid& map) {
+void ParticleFilter::calculateDistanceMap(const OccupancyGrid& map) {
 	// calculate distance map = distance to nearest occupied cell
 	distMap = new double[likelihoodFieldWidth * likelihoodFieldHeight];
 	int occupiedCellProbability = 90;
@@ -202,17 +218,17 @@ void ParticleFilter::calculateDistanceMap(const nav_msgs::OccupancyGrid& map) {
 		}
 	}
 	// set occupied cells next to unoccupied space to zero
-	for (int x = 0; x < map.info.width; x++) {
-		for (int y = 0; y < map.info.height; y++) {
-			if (map.data[x + y * map.info.width] >= occupiedCellProbability) {
+	for (int x = 0; x < map.width; x++) {
+		for (int y = 0; y < map.height; y++) {
+			if (map.grid_data[x + y * map.width] >= occupiedCellProbability) {
 				bool border = false;
 				for (int i = -1; i <= 1; i++) {
 					for (int j = -1; j <= 1; j++) {
 						if (!border && x + i >= 0 && y + j >= 0 && x + i
 								< likelihoodFieldWidth && y + j
 								< likelihoodFieldHeight && (i != 0 || j != 0)) {
-							if (map.data[x + i + (y + j) * likelihoodFieldWidth]
-									< occupiedCellProbability && map.data[x + i
+							if (map.grid_data[x + i + (y + j) * likelihoodFieldWidth]
+									< occupiedCellProbability && map.grid_data[x + i
 									+ (y + j) * likelihoodFieldWidth] >= 0)
 								border = true;
 						}
