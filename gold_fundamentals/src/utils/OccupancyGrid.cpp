@@ -9,11 +9,16 @@ OccupancyGrid::~OccupancyGrid() {
 }
 
 void OccupancyGrid::printGrid() {
+    ROS_INFO("PRINTING GRID");
     for( int row=0; row<height; row++) {
         std::ostringstream row_string;
         for( int col=0; col<width; col++) {
             uint8_t val = grid_data[row * width + col];
-            row_string << val;
+            if(val == 0) {
+                row_string << '-';
+            } else {
+                row_string << 'X';
+            }
         }
 
         ROS_INFO("%s", row_string.str().c_str());
@@ -21,13 +26,13 @@ void OccupancyGrid::printGrid() {
 }
 
 // map = map from the node [[[T,L,R], ... ]]], inverse_resolution = pixels / meter
-void OccupancyGrid::convertMsgGridToOccupancyGrid(const gold_fundamentals::Grid::ConstPtr &msg_grid, int inverse_resolution) {
+void OccupancyGrid::convertMsgGridToOccupancyGrid(const gold_fundamentals::Grid::ConstPtr &msg_grid, int inverse_res) {
     // find out max horizontal, vertical spread of the map (x=max_nr_of_cols, y=max_nr_of_rows)
     T_VECTOR2D msg_grid_dims = OccupancyGrid::getMsgGridDimensions(msg_grid);
 
     max_cells_x = static_cast<int>(msg_grid_dims.x);
     max_cells_y = static_cast<int>(msg_grid_dims.y);
-    //resolution = 1 / inverse_resolution;
+    inverse_resolution = inverse_res;
     width = static_cast<int>(msg_grid_dims.x * MAZE_SIDE_LENGTH * inverse_resolution); // *80 as one cell is 80cm
     height = static_cast<int>(msg_grid_dims.y * MAZE_SIDE_LENGTH * inverse_resolution);
 
@@ -36,31 +41,19 @@ void OccupancyGrid::convertMsgGridToOccupancyGrid(const gold_fundamentals::Grid:
     // create new data object
     grid_data = new uint8_t[width*height];
 
-    std::vector<OccupancyGrid::Box*> boxes = createBoxesFromMsgGrid(msg_grid, inverse_resolution);
-    // iterate over boxes and set data accordingly
-    for( int box_idx=0; box_idx<boxes.size(); box_idx++) {
-        for( int row=0; row<boxes[box_idx]->sideLengthInPixels; row++) {
-            for( int col=0; col<boxes[box_idx]->sideLengthInPixels; col++) {
-                uint8_t box_pixel_value = boxes[box_idx]->getSingleBoxPixel(col, row);
-                setSingleGridPixel(boxes[box_idx]->cell_pos_x, boxes[box_idx]->cell_pos_y, col, row, box_pixel_value, inverse_resolution);
-            }
-        }
-    }
+    setAllCellBorders(msg_grid);
 
-    //delete unneeded boxes again
-    for( int i=0; i<boxes.size(); i++) {
-        delete boxes[i];
-    }
 }
 
-void OccupancyGrid::setSingleGridPixel(int cell_x, int cell_y, int box_x, int box_y, uint8_t value, int inverse_resolution) {
-    int sideLengthInPixels = getBoxSideLengthInPixels(inverse_resolution);
+void OccupancyGrid::setSingleGridPixel(int cell_x, int cell_y, int box_x, int box_y, uint8_t value) {
+    int sideLengthInPixels = getBoxSideLengthInPixels();
     // pixels in one full row * (rows to go down because of cell offset + box_y offset) + (cols to go left because cell offset + box_x offset)
+    // maybe sidelength-1 ?
     int index = max_cells_x * sideLengthInPixels * (cell_y * sideLengthInPixels + box_y) + sideLengthInPixels * cell_x + box_x;
     grid_data[index] = value;
 }
 
-int OccupancyGrid::getBoxSideLengthInPixels(int inverse_resolution) {
+int OccupancyGrid::getBoxSideLengthInPixels() {
     // maze_side_length [m], inverse_res [pixels/m]
     return MAZE_SIDE_LENGTH * inverse_resolution;
 }
@@ -84,100 +77,83 @@ T_VECTOR2D OccupancyGrid::getMsgGridDimensions(const gold_fundamentals::Grid::Co
     return dims;
 }
 
-std::vector<OccupancyGrid::Box*>
-OccupancyGrid::createBoxesFromMsgGrid(const gold_fundamentals::Grid::ConstPtr &msg_grid, int inverse_resolution) {
-    std::vector<OccupancyGrid::Box*> boxes;
-    for(int row=0; row<max_cells_y; row++) {
-        for(int col=0; col<max_cells_x; col ++) {
-            // find out how many walls there are
-            int nr_of_walls = msg_grid->rows[row].cells[col].walls.size();
-            WallData wallData;
-            wallData.Bot = false;
-            wallData.Top = false;
-            wallData.Right = false;
-            wallData.Left = false;
+OccupancyGrid::WallData OccupancyGrid::getWallData(const gold_fundamentals::Grid::ConstPtr &msg_grid, int row, int col) {
+    // find out how many walls there are
+    int nr_of_walls = msg_grid->rows[row].cells[col].walls.size();
+    WallData wallData;
+    wallData.Bot = false;
+    wallData.Top = false;
+    wallData.Right = false;
+    wallData.Left = false;
 
-            // find out which walls are set
-            for(int wall_idx=0; wall_idx<nr_of_walls; wall_idx++) {
-                switch (msg_grid->rows[row].cells[col].walls[wall_idx]) {
-                    case 0:
-                        wallData.Right = true;
-                        break;
-                    case 1:
-                        wallData.Top = true;
-                        break;
-                    case 2:
-                        wallData.Left = true;
-                        break;
-                    case 3:
-                        wallData.Bot = true;
-                        break;
+    // find out which walls are set
+    for(int wall_idx=0; wall_idx<nr_of_walls; wall_idx++) {
+        switch (msg_grid->rows[row].cells[col].walls[wall_idx]) {
+            case 0:
+                wallData.Right = true;
+                break;
+            case 1:
+                wallData.Top = true;
+                break;
+            case 2:
+                wallData.Left = true;
+                break;
+            case 3:
+                wallData.Bot = true;
+                break;
 
-                    default:
-                        // shouldnt get here
-                        break;
-                }
-            }
-
-            // create the box
-            OccupancyGrid::Box* box = new Box(col, row, inverse_resolution);
-            box->setBorders(wallData);
-
-            boxes.push_back(box);
+            default:
+                // shouldnt get here
+                break;
         }
     }
 
-    return boxes;
+    return wallData;
 }
 
-
-OccupancyGrid::Box::Box(uint8_t cell_pos_x, uint8_t cell_pos_y, int inverse_resolution)
-    : cell_pos_x(cell_pos_x), cell_pos_y(cell_pos_y){
-    sideLengthInPixels = OccupancyGrid::getBoxSideLengthInPixels(inverse_resolution);
-    box_data = new uint8_t[sideLengthInPixels * sideLengthInPixels]; // () to init to zero
-    std::fill(box_data, box_data+sideLengthInPixels*sideLengthInPixels, 0);
-}
-
-OccupancyGrid::Box::~Box() {
-    delete[] box_data;
-}
-
-void OccupancyGrid::Box::setBorders(OccupancyGrid::WallData mwp) {
-    // box data is initialized to zero
-    if (mwp.Bot == true) {
-       for(int col=0; col<sideLengthInPixels; col++) {
-           setSingleBoxPixel( sideLengthInPixels, col, true);
-       }
-    }
-
-    if (mwp.Top == true) {
-        for(int col=0; col<sideLengthInPixels; col++) {
-            setSingleBoxPixel( 0, col, true);
-        }
-    }
-
-    if (mwp.Left == true) {
-        for(int row=0; row<sideLengthInPixels; row++) {
-            setSingleBoxPixel( row, 0, true);
-        }
-    }
-
-    if (mwp.Right == true) {
-        for(int row=0; row<sideLengthInPixels; row++) {
-            setSingleBoxPixel( row, sideLengthInPixels, true);
+void OccupancyGrid::setAllCellBorders(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
+    for( int row=0; row<max_cells_y; row++ ) {
+        for( int col=0; col<max_cells_x; col++ ) {
+//            msg_grid->rows[row].cells[col].walls[wall_idx]
+            WallData wallData = getWallData(msg_grid, col, row);
+            setSingleCellBorders(col, row, wallData);
         }
     }
 }
 
-void OccupancyGrid::Box::setSingleBoxPixel( int x, int y, bool occupied) {
-    if(occupied == true) {
-        box_data[sideLengthInPixels*y + x] = 100;
-    } else {
-        // not occupied
-        box_data[sideLengthInPixels*y + x] = 0;
-    }
-}
+// sets a box directly in the global occupancy grid
+void OccupancyGrid::setSingleCellBorders(int cell_x, int cell_y, WallData wallData) {
+    // iterate over all pixels in the box and set to zero (reset)
+    int boxSideLength = getBoxSideLengthInPixels();
 
-uint8_t OccupancyGrid::Box::getSingleBoxPixel( int x, int y) {
-    return box_data[sideLengthInPixels*y + x];
+    for( int row=0; row<boxSideLength; row++ ) {
+        for( int col=0; col<boxSideLength; col++ ) {
+            setSingleGridPixel(cell_x, cell_y, col, row, 0);
+        }
+    }
+
+    // now set the borders
+    if(wallData.Top) {
+        for(int col=0; col<boxSideLength; col++) {
+            setSingleGridPixel(cell_x, cell_y, col, 0, 100);
+        }
+    }
+
+    if(wallData.Bot) {
+        for(int col=0; col<boxSideLength; col++) {
+            setSingleGridPixel(cell_x, cell_y, col, boxSideLength-1, 100);
+        }
+    }
+
+    if(wallData.Left) {
+        for(int row=0; row<boxSideLength; row++) {
+            setSingleGridPixel(cell_x, cell_y, 0, row, 100);
+        }
+    }
+
+    if(wallData.Right) {
+        for(int row=0; row<boxSideLength; row++) {
+            setSingleGridPixel(cell_x, cell_y, boxSideLength-1, row, 100);
+        }
+    }
 }
