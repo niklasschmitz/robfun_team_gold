@@ -1,7 +1,18 @@
 #include "DiscreteLocalizer.h"
 
 void DiscreteLocalizer::DiscreteLocalizer() {
+    int n_cols = this->map[0].size();
+    int n_rows = this->map.size();
 
+    // populate candidates with all possible aligned configurations
+    // this can be thought of as a uniform prio
+    for (int i = 0; i < n_rows; ++i) {
+        for (int j = 0; j < n_cols; ++j) {
+            for (int theta = 0; theta < 4; ++theta) {
+                this->candidates.push_back(RobotConfiguration((double) x + 0.5, (double) y + 0.5, (double) theta));
+            }
+        }
+    }
 }
 
 void DiscreteLocalizer::estimateConfiguration(RobotConfiguration action, maze::Cell observation) {
@@ -22,6 +33,6 @@ void DiscreteLocalizer::estimateConfiguration(RobotConfiguration action, maze::C
 
     }
 
-    delete(candidates);
+    delete(this->candidates);
     this->candidates = new_candidates;
 }
