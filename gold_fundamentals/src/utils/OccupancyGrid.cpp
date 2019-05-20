@@ -25,11 +25,11 @@ void OccupancyGrid::convertMsgGridToOccupancyGrid(const gold_fundamentals::Grid:
     // find out max horizontal, vertical spread of the map (x=max_nr_of_cols, y=max_nr_of_rows)
     T_VECTOR2D msg_grid_dims = OccupancyGrid::getMsgGridDimensions(msg_grid);
 
-    max_cells_x = msg_grid_dims.x;
-    max_cells_y = msg_grid_dims.y;
+    max_cells_x = static_cast<int>(msg_grid_dims.x);
+    max_cells_y = static_cast<int>(msg_grid_dims.y);
     //resolution = 1 / inverse_resolution;
-    width = msg_grid_dims.x * MAZE_SIDE_LENGTH * inverse_resolution; // *80 as one cell is 80cm
-    height = msg_grid_dims.y * MAZE_SIDE_LENGTH * inverse_resolution;
+    width = static_cast<int>(msg_grid_dims.x * MAZE_SIDE_LENGTH * inverse_resolution); // *80 as one cell is 80cm
+    height = static_cast<int>(msg_grid_dims.y * MAZE_SIDE_LENGTH * inverse_resolution);
 
     // delete any memory allocated before
     delete[] grid_data;
@@ -126,6 +126,8 @@ OccupancyGrid::createBoxesFromMsgGrid(const gold_fundamentals::Grid::ConstPtr &m
             boxes.push_back(box);
         }
     }
+
+    return boxes;
 }
 
 
