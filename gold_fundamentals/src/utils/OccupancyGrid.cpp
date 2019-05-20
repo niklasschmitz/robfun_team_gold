@@ -77,7 +77,7 @@ T_VECTOR2D OccupancyGrid::getMsgGridDimensions(const gold_fundamentals::Grid::Co
     return dims;
 }
 
-OccupancyGrid::WallData OccupancyGrid::getWallData(const gold_fundamentals::Grid::ConstPtr &msg_grid, int row, int col) {
+OccupancyGrid::WallData OccupancyGrid::getWallData(const gold_fundamentals::Grid::ConstPtr &msg_grid, int col, int row) {
     // find out how many walls there are
     int nr_of_walls = msg_grid->rows[row].cells[col].walls.size();
     WallData wallData;
