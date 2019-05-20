@@ -43,6 +43,10 @@ struct T_VECTOR2D {
         return x * other.x + y * other.y;
     }
 
+    T_VECTOR2D operator*(const int lambda) const {
+        return T_VECTOR2D(x * lambda, y * lambda);
+    }
+
     // add and assignment
     void operator+=(const T_VECTOR2D &other) {
         x = x + other.x;
@@ -91,7 +95,7 @@ struct T_VECTOR2D {
     static double angleBetweenRobotAndVector(const T_VECTOR2D &vec) {
         double angle = vec.rotate(M_PI_2).theta();
 
-        if(angle > M_PI) {
+        while(angle > M_PI_2) {
             angle = angle - M_PI;
         }
 
