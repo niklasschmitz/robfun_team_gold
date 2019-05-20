@@ -42,7 +42,9 @@ namespace maze {
     };
 
     class Maze {
+        std::vector<std::vector<Cell>> map;
 
+        const Cell getCell(T_VECTOR2D position);
     };
 
 }
