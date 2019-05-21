@@ -30,7 +30,8 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #uncomment if you have defined messages
-add_message_files(FILES
+add_message_files(
+	FILES
         Cell.msg
         Grid.msg
         Pose.msg
@@ -64,7 +65,7 @@ generate_messages(
 # catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
 catkin_package(
         DEPENDS python-serial
-        CATKIN_DEPENDS roscpp rospy sensor_msgs create_fundamentals
+        CATKIN_DEPENDS roscpp rospy sensor_msgs create_fundamentals message_runtime
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
