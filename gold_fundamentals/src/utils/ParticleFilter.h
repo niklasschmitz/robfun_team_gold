@@ -10,7 +10,6 @@
 #include <ctime>
 #include "OccupancyGrid.h"
 
-#include "gold_fundamentals/Pose.h"
 #include "gold_fundamentals/Grid.h"
 #include "gold_fundamentals/Cell.h"
 #include "gold_fundamentals/Row.h"
@@ -95,6 +94,7 @@ public:
 
     ros::Subscriber map_sub;
     ros::ServiceServer updatemap_service;
+
     void mapCallback(const gold_fundamentals::Grid::ConstPtr &msg);
     bool setUpdateMap(gold_fundamentals::UpdateMap::Request &req, gold_fundamentals::UpdateMap::Response &res);
 

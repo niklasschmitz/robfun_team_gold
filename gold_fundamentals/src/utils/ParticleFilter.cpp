@@ -301,9 +301,12 @@ void ParticleFilter::likelihoodFieldRangeFinderModel(
 
 	for (int i = 0; i <this->numberOfParticles; i++) {
 		double weight = 0.0;
-		int nr_of_ranges = 511;
+//		int nr_of_ranges = 511;
+        // REVIEW: check if this is correct!
+        int nr_of_ranges = laserScan->ranges.size()-1;
 
-		//particle postions are now needed in [pixel], therefore divison by resolution
+
+        //particle postions are now needed in [pixel], therefore divison by resolution
 		double particleX = this->particleSet[i]->x / this->likelihoodFieldResolution;
 		double particleY = this->particleSet[i]->y / this->likelihoodFieldResolution;
 		double particleTheta = this->particleSet[i]->theta;

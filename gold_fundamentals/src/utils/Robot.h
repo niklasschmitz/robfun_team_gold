@@ -11,6 +11,7 @@
 #include <queue>
 #include "gold_fundamentals/Pose.h"
 #include "gold_fundamentals/Grid.h"
+#include <boost/thread/mutex.hpp>
 
 
 class Robot {
@@ -32,8 +33,10 @@ public:
     void align();
 
     void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg);
+    void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg);
 
     ros::Subscriber sub_sensor;
+    ros::Subscriber sub_laser;
 
     static const double LOOPRATE;
 
@@ -56,6 +59,8 @@ public:
     ros::ServiceClient diff_drive;
     GridPerceptor gp;
     ParticleFilter particleFilter;
+    bool bigChangeInPose;
+    boost::mutex pfMutex;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
     ros::Time sensorTime;
