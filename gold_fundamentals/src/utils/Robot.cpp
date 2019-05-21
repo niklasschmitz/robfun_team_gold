@@ -41,11 +41,11 @@ void Robot::playSong(int number) {
 }
 
 void Robot::diffDrive(double left, double right) {
-    if (left != 0 && fabs(left) < MIN_SPEED) {
-        left = MIN_SPEED * sgn(left);
+    if (left != 0) {
+        left = absMin(left, MIN_SPEED);
     }
-    if (right != 0 && fabs(right) < MIN_SPEED) {
-        right = MIN_SPEED * sgn(right);
+    if (right != 0) {
+        right = absMin(right, MIN_SPEED);
     }
     create_fundamentals::DiffDrive srv;
     srv.request.left = left;
@@ -182,7 +182,7 @@ void Robot::followPath(std::queue<T_VECTOR2D> path) {
     this->brake();
 }
 
-void Robot::drivePID(T_VECTOR2D goal){
+void Robot::drivePID(T_VECTOR2D goal) {
     T_VECTOR2D error = goal - this->position;
 
     double out = speedControl.calculate(error.magnitude(), 0.0, this->timeDelta);
@@ -203,7 +203,7 @@ void Robot::drivePID(T_VECTOR2D goal){
     }
 }
 
-void Robot::driveMAX(T_VECTOR2D checkpoint){
+void Robot::driveMAX(T_VECTOR2D checkpoint) {
     T_VECTOR2D error = checkpoint - this->position;
 
     double speed = Robot::MAX_SPEED;
@@ -264,7 +264,6 @@ void Robot::align() {
 
     this->resetPosition();
 }
-
 
 void Robot::alignToWall() {
     T_RATED_LINE best_line = gp.getLineWithMostInliers();
