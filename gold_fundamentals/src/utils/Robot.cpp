@@ -17,13 +17,13 @@ Robot::Robot() {
     this->steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 15, 0.0, 0.0);
     this->steerMaxControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
-    this->store_song = n.serviceClient<create_fundamentals::DiffDrive>("store_song");
-    this->play_song = n.serviceClient<create_fundamentals::DiffDrive>("play_song");
+    this->store_song = n.serviceClient<create_fundamentals::StoreSong>("store_song");
+    this->play_song = n.serviceClient<create_fundamentals::PlaySong>("play_song");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
     this->pose_pub = n.advertise<gold_fundamentals::Pose>("pose", 1);
     this->sensorTime = ros::Time::now();
     this->resetPosition();
-    //this->storeSong();
+    this->storeSong();
 }
 
 void Robot::storeSong() {
