@@ -83,9 +83,8 @@ void Robot::resetPosition() {
 }
 
 void Robot::publishPosition() {
-    //ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
     gold_fundamentals::Pose msg;
-    msg.orientation = (int) round(this->theta / M_PI_2) + 3 % 4;
+    msg.orientation = (int) round(this->theta / M_PI_2) % 4;
     msg.row = round(this->position.x);
     msg.column = round(this->position.y);
     this->pose_pub.publish(msg);
@@ -160,9 +159,6 @@ void Robot::followPath(std::queue<T_VECTOR2D> path) {
     while (ros::ok() && !path.empty()) {
         if (last != this->sensorData) {
             last = this->sensorData;
-            //steer(path);
-            if (path.empty())
-                return;
 
             while (path.size() > 1 && this->isCloseTo(path.front())) {
                 path.pop();
@@ -173,37 +169,9 @@ void Robot::followPath(std::queue<T_VECTOR2D> path) {
                     path.pop();
                     return;
                 }
-
-                T_VECTOR2D error = path.front() - this->position;
-
-                double out = speedControl.calculate(error.magnitude(), 0.0, this->timeDelta);
-                double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
-
-                if (out > 2 * Robot::MAX_SPEED) {
-                    if (turn > 0) {
-                        diffDrive(out - turn, out);
-                    } else {
-                        diffDrive(out, out + turn);
-                    }
-                } else {
-                    if (turn > 0) {
-                        diffDrive(out, out + turn);
-                    } else {
-                        diffDrive(out - turn, out);
-                    }
-                }
-
+                this->drivePID(path.front());
             } else {
-                T_VECTOR2D error = path.front() - this->position;
-
-                double speed = Robot::MAX_SPEED;
-                double turn = steerMaxControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
-
-                if (turn > 0) {
-                    diffDrive(speed - turn, speed);
-                } else {
-                    diffDrive(speed, speed + turn);
-                }
+                this->driveMAX(path.front());
             }
         }
 
@@ -212,6 +180,40 @@ void Robot::followPath(std::queue<T_VECTOR2D> path) {
     }
 
     this->brake();
+}
+
+void Robot::drivePID(T_VECTOR2D goal){
+    T_VECTOR2D error = goal - this->position;
+
+    double out = speedControl.calculate(error.magnitude(), 0.0, this->timeDelta);
+    double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
+
+    if (out > 2 * Robot::MAX_SPEED) {
+        if (turn > 0) {
+            diffDrive(out - turn, out);
+        } else {
+            diffDrive(out, out + turn);
+        }
+    } else {
+        if (turn > 0) {
+            diffDrive(out, out + turn);
+        } else {
+            diffDrive(out - turn, out);
+        }
+    }
+}
+
+void Robot::driveMAX(T_VECTOR2D checkpoint){
+    T_VECTOR2D error = checkpoint - this->position;
+
+    double speed = Robot::MAX_SPEED;
+    double turn = steerMaxControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
+
+    if (turn > 0) {
+        diffDrive(speed - turn, speed);
+    } else {
+        diffDrive(speed, speed + turn);
+    }
 }
 
 bool Robot::isCloseTo(T_VECTOR2D point) {
@@ -236,53 +238,6 @@ void Robot::spin(double thetaGoal) {
 
 }
 
-void Robot::steer(std::queue<T_VECTOR2D> path) {
-    if (path.empty())
-        return;
-
-    while (path.size() > 1 && this->isCloseTo(path.front())) {
-        path.pop();
-    }
-
-    if (path.size() == 1) {
-        if (this->reachedGoal(path.front())) {
-            path.pop();
-            return;
-        }
-
-        T_VECTOR2D error = path.front() - this->position;
-
-        double out = speedControl.calculate(error.magnitude(), 0.0, this->timeDelta);
-        double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
-
-        if (out > 2 * Robot::MAX_SPEED) {
-            if (turn > 0) {
-                diffDrive(out - turn, out);
-            } else {
-                diffDrive(out, out + turn);
-            }
-        } else {
-            if (turn > 0) {
-                diffDrive(out, out + turn);
-            } else {
-                diffDrive(out - turn, out);
-            }
-        }
-
-    } else {
-        T_VECTOR2D error = path.front() - this->position;
-
-        double speed = Robot::MAX_SPEED;
-        double turn = steerMaxControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
-
-        if (turn > 0) {
-            diffDrive(speed - turn, speed);
-        } else {
-            diffDrive(speed, speed + turn);
-        }
-    }
-}
-
 void Robot::align() {
     std::vector<T_RATED_LINE> lines;
     lines = gp.getLines();
@@ -297,10 +252,6 @@ void Robot::align() {
     T_VECTOR2D diff_vec = gp.getAlignmentTargetPositionDifference().rotate(this->theta);
     T_VECTOR2D goal_vec = this->position + diff_vec;
 
-    ROS_INFO("our position is , x = %lf y = %lf", this->position.x, this->position.y);
-    ROS_INFO("the goal is , x = %lf y = %lf", goal_vec.x, goal_vec.y);
-
-    // drive to middle of cell
     if (!goal_vec.isvalid()) {
         ROS_INFO("ALIGNMENT ERROR: goal vec is invalid");
     } else {

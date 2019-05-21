@@ -90,13 +90,15 @@ public:
 
     void spin(double thetaGoal);
 
-    void steer(std::queue<T_VECTOR2D> path);
-
     bool reachedTheta(double thetaGoal);
 
     void storeSong();
 
     void playSong(int number);
+
+    void drivePID(T_VECTOR2D goal);
+
+    void driveMAX(T_VECTOR2D checkpoint);
 };
 
 #endif //SRC_ROBOT_H
