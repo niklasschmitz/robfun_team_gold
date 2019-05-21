@@ -4,12 +4,15 @@
 #include "ros/ros.h"
 #include "create_fundamentals/DiffDrive.h"
 #include "create_fundamentals/SensorPacket.h"
+#include "create_fundamentals/PlaySong.h"
+#include "create_fundamentals/StoreSong.h"
 #include "tools.h"
 #include "PID.h"
 #include "GridPerceptor.h"
 #include <queue>
 #include "gold_fundamentals/Pose.h"
 #include "gold_fundamentals/Grid.h"
+#include "geometry.h"
 
 
 class Robot {
@@ -36,7 +39,6 @@ public:
 
     static const double LOOPRATE;
 
-    static const double ENCODER_STEPS_PER_REVOLUTION;
     static const double LASER_OFFSET;
     static const double MAX_SPEED;
     static const double MIN_SPEED;
@@ -46,13 +48,17 @@ public:
     static const double WHEEL_RADIUS;
 
     T_VECTOR2D position;
-    //T_VECTOR2D *positionGoal;
     double theta;
-    double thetaGoal;
-    std::queue<T_VECTOR2D> path;
 
-    PID controller;
+    PID turnControl;
+    PID speedControl;
+    PID steerControl;
+    PID steerMaxControl;
+
     ros::ServiceClient diff_drive;
+    ros::ServiceClient store_song;
+    ros::ServiceClient play_song;
+
     GridPerceptor gp;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
@@ -70,25 +76,27 @@ public:
 
     void driveTo(T_VECTOR2D position);
 
-    bool reachedTheta();
-
-    void spin();
-
-    void steer();
-
     bool isCloseTo(T_VECTOR2D point);
 
     void followPath(std::queue<T_VECTOR2D> path);
 
     bool reachedGoal(T_VECTOR2D goal);
 
-    bool goalBehindRobot(T_VECTOR2D goal, T_VECTOR2D error);
-
     void alignToWall();
 
     void resetPosition();
 
     void publishPosition();
+
+    void spin(double thetaGoal);
+
+    void steer(std::queue<T_VECTOR2D> path);
+
+    bool reachedTheta(double thetaGoal);
+
+    void storeSong();
+
+    void playSong(int number, double duration);
 };
 
 #endif //SRC_ROBOT_H
