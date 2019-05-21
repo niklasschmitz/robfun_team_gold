@@ -29,15 +29,15 @@ Robot::Robot() {
 void Robot::storeSong() {
     create_fundamentals::StoreSong srv;
     srv.request.number = 0;
-    srv.request.song = {36, 64};
+    srv.request.song.push_back(36);
+    srv.request.song.push_back(64);
     store_song.call(srv);
 }
 
-void Robot::playSong(int number, double duration) {
+void Robot::playSong(int number) {
     create_fundamentals::PlaySong srv;
     srv.request.number = number;
     play_song.call(srv);
-    ros::Duration(duration).sleep();
 }
 
 void Robot::diffDrive(double left, double right) {
@@ -342,7 +342,7 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
 
     if (this->sensorData->bumpLeft || this->sensorData->bumpRight) {
         ROS_INFO("OH NO!");
-        this->playSong(0,0);
+        this->playSong(0);
         this->brake();
         exit(1);
     }

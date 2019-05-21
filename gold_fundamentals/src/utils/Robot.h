@@ -96,7 +96,7 @@ public:
 
     void storeSong();
 
-    void playSong(int number, double duration);
+    void playSong(int number);
 };
 
 #endif //SRC_ROBOT_H
