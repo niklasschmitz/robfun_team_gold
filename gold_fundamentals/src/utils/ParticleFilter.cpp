@@ -237,9 +237,12 @@ void ParticleFilter::calculateDistanceMap(const OccupancyGrid& map) {
 									+ (y + j) * likelihoodFieldWidth] >= 0)
 								border = true;
 						}
-						if (border)
-							distMap[x + i + (y + j) * likelihoodFieldWidth]
-									= 0.0;
+						if (border) {
+						    // TODO why was there a bugfix necessary here (line below was missing)
+						    if(x+i >= 0 && y+j >= 0 && x+i < likelihoodFieldWidth && y+j < likelihoodFieldHeight) {
+                                distMap[x + i + (y + j) * likelihoodFieldWidth] = 0.0;
+                            }
+						}
 					}
 				}
 			}
