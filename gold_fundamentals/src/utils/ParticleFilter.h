@@ -124,6 +124,8 @@ public:
 	// pose estimate
 	Particle* getBestHypothesis();
 
+    bool initialized;
+
 };
 
 #endif

@@ -56,7 +56,8 @@ ParticleFilter::ParticleFilter() {
     this->minLikelihood = 0.8;
     this->standardDev = 0.3;
 
-    init();
+    this->initialized = false;
+
 }
 
 ParticleFilter::~ParticleFilter() {
@@ -75,20 +76,24 @@ ParticleFilter::~ParticleFilter() {
 
 	if (this->distMap)
 		delete[] this->distMap;
+
 }
 
 void ParticleFilter::init() {
     this->setMotionModelOdometry(odomAlpha1, odomAlpha2, odomAlpha3, odomAlpha4);
     this->setMeasurementModelLikelihoodField(oc_grid, minLikelihood, standardDev);
     this->initParticlesUniform();
+    this->initialized = true;
 }
 
 void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
     if(update_map) {
 //        ROS_INFO("map callback %d", msg_grid->rows[0].cells[0].walls[0]);
 //        ROS_INFO("map callback %d", msg_grid->rows[0].cells[1].walls.size());
+        initialized = false;
         oc_grid.convertMsgGridToOccupancyGrid(msg_grid, inverse_resolution);
         oc_grid.printGrid();
+        init();
         //oc_grid.publishToRviz();
         update_map = false;
     }

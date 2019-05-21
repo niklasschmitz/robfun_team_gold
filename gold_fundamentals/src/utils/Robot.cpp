@@ -130,10 +130,15 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
     this->bigChangeInPose = fabs(deltaX) > 0.025 || fabs(deltaY) > 0.025 || fabs(deltaTheta) > 0.1;
 
     // see if we should update the filter
-    if (this->bigChangeInPose) {
+    if (this->bigChangeInPose && this->particleFilter.initialized) {
         pfMutex.lock();
         this->particleFilter.sampleMotionModel(oldX, oldY, oldTheta, newX, newY, newTheta);
         pfMutex.unlock();
+    }
+
+    Particle* best_hyp = this->particleFilter.getBestHypothesis();
+    if(best_hyp != NULL) {
+        ROS_INFO("current pos: x=%lf, y=%lf, th=%lf", best_hyp->x, best_hyp->y, best_hyp->theta);
     }
 
     this->publishPosition();
@@ -151,7 +156,7 @@ double Robot::angleDelta(double theta) {
 
 void Robot::turnTo(double theta) {
     this->thetaGoal = fmod(theta + (M_PI * 2.0), (M_PI * 2.0));
-    ROS_INFO("turning");
+//    ROS_INFO("turning");
     ros::Rate loop_rate(LOOPRATE);
     while (ros::ok() && !this->reachedTheta()) {
         ros::spinOnce();
@@ -338,6 +343,7 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
     this->timeDelta = (time - this->sensorTime).toSec();
     this->sensorTime = time;
 
+    // in calc_pos is also the particle filter
     calculatePosition(this->sensorData, msg);
     this->sensorData = msg;
 
@@ -354,11 +360,11 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
 
 void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
     // NOTE: there is also a laserCallback in the gridPerceptor
-    ROS_INFO("robot laser callback");
+//    ROS_INFO("robot laser callback");
 
     // if the robot has moved, update the filter
-    if (this->bigChangeInPose) {
-        ROS_INFO("updating particle filter");
+    if (this->bigChangeInPose && this->particleFilter.initialized) {
+//        ROS_INFO("updating particle filter");
         pfMutex.lock();
 
         // correction step
