@@ -31,7 +31,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #uncomment if you have defined messages
 add_message_files(
-	FILES
+        FILES
         Cell.msg
         Grid.msg
         Pose.msg
@@ -68,32 +68,44 @@ catkin_package(
         CATKIN_DEPENDS roscpp rospy sensor_msgs create_fundamentals message_runtime
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} src/utils)
+
+set(
+        UTILS
+        src/utils/Robot.cpp src/utils/Robot.h
+        src/utils/tools.cpp src/utils/tools.h
+        src/utils/PID.cpp src/utils/PID.h
+        src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h
+        src/utils/geometry.cpp src/utils/geometry.h
+        src/utils/probability.cpp src/utils/probability.h
+        src/utils/Maze.cpp src/utils/Maze.h
+        src/utils/DiscreteLocalizer.cpp src/utils/DiscreteLocalizer.h
+)
 
 # Assignment 1
-add_executable(wanderer src/wanderer.cpp src/utils/Robot.cpp src/utils/Robot.h src/utils/tools.cpp src/utils/tools.h src/utils/PID.cpp src/utils/PID.h src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h src/utils/geometry.cpp)
+add_executable(wanderer src/wanderer.cpp ${UTILS})
 target_link_libraries(wanderer ${catkin_LIBRARIES})
-add_dependencies(wanderer create_fundamentals_generate_messages_cpp)
+add_dependencies(wanderer create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
 
-add_executable(square_no_sensors src/square_no_sensors.cpp)
+add_executable(square_no_sensors src/square_no_sensors.cpp ${UTILS})
 target_link_libraries(square_no_sensors ${catkin_LIBRARIES})
-add_dependencies(square_no_sensors create_fundamentals_generate_messages_cpp)
+add_dependencies(square_no_sensors create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
 
-add_executable(square_with_encoders src/square_with_encoders.cpp src/utils/Robot.cpp src/utils/Robot.h src/utils/tools.cpp src/utils/tools.h src/utils/PID.cpp src/utils/PID.h src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h src/utils/geometry.cpp)
+add_executable(square_with_encoders src/square_with_encoders.cpp ${UTILS})
 target_link_libraries(square_with_encoders ${catkin_LIBRARIES})
-add_dependencies(square_with_encoders create_fundamentals_generate_messages_cpp)
+add_dependencies(square_with_encoders create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
 
 # Assignment 2
-add_executable(align_robot src/align_robot.cpp src/utils/tools.cpp src/utils/tools.h src/utils/Robot.cpp src/utils/Robot.h src/utils/PID.cpp src/utils/PID.h src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h src/utils/geometry.h src/utils/geometry.cpp)
+add_executable(align_robot src/align_robot.cpp ${UTILS})
 target_link_libraries(align_robot ${catkin_LIBRARIES})
-add_dependencies(align_robot create_fundamentals_generate_messages_cpp)
+add_dependencies(align_robot create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
 
-add_executable(plan_executer src/plan_executer.cpp src/utils/Robot.cpp src/utils/Robot.h src/utils/tools.cpp src/utils/tools.h src/utils/PID.cpp src/utils/PID.h src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h src/utils/geometry.cpp)
+add_executable(plan_executer src/plan_executer.cpp ${UTILS})
 target_link_libraries(plan_executer ${catkin_LIBRARIES})
-add_dependencies(plan_executer create_fundamentals_generate_messages_cpp)
+add_dependencies(plan_executer create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
 
-add_executable(smooth_executer src/smooth_executer.cpp src/utils/Robot.cpp src/utils/Robot.h src/utils/tools.cpp src/utils/tools.h src/utils/PID.cpp src/utils/PID.h src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h src/utils/geometry.cpp)
+add_executable(smooth_executer src/smooth_executer.cpp ${UTILS})
 target_link_libraries(smooth_executer ${catkin_LIBRARIES})
-add_dependencies(smooth_executer create_fundamentals_generate_messages_cpp)
+add_dependencies(smooth_executer create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
 
 # Assignment 3
