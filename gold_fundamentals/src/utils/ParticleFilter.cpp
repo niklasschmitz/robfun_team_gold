@@ -2,6 +2,7 @@
 
 #include "ParticleFilter.h"
 #include "Probability.h"
+#include <visualization_msgs/Marker.h>
 
 //#include "tf/tf.h"
 
@@ -28,6 +29,10 @@
 ParticleFilter::ParticleFilter() {
     ros::NodeHandle n;
     map_sub = n.subscribe("map", 1, &ParticleFilter::mapCallback, this);
+    maze_pub = n.advertise<visualization_msgs::Marker>("maze_visualization", 10);
+    likelihoodMap_pub = n.advertise<visualization_msgs::Marker>("likelihoodmap_visualization", 10);
+    allParticles_pub = n.advertise<visualization_msgs::Marker>("allparticles_visualization", 10);
+    bestParticle_pub = n.advertise<visualization_msgs::Marker>("bestparticle_visualization", 10);
     updatemap_service = n.advertiseService("update_map", &ParticleFilter::setUpdateMap, this);
     this->update_map = true;
 
@@ -94,7 +99,8 @@ void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg_gr
         oc_grid.convertMsgGridToOccupancyGrid(msg_grid, inverse_resolution);
         oc_grid.printGrid();
         init();
-        //oc_grid.publishToRviz();
+        publishOcGridToRviz();
+        //publishLikelihoodMapToRviz();
         update_map = false;
     }
 }
@@ -444,6 +450,7 @@ void ParticleFilter::resample() {
 			this->bestHypothesis->x = this->particleSet[i]->x;
 			this->bestHypothesis->y = this->particleSet[i]->y;
 			this->bestHypothesis->theta = this->particleSet[i]->theta;
+			this->bestHypothesis->weight = this->particleSet[i]->weight;
 		}
 		pSetNew[j] = part;
 	}
@@ -456,6 +463,8 @@ void ParticleFilter::resample() {
 		this->particleSet[i]->theta = pSetNew[i].theta;
 		this->particleSet[i]->weight = this->getNumberOfParticles();
 	}
+
+    publishBestParticleToRviz();
 }
 
 Particle* ParticleFilter::getBestHypothesis() {
@@ -468,3 +477,157 @@ int ParticleFilter::computeMapIndex(int width, int height, int x,
 	return x + y * width;
 }
 
+void ParticleFilter::publishOcGridToRviz() {
+
+    visualization_msgs::Marker points;
+
+    points.header.frame_id = "maze"; // right?
+    points.header.stamp = ros::Time::now();
+    points.ns = "points_and_lines";
+    points.action = visualization_msgs::Marker::ADD;
+    points.pose.orientation.w = 1.0;
+    points.id = 0;
+    points.type = visualization_msgs::Marker::POINTS;
+    points.scale.x = 1.0;
+    points.scale.y = 1.0;
+    points.scale.z = 1.0;
+    points.color.r = 1.0;
+    points.color.a = 1.0;
+    points.lifetime = ros::Duration();
+
+    // iterate over the pixels of the occupancy grid and create rviz markers
+    for (int row = 0; row < oc_grid.height; row++) {
+        for (int col = 0; col < oc_grid.width; col++) {
+            // see if there is an obstacle
+            if (oc_grid.grid_data[col + row * oc_grid.width] != 0) {
+                geometry_msgs::Point p;
+                p.x = col;
+//                p.y = -row;
+                p.y = row;
+                p.z = 0;
+
+                points.points.push_back(p);
+            }
+        }
+    }
+
+    // Publish the marker
+    if (maze_pub) {
+        if (maze_pub.getNumSubscribers() < 1) {
+            ROS_WARN_ONCE("Please create a subscriber to the marker");
+        } else {
+            if (!points.points.empty()) {
+                // only publish if we have data (preventing sigsegv?)
+                ROS_INFO("publishing map");
+                maze_pub.publish(points);
+            }
+        }
+    } else {
+        ROS_INFO("maze pub invalid");
+    }
+}
+
+void ParticleFilter::publishLikelihoodMapToRviz() {
+
+    visualization_msgs::Marker likelihoodPoints;
+
+    likelihoodPoints.header.frame_id = "maze"; // right?
+    likelihoodPoints.header.stamp = ros::Time::now();
+    likelihoodPoints.ns = "points_and_lines";
+    likelihoodPoints.action = visualization_msgs::Marker::ADD;
+    likelihoodPoints.pose.orientation.w = 1.0;
+    likelihoodPoints.id = 1;
+    likelihoodPoints.type = visualization_msgs::Marker::POINTS;
+
+    // scale
+    likelihoodPoints.scale.x = 1.0;
+    likelihoodPoints.scale.y = 1.0;
+    likelihoodPoints.scale.z = 1.0;
+
+    // color
+    likelihoodPoints.color.r = 0.3;
+    likelihoodPoints.color.g = 0.3;
+    likelihoodPoints.color.b = 0.3;
+    likelihoodPoints.color.a = 1.0;
+
+    likelihoodPoints.lifetime = ros::Duration();
+
+    // iterate over the pixels of the occupancy grid and create rviz markers
+    for (int row = 0; row < oc_grid.height; row++) {
+        for (int col = 0; col < oc_grid.width; col++) {
+            // create a box for every point in the likelihood field
+            geometry_msgs::Point p;
+            p.x = col;
+            p.y = row;
+            p.z = 20;//likelihoodField[col + row*oc_grid.width];
+
+            likelihoodPoints.points.push_back(p);
+        }
+    }
+
+    // Publish the marker
+    if (likelihoodMap_pub) {
+        if (likelihoodMap_pub.getNumSubscribers() < 1) {
+            ROS_WARN_ONCE("Please create a subscriber to the marker");
+        } else {
+            if (!likelihoodPoints.points.empty()) {
+                // only publish if we have data (preventing sigsegv?)
+                ROS_INFO("publishing likelihoodMap");
+                likelihoodMap_pub.publish(likelihoodPoints);
+            }
+        }
+    } else {
+        ROS_INFO("likelihoodMap pub invalid");
+    }
+}
+
+void ParticleFilter::publishAllParticlesToRviz() {
+
+}
+
+void ParticleFilter::publishBestParticleToRviz() {
+    visualization_msgs::Marker bestParticleMarker;
+
+    bestParticleMarker.header.frame_id = "maze"; // right?
+    bestParticleMarker.header.stamp = ros::Time::now();
+    bestParticleMarker.ns = "points_and_lines";
+    bestParticleMarker.action = visualization_msgs::Marker::ADD;
+    bestParticleMarker.pose.orientation.w = 1.0;
+    bestParticleMarker.id = 2;
+    bestParticleMarker.type = visualization_msgs::Marker::POINTS;
+
+    // scale
+    bestParticleMarker.scale.x = 5.0;
+    bestParticleMarker.scale.y = 5.0;
+    bestParticleMarker.scale.z = 5.0;
+
+    // color
+    bestParticleMarker.color.r = 0.3;
+    bestParticleMarker.color.g = 1.0;
+    bestParticleMarker.color.b = 0.5;
+    bestParticleMarker.color.a = 1.0;
+
+    bestParticleMarker.lifetime = ros::Duration();
+
+    geometry_msgs::Point p;
+    p.x = bestHypothesis->x*inverse_resolution;
+    p.y = bestHypothesis->y*inverse_resolution;
+    p.z = 0;//likelihoodField[col + row*oc_grid.width];
+
+    bestParticleMarker.points.push_back(p);
+
+    // Publish the marker
+    if (bestParticle_pub) {
+        if (bestParticle_pub.getNumSubscribers() < 1) {
+            ROS_WARN_ONCE("Please create a subscriber to the marker");
+        } else {
+            if (!bestParticleMarker.points.empty()) {
+                // only publish if we have data (preventing sigsegv?)
+                ROS_INFO("publishing bestParticle");
+                bestParticle_pub.publish(bestParticleMarker);
+            }
+        }
+    } else {
+        ROS_INFO("bestParticle pub invalid");
+    }
+}

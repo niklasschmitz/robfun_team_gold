@@ -87,6 +87,11 @@ private:
 
     bool update_map;
 
+    ros::Publisher maze_pub;
+    ros::Publisher likelihoodMap_pub;
+    ros::Publisher allParticles_pub;
+    ros::Publisher bestParticle_pub;
+
 public:
     ParticleFilter();
 	//ParticleFilter( int numberOfParticles );
@@ -126,6 +131,11 @@ public:
 
     bool initialized;
 
+    // visualization
+    void publishOcGridToRviz();
+    void publishLikelihoodMapToRviz();
+    void publishAllParticlesToRviz();
+    void publishBestParticleToRviz();
 };
 
 #endif

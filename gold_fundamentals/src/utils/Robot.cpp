@@ -131,14 +131,17 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
 
     // see if we should update the filter
     if (this->bigChangeInPose && this->particleFilter.initialized) {
+//        ROS_INFO("we have a big change");
         pfMutex.lock();
         this->particleFilter.sampleMotionModel(oldX, oldY, oldTheta, newX, newY, newTheta);
         pfMutex.unlock();
+    } else {
+//        ROS_INFO("no change");
     }
 
     Particle* best_hyp = this->particleFilter.getBestHypothesis();
     if(best_hyp != NULL) {
-        ROS_INFO("current pos: x=%lf, y=%lf, th=%lf", best_hyp->x, best_hyp->y, best_hyp->theta);
+        ROS_INFO("current pos: x=%lf, y=%lf, th=%lf, w=%lf", best_hyp->x, best_hyp->y, best_hyp->theta, best_hyp->weight);
     }
 
     this->publishPosition();
@@ -364,7 +367,7 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
 
     // if the robot has moved, update the filter
     if (this->bigChangeInPose && this->particleFilter.initialized) {
-//        ROS_INFO("updating particle filter");
+        ROS_INFO("updating particle filter via laser");
         pfMutex.lock();
 
         // correction step
