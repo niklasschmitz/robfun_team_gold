@@ -76,10 +76,10 @@ set(
         src/utils/tools.cpp src/utils/tools.h
         src/utils/PID.cpp src/utils/PID.h
         src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h
-        src/utils/geometry.cpp src/utils/geometry.h
-        src/utils/probability.cpp src/utils/probability.h
         src/utils/Maze.cpp src/utils/Maze.h
         src/utils/DiscreteLocalizer.cpp src/utils/DiscreteLocalizer.h
+        src/utils/geometry.cpp src/utils/geometry.h
+        src/utils/probability.cpp src/utils/probability.h
 )
 
 # Assignment 1
