@@ -11,7 +11,7 @@ struct RobotConfiguration {
     // constructor
     RobotConfiguration(double x = 0, double y = 0, double theta = 0) {
         position = T_VECTOR2D(x, y);
-        this.theta = theta;
+        this->theta = theta;
     }
 
     RobotConfiguration(T_VECTOR2D position, double theta = 0)
@@ -48,6 +48,7 @@ class DiscreteLocalizer {
     DiscreteLocalizer();
     void estimateConfiguration();
 
+    void estimateConfiguration(RobotConfiguration action, maze::Cell observation);
 };
 
 
