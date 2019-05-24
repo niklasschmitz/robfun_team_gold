@@ -36,6 +36,7 @@ public:
     void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg);
 
     ros::Subscriber sub_sensor;
+    ros::Subscriber sub_laser;
 
     static const double LOOPRATE;
 
@@ -64,6 +65,7 @@ public:
     create_fundamentals::SensorPacket::ConstPtr sensorData;
     ros::Time sensorTime;
     double timeDelta;
+    double obstacle;
 
     ros::Publisher pose_pub;
 
@@ -99,6 +101,10 @@ public:
     void drivePID(T_VECTOR2D goal);
 
     void driveMAX(T_VECTOR2D checkpoint);
+
+    void laserCallback(const sensor_msgs::LaserScan_<std::allocator<void> >::ConstPtr &msg);
+
+    void wander();
 };
 
 #endif //SRC_ROBOT_H

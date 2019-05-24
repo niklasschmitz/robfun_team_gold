@@ -20,10 +20,13 @@ Robot::Robot() {
     this->store_song = n.serviceClient<create_fundamentals::StoreSong>("store_song");
     this->play_song = n.serviceClient<create_fundamentals::PlaySong>("play_song");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
+    this->sub_laser = n.subscribe("scan_filtered", 1, &Robot::laserCallback, this);
     this->pose_pub = n.advertise<gold_fundamentals::Pose>("pose", 1);
     this->sensorTime = ros::Time::now();
     this->resetPosition();
+    this->obstacle = false;
     this->storeSong();
+    this->playSong(0);
 }
 
 void Robot::storeSong() {
@@ -51,6 +54,19 @@ void Robot::diffDrive(double left, double right) {
     srv.request.left = left;
     srv.request.right = right;
     diff_drive.call(srv);
+
+    ROS_INFO("%lf, %lf", left, right);
+}
+
+void Robot::wander(){
+    while (ros::ok()) {
+        ros::spinOnce();
+        if(this->obstacle){
+            this->turnRandom();
+        } else {
+            this->diffDrive(Robot::MAX_SPEED, Robot::MAX_SPEED);
+        }
+    }
 }
 
 void Robot::turnRandom() {
@@ -295,6 +311,27 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
         this->playSong(0);
         this->brake();
         exit(1);
+    }
+}
+
+inline double distanceEllipse(double angle) {
+    const double a = Robot::SAFETY_DISTANCE - Robot::LASER_OFFSET;
+    const double b = Robot::SAFETY_DISTANCE;
+
+    return a * b / sqrt(pow(b * cos(angle), 2.0) + pow(a * sin(angle), 2.0));
+}
+
+void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
+    double angle = msg->angle_min;
+    this->obstacle = false;
+
+    for (int i = 0; i < msg->ranges.size(); i++) {
+        if (msg->ranges[i] < distanceEllipse(angle)) {
+            this->obstacle = true;
+            break;
+        }
+
+        angle += msg->angle_increment;
     }
 }
 
