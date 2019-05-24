@@ -1,7 +1,11 @@
 #ifndef SRC_MAZE_H
 #define SRC_MAZE_H
 
+#include "geometry.h"
+
 namespace maze {
+
+
 
     struct Cell {
         bool right;
@@ -19,14 +23,9 @@ namespace maze {
                     && left == other.left && bottom == other.bottom);
         }
 
-        const T_VECTOR2D rotate(double theta) const {
-            double newX = x * cos(theta) - y * sin(theta);
-            double newY = x * sin(theta) + y * cos(theta);
-            return T_VECTOR2D(newX, newY);
-        }
 
         // returns a new cell which is this cell rotated i * 90 degrees counter-clockwise
-        const Cell rotate(uint i) const {
+        const Cell rotate(int i) const {
             i = i % 4;
 
             if (i == 0) {
@@ -42,7 +41,10 @@ namespace maze {
     };
 
     class Maze {
-        std::vector<std::vector<Cell>> map;
+    public:
+        static const int MAZE_HEIGHT = 3;
+        static const int MAZE_WIDTH = 5;
+        Cell map[MAZE_HEIGHT][MAZE_WIDTH];
 
         const Cell getCell(T_VECTOR2D position);
     };
