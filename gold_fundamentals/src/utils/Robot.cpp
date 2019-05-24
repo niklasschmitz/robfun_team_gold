@@ -159,6 +159,7 @@ void Robot::turnTo(double theta) {
         loop_rate.sleep();
     }
 
+    this->turnControl.reset();
     this->brake();
 }
 
@@ -195,6 +196,9 @@ void Robot::followPath(std::queue<T_VECTOR2D> path) {
         loop_rate.sleep();
     }
 
+    this->steerControl.reset();
+    this->speedControl.reset();
+    this->steerMaxControl.reset();
     this->brake();
 }
 
