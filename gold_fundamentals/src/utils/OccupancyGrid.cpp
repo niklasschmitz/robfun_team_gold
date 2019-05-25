@@ -9,7 +9,7 @@ OccupancyGrid::~OccupancyGrid() {
 }
 
 void OccupancyGrid::printGrid() {
-    ROS_INFO("PRINTING GRID");
+    ROS_INFO("PRINTING OCCUPANCY GRID");
     for( int row=0; row<height; row++) {
         std::ostringstream row_string;
         //row_string << row+1;

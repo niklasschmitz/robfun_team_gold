@@ -26,11 +26,14 @@
 //	this->distMap = NULL;
 //}
 
+#define VISUALIZE_LIKELIHOODMAP 1
+
 ParticleFilter::ParticleFilter() {
     ros::NodeHandle n;
     map_sub = n.subscribe("map", 1, &ParticleFilter::mapCallback, this);
     maze_pub = n.advertise<visualization_msgs::Marker>("maze_visualization", 10);
     likelihoodMap_pub = n.advertise<visualization_msgs::Marker>("likelihoodmap_visualization", 10);
+    distMap_pub = n.advertise<visualization_msgs::Marker>("distancemap_visualization", 10);
     allParticles_pub = n.advertise<visualization_msgs::Marker>("allparticles_visualization", 10);
     bestParticle_pub = n.advertise<visualization_msgs::Marker>("bestparticle_visualization", 10);
     updatemap_service = n.advertiseService("update_map", &ParticleFilter::setUpdateMap, this);
@@ -99,8 +102,14 @@ void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg_gr
         oc_grid.convertMsgGridToOccupancyGrid(msg_grid, inverse_resolution);
         oc_grid.printGrid();
         init();
+        printDistanceMap();
+        printLikelihoodMap();
         publishOcGridToRviz();
-        //publishLikelihoodMapToRviz();
+        //publishDistanceMapToRviz();
+        publishAllParticlesToRviz();
+#if VISUALIZE_LIKELIHOODMAP == 1
+        publishLikelihoodMapToRviz();
+#endif
         update_map = false;
     }
 }
@@ -178,42 +187,44 @@ void ParticleFilter::setMeasurementModelLikelihoodField(
 
 	double sigmaHit_scaled = sigmaHit / this->likelihoodFieldResolution;
 	for (int w = 0; w < this->likelihoodFieldWidth; w++) {
-		for (int h=0; h < this->likelihoodFieldHeight; h++) {
-			int idx = computeMapIndex(this->likelihoodFieldWidth, this->likelihoodFieldHeight, w, h);
+        for (int h = 0; h < this->likelihoodFieldHeight; h++) {
+            int idx = computeMapIndex(this->likelihoodFieldWidth, this->likelihoodFieldHeight, w, h);
 
-			double z_hit = 1.0-zRand;
-			//generate normal distribution with mean at the nearest obstacle
-			double p_hit = Probability::gaussian(distMap[idx], sigmaHit_scaled, 0);
+            double z_hit = 1.0 - zRand;
+            //generate normal distribution with mean at the nearest obstacle
+            double p_hit = Probability::gaussian(distMap[idx], sigmaHit_scaled, 0);
 
-			double z_rand = zRand;
-			double p_rand = 1.0;
-
+            double z_rand = zRand;
+            double p_rand = 1.0;
+#if VISUALIZE_LIKELIHOODMAP == 0
 			this->likelihoodField[idx] = log(z_hit * p_hit + z_rand * p_rand);
-
-			//this->likelihoodField[idx] = z_hit * p_hit + z_rand * p_rand; //Only needed for plotting the Likelihood Field
+        }
+    }
+#else
+			this->likelihoodField[idx] = z_hit * p_hit + z_rand * p_rand; //Only needed for plotting the Likelihood Field
 		}
 	}
 
-	/*//Only needed for plotting the Likelihood Field
+	//Only needed for plotting the Likelihood Field
 	double max = 0;
-	double min = 0;
-	for(int i=0; i < map.info.width; i++)
+	double min = 1;
+	for(int i=0; i < map.width; i++)
 	{
-		for(int j=0; j < map.info.height; j++)
+		for(int j=0; j < map.height; j++)
 		{
 			max = fmax(max, likelihoodField[i + j * likelihoodFieldWidth]);
 			min = fmin(min, likelihoodField[i + j * likelihoodFieldWidth]);
 		}
 	}
 
-	for(int i=0; i < map.info.width; i++)
+	for(int i=0; i < map.width; i++)
 	{
-		for(int j=0; j < map.info.height; j++)
+		for(int j=0; j < map.height; j++)
 		{
-			likelihoodField[i + j * likelihoodFieldWidth] = (likelihoodField[i + j * likelihoodFieldWidth]-min)/max;
+			likelihoodField[i + j * likelihoodFieldWidth] = (likelihoodField[i + j * likelihoodFieldWidth]-min)/(max-min);
 		}
-	}*/
-
+	}
+#endif
 	ROS_INFO("...DONE creating likelihood field!");
 
 }
@@ -502,8 +513,8 @@ void ParticleFilter::publishOcGridToRviz() {
             if (oc_grid.grid_data[col + row * oc_grid.width] != 0) {
                 geometry_msgs::Point p;
                 p.x = col;
-//                p.y = -row;
-                p.y = row;
+                p.y = -row;
+//                p.y = row;
                 p.z = 0;
 
                 points.points.push_back(p);
@@ -514,7 +525,7 @@ void ParticleFilter::publishOcGridToRviz() {
     // Publish the marker
     if (maze_pub) {
         if (maze_pub.getNumSubscribers() < 1) {
-            ROS_WARN_ONCE("Please create a subscriber to the marker");
+            ROS_WARN_ONCE("Please create a subscriber to the maze pub");
         } else {
             if (!points.points.empty()) {
                 // only publish if we have data (preventing sigsegv?)
@@ -527,6 +538,61 @@ void ParticleFilter::publishOcGridToRviz() {
     }
 }
 
+void ParticleFilter::publishDistanceMapToRviz() {
+
+    visualization_msgs::Marker distMapPoints;
+
+    distMapPoints.header.frame_id = "maze";
+    distMapPoints.header.stamp = ros::Time::now();
+    distMapPoints.ns = "points_and_lines";
+    distMapPoints.action = visualization_msgs::Marker::ADD;
+    distMapPoints.pose.orientation.w = 1.0;
+    distMapPoints.id = 1;
+    distMapPoints.type = visualization_msgs::Marker::POINTS;
+
+    // scale
+    distMapPoints.scale.x = 1.0;
+    distMapPoints.scale.y = 1.0;
+    distMapPoints.scale.z = 1.0;
+
+    // color
+    distMapPoints.color.r = 0.0;
+    distMapPoints.color.g = 1.0;
+    distMapPoints.color.b = 0.0;
+    distMapPoints.color.a = 1.0;
+
+    distMapPoints.lifetime = ros::Duration();
+
+    // iterate over the pixels of the occupancy grid and create rviz markers
+    for (int row = 0; row < oc_grid.height; row++) {
+        for (int col = 0; col < oc_grid.width; col++) {
+            // create a box for every point in the likelihood field
+            geometry_msgs::Point p;
+            p.x = col;
+            p.y = -row;
+            p.z = distMap[col + row*oc_grid.width];
+
+            distMapPoints.points.push_back(p);
+        }
+    }
+
+    // Publish the marker
+    if (distMap_pub) {
+        if (distMap_pub.getNumSubscribers() < 1) {
+            ROS_WARN_ONCE("Please create a subscriber to the distance map pub");
+        } else {
+            if (!distMapPoints.points.empty()) {
+                // only publish if we have data (preventing sigsegv?)
+                ROS_INFO("publishing distMap");
+                distMap_pub.publish(distMapPoints);
+            }
+        }
+    } else {
+        ROS_INFO("distMap pub invalid");
+    }
+}
+
+
 void ParticleFilter::publishLikelihoodMapToRviz() {
 
     visualization_msgs::Marker likelihoodPoints;
@@ -536,7 +602,7 @@ void ParticleFilter::publishLikelihoodMapToRviz() {
     likelihoodPoints.ns = "points_and_lines";
     likelihoodPoints.action = visualization_msgs::Marker::ADD;
     likelihoodPoints.pose.orientation.w = 1.0;
-    likelihoodPoints.id = 1;
+    likelihoodPoints.id = 2;
     likelihoodPoints.type = visualization_msgs::Marker::POINTS;
 
     // scale
@@ -547,7 +613,7 @@ void ParticleFilter::publishLikelihoodMapToRviz() {
     // color
     likelihoodPoints.color.r = 0.3;
     likelihoodPoints.color.g = 0.3;
-    likelihoodPoints.color.b = 0.3;
+    likelihoodPoints.color.b = 1.0;
     likelihoodPoints.color.a = 1.0;
 
     likelihoodPoints.lifetime = ros::Duration();
@@ -558,8 +624,9 @@ void ParticleFilter::publishLikelihoodMapToRviz() {
             // create a box for every point in the likelihood field
             geometry_msgs::Point p;
             p.x = col;
-            p.y = row;
-            p.z = 20;//likelihoodField[col + row*oc_grid.width];
+            p.y = -row;
+//            p.z = pow(M_E, likelihoodField[col + row*oc_grid.width])*20;
+            p.z = (likelihoodField[col + row*oc_grid.width])*30;
 
             likelihoodPoints.points.push_back(p);
         }
@@ -568,11 +635,11 @@ void ParticleFilter::publishLikelihoodMapToRviz() {
     // Publish the marker
     if (likelihoodMap_pub) {
         if (likelihoodMap_pub.getNumSubscribers() < 1) {
-            ROS_WARN_ONCE("Please create a subscriber to the marker");
+            ROS_WARN_ONCE("Please create a subscriber to the likelihoodMap pub");
         } else {
             if (!likelihoodPoints.points.empty()) {
                 // only publish if we have data (preventing sigsegv?)
-                ROS_INFO("publishing likelihoodMap");
+                ROS_INFO("publishing likelihoodMap (scaled)");
                 likelihoodMap_pub.publish(likelihoodPoints);
             }
         }
@@ -581,8 +648,102 @@ void ParticleFilter::publishLikelihoodMapToRviz() {
     }
 }
 
-void ParticleFilter::publishAllParticlesToRviz() {
+RvizParticleVisualisation ParticleFilter::getRvizParticleVisualisation(const Particle &particle) {
+    RvizParticleVisualisation part_vis;
+    part_vis.x_pos = particle.x * inverse_resolution;
+    part_vis.y_pos = particle.y * inverse_resolution;
+    double indicator_length = 0.01;
+    part_vis.direction_indicator_x = (particle.x + indicator_length * cos(particle.theta)) * inverse_resolution;
+    part_vis.direction_indicator_y = (particle.y + indicator_length * sin(particle.theta)) * inverse_resolution;
 
+    return part_vis;
+}
+
+void ParticleFilter::publishAllParticlesToRviz() {
+    //-----position-----
+    visualization_msgs::Marker allParticlesPositionMarker;
+
+    allParticlesPositionMarker.header.frame_id = "maze";
+    allParticlesPositionMarker.header.stamp = ros::Time::now();
+    allParticlesPositionMarker.ns = "points_and_lines";
+    allParticlesPositionMarker.action = visualization_msgs::Marker::ADD;
+    allParticlesPositionMarker.pose.orientation.w = 1.0;
+    allParticlesPositionMarker.id = 3;
+    allParticlesPositionMarker.type = visualization_msgs::Marker::POINTS;
+
+    // scale
+    allParticlesPositionMarker.scale.x = 3.0;
+    allParticlesPositionMarker.scale.y = 3.0;
+    allParticlesPositionMarker.scale.z = 3.0;
+
+    // color
+    allParticlesPositionMarker.color.r = 0.3;
+    allParticlesPositionMarker.color.g = 1.0;
+    allParticlesPositionMarker.color.b = 0.5;
+    allParticlesPositionMarker.color.a = 1.0;
+
+    allParticlesPositionMarker.lifetime = ros::Duration();
+
+    //-----direction------
+    visualization_msgs::Marker allParticlesDirectionMarker;
+
+    allParticlesDirectionMarker.header.frame_id = "maze";
+    allParticlesDirectionMarker.header.stamp = ros::Time::now();
+    allParticlesDirectionMarker.ns = "points_and_lines";
+    allParticlesDirectionMarker.action = visualization_msgs::Marker::ADD;
+    allParticlesDirectionMarker.pose.orientation.w = 1.0;
+    allParticlesDirectionMarker.id = 4;
+    allParticlesDirectionMarker.type = visualization_msgs::Marker::POINTS;
+
+    // scale
+    allParticlesDirectionMarker.scale.x = 2.5;
+    allParticlesDirectionMarker.scale.y = 2.5;
+    allParticlesDirectionMarker.scale.z = 2.5;
+
+    // color
+    allParticlesDirectionMarker.color.r = 0.3;
+    allParticlesDirectionMarker.color.g = 0.3;
+    allParticlesDirectionMarker.color.b = 1.0;
+    allParticlesDirectionMarker.color.a = 1.0;
+
+    allParticlesDirectionMarker.lifetime = ros::Duration();
+
+    for(int part_idx=0; part_idx<numberOfParticles; part_idx++) {
+        RvizParticleVisualisation part_vis = getRvizParticleVisualisation(particleSet[part_idx]);
+
+        geometry_msgs::Point p;
+        p.x = part_vis.x_pos;
+        p.y = -part_vis.y_pos;
+        p.z = 0;
+        allParticlesPositionMarker.points.push_back(p);
+
+        //TODO display line to indicate direction
+        geometry_msgs::Point p_dir;
+        p_dir.x = part_vis.direction_indicator_x;
+        p_dir.y = -part_vis.direction_indicator_y;
+        p_dir.z = 0;
+        allParticlesDirectionMarker.points.push_back(p_dir);
+    }
+
+    // Publish the marker
+    if (allParticles_pub) {
+        if (allParticles_pub.getNumSubscribers() < 1) {
+            ROS_WARN_ONCE("Please create a subscriber to the allParticles pub");
+        } else {
+            if (!allParticlesPositionMarker.points.empty()) {
+                // only publish if we have data (preventing sigsegv?)
+                ROS_INFO("publishing allPosParticles");
+                allParticles_pub.publish(allParticlesPositionMarker);
+            }
+            if (!allParticlesDirectionMarker.points.empty()) {
+                // only publish if we have data (preventing sigsegv?)
+                ROS_INFO("publishing allDirParticles");
+                allParticles_pub.publish(allParticlesDirectionMarker);
+            }
+        }
+    } else {
+        ROS_INFO("bestParticle pub invalid");
+    }
 }
 
 void ParticleFilter::publishBestParticleToRviz() {
@@ -593,7 +754,7 @@ void ParticleFilter::publishBestParticleToRviz() {
     bestParticleMarker.ns = "points_and_lines";
     bestParticleMarker.action = visualization_msgs::Marker::ADD;
     bestParticleMarker.pose.orientation.w = 1.0;
-    bestParticleMarker.id = 2;
+    bestParticleMarker.id = 4;
     bestParticleMarker.type = visualization_msgs::Marker::POINTS;
 
     // scale
@@ -611,7 +772,7 @@ void ParticleFilter::publishBestParticleToRviz() {
 
     geometry_msgs::Point p;
     p.x = bestHypothesis->x*inverse_resolution;
-    p.y = bestHypothesis->y*inverse_resolution;
+    p.y = -bestHypothesis->y*inverse_resolution;
     p.z = 0;//likelihoodField[col + row*oc_grid.width];
 
     bestParticleMarker.points.push_back(p);
@@ -619,7 +780,7 @@ void ParticleFilter::publishBestParticleToRviz() {
     // Publish the marker
     if (bestParticle_pub) {
         if (bestParticle_pub.getNumSubscribers() < 1) {
-            ROS_WARN_ONCE("Please create a subscriber to the marker");
+            ROS_WARN_ONCE("Please create a subscriber to the bestParticle pub");
         } else {
             if (!bestParticleMarker.points.empty()) {
                 // only publish if we have data (preventing sigsegv?)
@@ -629,5 +790,41 @@ void ParticleFilter::publishBestParticleToRviz() {
         }
     } else {
         ROS_INFO("bestParticle pub invalid");
+    }
+}
+
+void ParticleFilter::printDistanceMap() {
+    ROS_INFO("PRINTING DISTANCE MAP");
+    for( int row=0; row<oc_grid.height; row++) {
+        std::ostringstream row_string;
+        //row_string << row+1;
+        for( int col=0; col<oc_grid.width; col++) {
+            int val = distMap[row * oc_grid.width + col];
+            if(val > 9) {
+                row_string << val;
+            } else {
+                row_string << 0;
+                row_string << val;
+            }
+            row_string << ',';
+        }
+
+        ROS_INFO("%s", row_string.str().c_str());
+    }
+}
+
+void ParticleFilter::printLikelihoodMap() {
+    ROS_INFO("PRINTING LIKELIHOOD MAP");
+    for( int row=0; row<oc_grid.height; row++) {
+        std::ostringstream row_string;
+        //row_string << row+1;
+        for( int col=0; col<oc_grid.width; col++) {
+            double val = likelihoodField[row * oc_grid.width + col];
+//            row_string << pow(M_E, val);
+            row_string << val;
+            row_string << ',';
+        }
+
+        ROS_INFO("%s", row_string.str().c_str());
     }
 }

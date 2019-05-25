@@ -23,7 +23,7 @@ void mySigintHandler(int sig) {
 void localize() {
     robot->particleFilter.publishAllParticlesToRviz();
 //    robot->pf.setUpdateMap();
-//    ros::Duration(0.5).sleep();
+    ros::Duration(0.5).sleep();
 }
 
 

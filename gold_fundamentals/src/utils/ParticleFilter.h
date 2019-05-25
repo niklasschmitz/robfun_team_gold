@@ -15,6 +15,13 @@
 #include "gold_fundamentals/Row.h"
 #include "gold_fundamentals/UpdateMap.h"
 
+struct RvizParticleVisualisation {
+    double x_pos;
+    double y_pos;
+    double direction_indicator_x;
+    double direction_indicator_y;
+};
+
 class Particle {
 
 public:
@@ -89,6 +96,7 @@ private:
 
     ros::Publisher maze_pub;
     ros::Publisher likelihoodMap_pub;
+    ros::Publisher distMap_pub;
     ros::Publisher allParticles_pub;
     ros::Publisher bestParticle_pub;
 
@@ -133,9 +141,14 @@ public:
 
     // visualization
     void publishOcGridToRviz();
+    void publishDistanceMapToRviz();
     void publishLikelihoodMapToRviz();
+    RvizParticleVisualisation getRvizParticleVisualisation(const Particle &particle);
     void publishAllParticlesToRviz();
     void publishBestParticleToRviz();
+
+    void printDistanceMap();
+    void printLikelihoodMap();
 };
 
 #endif
