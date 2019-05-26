@@ -42,9 +42,14 @@ namespace maze {
 
     class Maze {
     public:
-        static const int MAZE_HEIGHT = 3;
-        static const int MAZE_WIDTH = 5;
-        Cell map[MAZE_HEIGHT][MAZE_WIDTH];
+        // number of rows and columns
+        static const int N_ROWS = 3;
+        static const int N_COLS = 5;
+
+        // side length of a single cell in cm
+        static const double CELL_SIDE_LENGTH = 0.8;
+
+        Cell map[N_ROWS][N_COLS];
 
         const Cell getCell(T_VECTOR2D position);
     };
