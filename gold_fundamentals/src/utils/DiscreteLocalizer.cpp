@@ -27,7 +27,7 @@ void DiscreteLocalizer::estimateConfiguration(RobotConfiguration action, maze::C
         maze::Cell expected_cell = this->map.getCell(candidate.position);
 
         // check if it still matches observation //TODO: make sure rotation is correct
-        if (expected_cell == observation.rotate((uint) (2 * candidate.theta / M_PI))) {
+        if (expected_cell == observation.rotate((int) (2 * candidate.theta / M_PI))) {
             new_candidates.push_back(candidate);
         }
 
