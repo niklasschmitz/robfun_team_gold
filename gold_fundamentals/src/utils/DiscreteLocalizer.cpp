@@ -1,17 +1,16 @@
 #include "DiscreteLocalizer.h"
-#include "GridPerceptor.h"
 
 DiscreteLocalizer::DiscreteLocalizer() {
-    int n_cols = maze::Maze::MAZE_WIDTH;
-    int n_rows = maze::Maze::MAZE_HEIGHT;
+    int n_cols = maze::Maze::N_COLS;
+    int n_rows = maze::Maze::N_ROWS;
 
     // populate candidates with all possible aligned configurations
     // this can be thought of as a uniform prio
     for (int row = 0; row < n_rows; ++row) {
         for (int col = 0; col < n_cols; ++col) {
             for (int theta = 0; theta < 4; ++theta) {
-                double x = (row + 0.5) * MAZE_SIDE_LENGTH;
-                double y = (col + 0.5) * MAZE_SIDE_LENGTH;
+                double x = (row + 0.5) * maze::Maze::CELL_SIDE_LENGTH;
+                double y = (col + 0.5) * maze::Maze::CELL_SIDE_LENGTH;
                 this->candidates.push_back(RobotConfiguration(x, y, (double) theta * M_PI_2));
             }
         }
