@@ -5,8 +5,6 @@
 
 namespace maze {
 
-
-
     struct Cell {
         bool right;
         bool top;
@@ -54,6 +52,6 @@ namespace maze {
         const Cell getCell(T_VECTOR2D position);
     };
 
-}
+} // namespace
 
 #endif //SRC_MAZE_H
