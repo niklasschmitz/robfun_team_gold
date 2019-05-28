@@ -258,6 +258,7 @@ void Robot::spin(double thetaGoal) {
 
 }
 
+
 void Robot::align() {
     std::vector<T_RATED_LINE> lines;
     lines = gp.getLines();
