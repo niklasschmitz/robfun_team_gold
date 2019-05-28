@@ -19,6 +19,25 @@ DiscreteLocalizer::DiscreteLocalizer() {
 
 DiscreteLocalizer::~DiscreteLocalizer(){}
 
+// map = map from the node [[[T,L,R], ... ]]]
+void OccupancyGrid::convertMsgGridToMap(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
+    // find out max horizontal, vertical spread of the map (x=max_nr_of_cols, y=max_nr_of_rows)
+
+    int rows = static_cast<int>(msg_grid_dims.x);
+    int cols = static_cast<int>(msg_grid_dims.y);
+    inverse_resolution = inverse_res;
+    width = static_cast<int>(msg_grid_dims.x * MAZE_SIDE_LENGTH * inverse_resolution); // *80 as one cell is 80cm
+    height = static_cast<int>(msg_grid_dims.y * MAZE_SIDE_LENGTH * inverse_resolution);
+
+    // delete any memory allocated before
+    delete[] grid_data;
+    // create new data object
+    grid_data = new uint8_t[width*height];
+
+    setAllCellBorders(msg_grid);
+
+}
+
 void DiscreteLocalizer::estimateConfiguration(RobotConfiguration action, maze::Cell observation) {
     std::vector<RobotConfiguration> new_candidates;
 
