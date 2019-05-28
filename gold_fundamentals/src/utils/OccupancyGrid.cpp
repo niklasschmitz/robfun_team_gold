@@ -2,6 +2,9 @@
 #include "GridPerceptor.h"
 #include <sstream>
 
+
+#define MIRROR_MAP_ON_X_AXIS 0
+
 OccupancyGrid::OccupancyGrid() {}
 
 OccupancyGrid::~OccupancyGrid() {
@@ -116,7 +119,11 @@ void OccupancyGrid::setAllCellBorders(const gold_fundamentals::Grid::ConstPtr &m
     for( int row=0; row<max_cells_y; row++ ) {
         for( int col=0; col<max_cells_x; col++ ) {
 //            msg_grid->rows[row].cells[col].walls[wall_idx]
+#ifdef MIRROR_MAP_ON_X_AXIS == 0
+            WallData wallData = getWallData(msg_grid, col, (max_cells_y-1)-row);
+#else
             WallData wallData = getWallData(msg_grid, col, row);
+#endif
             setSingleCellBorders(col, row, wallData);
         }
     }
@@ -133,6 +140,20 @@ void OccupancyGrid::setSingleCellBorders(int cell_x, int cell_y, WallData wallDa
         }
     }
 
+#ifdef MIRROR_MAP_ON_X_AXIS == 0
+    // now set the borders
+    if(wallData.Top) {
+        for(int col=0; col<boxSideLength; col++) {
+            setSingleGridPixel(cell_x, cell_y, col, boxSideLength-1, 100);
+        }
+    }
+
+    if(wallData.Bot) {
+        for(int col=0; col<boxSideLength; col++) {
+            setSingleGridPixel(cell_x, cell_y, col, 0, 100);
+        }
+    }
+#else
     // now set the borders
     if(wallData.Top) {
         for(int col=0; col<boxSideLength; col++) {
@@ -145,6 +166,7 @@ void OccupancyGrid::setSingleCellBorders(int cell_x, int cell_y, WallData wallDa
             setSingleGridPixel(cell_x, cell_y, col, boxSideLength-1, 100);
         }
     }
+#endif
 
     if(wallData.Left) {
         for(int row=0; row<boxSideLength; row++) {

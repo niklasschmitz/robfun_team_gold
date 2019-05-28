@@ -26,7 +26,7 @@
 //	this->distMap = NULL;
 //}
 
-#define VISUALIZE_LIKELIHOODMAP 1
+#define VISUALIZE_LIKELIHOODMAP 0
 
 ParticleFilter::ParticleFilter() {
     ros::NodeHandle n;
@@ -329,9 +329,9 @@ void ParticleFilter::likelihoodFieldRangeFinderModel(
 //		int nr_of_ranges = 511;
         // REVIEW: check if this is correct!
         int nr_of_ranges = laserScan->ranges.size()-1;
+//        ROS_INFO("%d", nr_of_ranges);
 
-
-        //particle postions are now needed in [pixel], therefore divison by resolution
+        //particle positions are now needed in [pixel], therefore divison by resolution
 		double particleX = this->particleSet[i]->x / this->likelihoodFieldResolution;
 		double particleY = this->particleSet[i]->y / this->likelihoodFieldResolution;
 		double particleTheta = this->particleSet[i]->theta;
@@ -513,7 +513,7 @@ void ParticleFilter::publishOcGridToRviz() {
             if (oc_grid.grid_data[col + row * oc_grid.width] != 0) {
                 geometry_msgs::Point p;
                 p.x = col;
-                p.y = -row;
+                p.y = row;
 //                p.y = row;
                 p.z = 0;
 
@@ -569,7 +569,7 @@ void ParticleFilter::publishDistanceMapToRviz() {
             // create a box for every point in the likelihood field
             geometry_msgs::Point p;
             p.x = col;
-            p.y = -row;
+            p.y = row;
             p.z = distMap[col + row*oc_grid.width];
 
             distMapPoints.points.push_back(p);
@@ -624,7 +624,7 @@ void ParticleFilter::publishLikelihoodMapToRviz() {
             // create a box for every point in the likelihood field
             geometry_msgs::Point p;
             p.x = col;
-            p.y = -row;
+            p.y = row;
 //            p.z = pow(M_E, likelihoodField[col + row*oc_grid.width])*20;
             p.z = (likelihoodField[col + row*oc_grid.width])*30;
 
@@ -713,14 +713,14 @@ void ParticleFilter::publishAllParticlesToRviz() {
 
         geometry_msgs::Point p;
         p.x = part_vis.x_pos;
-        p.y = -part_vis.y_pos;
+        p.y = part_vis.y_pos;
         p.z = 0;
         allParticlesPositionMarker.points.push_back(p);
 
         //TODO display line to indicate direction
         geometry_msgs::Point p_dir;
         p_dir.x = part_vis.direction_indicator_x;
-        p_dir.y = -part_vis.direction_indicator_y;
+        p_dir.y = part_vis.direction_indicator_y;
         p_dir.z = 0;
         allParticlesDirectionMarker.points.push_back(p_dir);
     }
@@ -754,7 +754,7 @@ void ParticleFilter::publishBestParticleToRviz() {
     bestParticleMarker.ns = "points_and_lines";
     bestParticleMarker.action = visualization_msgs::Marker::ADD;
     bestParticleMarker.pose.orientation.w = 1.0;
-    bestParticleMarker.id = 4;
+    bestParticleMarker.id = 5;
     bestParticleMarker.type = visualization_msgs::Marker::POINTS;
 
     // scale
@@ -763,16 +763,16 @@ void ParticleFilter::publishBestParticleToRviz() {
     bestParticleMarker.scale.z = 5.0;
 
     // color
-    bestParticleMarker.color.r = 0.3;
+    bestParticleMarker.color.r = 1.0;
     bestParticleMarker.color.g = 1.0;
-    bestParticleMarker.color.b = 0.5;
+    bestParticleMarker.color.b = 1.0;
     bestParticleMarker.color.a = 1.0;
 
     bestParticleMarker.lifetime = ros::Duration();
 
     geometry_msgs::Point p;
     p.x = bestHypothesis->x*inverse_resolution;
-    p.y = -bestHypothesis->y*inverse_resolution;
+    p.y = bestHypothesis->y*inverse_resolution;
     p.z = 0;//likelihoodField[col + row*oc_grid.width];
 
     bestParticleMarker.points.push_back(p);

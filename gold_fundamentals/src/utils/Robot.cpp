@@ -115,12 +115,16 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
 
         deltaX = r * sin(this->theta + theta) - r * sin(this->theta);
         deltaY = -r * cos(this->theta + theta) + r * cos(this->theta);
+
+
         // TODO: check this on correctness!
-        deltaTheta = Probability::diffAngle(this->theta, theta);
+        //deltaTheta = Probability::diffAngle(this->theta, theta);
+        double newTheta = fmod(this->theta + theta + (M_PI * 2.0), (M_PI * 2.0));
+        deltaTheta = newTheta - oldTheta;
 
         this->position.x += deltaX;
         this->position.y += deltaY;
-        this->theta = fmod(this->theta + theta + (M_PI * 2.0), (M_PI * 2.0));
+        this->theta = newTheta;//fmod(this->theta + theta + (M_PI * 2.0), (M_PI * 2.0));
     }
 
     double newX = this->position.x;
