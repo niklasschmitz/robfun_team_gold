@@ -32,15 +32,30 @@ Robot::Robot() {
     this->storeSong();
     this->playSong(0);
     this->bigChangeInPose = false;
-    //this->storeSong();
 }
 
 void Robot::storeSong() {
-    create_fundamentals::StoreSong srv;
-    srv.request.number = 0;
-    srv.request.song.push_back(36);
-    srv.request.song.push_back(64);
-    store_song.call(srv);
+    create_fundamentals::StoreSong song0;
+    song0.request.number = 0;
+    song0.request.song.push_back(36);
+    song0.request.song.push_back(64);
+    store_song.call(song0);
+
+    create_fundamentals::StoreSong song1; //Mario 1UP
+    song1.request.number = 1;
+    song1.request.song.push_back(88);
+    song1.request.song.push_back(8);
+    song1.request.song.push_back(91);
+    song1.request.song.push_back(8);
+    song1.request.song.push_back(100);
+    song1.request.song.push_back(8);
+    song1.request.song.push_back(96);
+    song1.request.song.push_back(8);
+    song1.request.song.push_back(98);
+    song1.request.song.push_back(8);
+    song1.request.song.push_back(103);
+    song1.request.song.push_back(16);
+    store_song.call(song1);
 }
 
 void Robot::playSong(int number) {
