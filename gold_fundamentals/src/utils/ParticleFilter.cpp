@@ -42,7 +42,7 @@ ParticleFilter::ParticleFilter() {
     updatemap_service = n.advertiseService("update_map", &ParticleFilter::setUpdateMap, this);
     this->update_map = true;
 
-    this->numberOfParticles = 2000;
+    this->numberOfParticles = 3000;
     this->inverse_resolution = 100; // pixel / meter
 
     // initialize particles
