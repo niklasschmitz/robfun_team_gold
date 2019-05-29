@@ -17,6 +17,8 @@ DiscreteLocalizer::DiscreteLocalizer() {
     }
 }
 
+DiscreteLocalizer::~DiscreteLocalizer(){}
+
 void DiscreteLocalizer::estimateConfiguration(RobotConfiguration action, maze::Cell observation) {
     std::vector<RobotConfiguration> new_candidates;
 
