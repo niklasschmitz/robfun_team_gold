@@ -123,7 +123,7 @@ void OccupancyGrid::setAllCellBorders(const gold_fundamentals::Grid::ConstPtr &m
     for( int row=0; row<max_cells_y; row++ ) {
         for( int col=0; col<max_cells_x; col++ ) {
 //            msg_grid->rows[row].cells[col].walls[wall_idx]
-#ifdef MIRROR_MAP_ON_X_AXIS == 0
+#if MIRROR_MAP_ON_X_AXIS == 0
             WallData wallData = getWallData(msg_grid, col, (max_cells_y-1)-row);
 #else
             WallData wallData = getWallData(msg_grid, col, row);
@@ -144,7 +144,7 @@ void OccupancyGrid::setSingleCellBorders(int cell_x, int cell_y, WallData wallDa
         }
     }
 
-#ifdef MIRROR_MAP_ON_X_AXIS == 0
+#if MIRROR_MAP_ON_X_AXIS == 0
     // now set the borders
     if(wallData.Top) {
         for(int col=0; col<boxSideLength; col++) {

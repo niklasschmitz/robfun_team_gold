@@ -5,7 +5,6 @@
 
 
 const double Robot::LOOPRATE = 100;
-const double Robot::ENCODER_STEPS_PER_REVOLUTION = M_PI * 2.0;
 const double Robot::LASER_OFFSET = 0.11;
 const double Robot::MAX_SPEED = 10.; //15.625
 const double Robot::MIN_SPEED = 1.;
@@ -365,7 +364,26 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
     }
 }
 
+inline double distanceEllipse(double angle) {
+    const double a = Robot::SAFETY_DISTANCE - Robot::LASER_OFFSET;
+    const double b = Robot::SAFETY_DISTANCE;
+
+    return a * b / sqrt(pow(b * cos(angle), 2.0) + pow(a * sin(angle), 2.0));
+}
+
 void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
+    double angle = laserScan->angle_min;
+    this->obstacle = false;
+
+    for (int i = 0; i < laserScan->ranges.size(); i++) {
+        if (laserScan->ranges[i] < distanceEllipse(angle)) {
+            this->obstacle = true;
+            break;
+        }
+
+        angle += laserScan->angle_increment;
+    }
+
     // NOTE: there is also a laserCallback in the gridPerceptor
 //    ROS_INFO("robot laser callback");
 
@@ -380,27 +398,6 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
         this->particleFilter.resample();
         pfMutex.unlock();
         this->bigChangeInPose = false;
-    }
-}
-
-inline double distanceEllipse(double angle) {
-    const double a = Robot::SAFETY_DISTANCE - Robot::LASER_OFFSET;
-    const double b = Robot::SAFETY_DISTANCE;
-
-    return a * b / sqrt(pow(b * cos(angle), 2.0) + pow(a * sin(angle), 2.0));
-}
-
-void Robot::wandererLaserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
-    double angle = msg->angle_min;
-    this->obstacle = false;
-
-    for (int i = 0; i < msg->ranges.size(); i++) {
-        if (msg->ranges[i] < distanceEllipse(angle)) {
-            this->obstacle = true;
-            break;
-        }
-
-        angle += msg->angle_increment;
     }
 }
 
