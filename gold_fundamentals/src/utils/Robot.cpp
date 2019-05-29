@@ -1,7 +1,12 @@
 #include "Robot.h"
 
-const double Robot::LASER_OFFSET = 0.11;
+#include "geometry.h"
+#include "Probability.h"
+
+
 const double Robot::LOOPRATE = 100;
+const double Robot::ENCODER_STEPS_PER_REVOLUTION = M_PI * 2.0;
+const double Robot::LASER_OFFSET = 0.11;
 const double Robot::MAX_SPEED = 10.; //15.625
 const double Robot::MIN_SPEED = 1.;
 const double Robot::RADIUS = 0.17425;
@@ -27,6 +32,8 @@ Robot::Robot() {
     this->obstacle = false;
     this->storeSong();
     this->playSong(0);
+    this->bigChangeInPose = false;
+    //this->storeSong();
 }
 
 void Robot::storeSong() {
@@ -115,21 +122,62 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
     double deltaLeft = (newData->encoderLeft - oldData->encoderLeft) * Robot::WHEEL_RADIUS;
     double deltaRight = (newData->encoderRight - oldData->encoderRight) * Robot::WHEEL_RADIUS;
 
-    if (fabs(deltaRight - deltaLeft) < 1.0e-6) {
+    double deltaX = 0;
+    double deltaY = 0;
+    double deltaTheta = 0;
+
+    double oldX = this->position.x;
+    double oldY = this->position.y;
+    double oldTheta = this->theta;
+
+    if (fabs(deltaRight - deltaLeft) < std::numeric_limits<float>::epsilon() * 10.0) {
         double d = (deltaRight + deltaLeft) / 2.0;
-        this->position.x += d * cos(this->theta);
-        this->position.y += d * sin(this->theta);
+        deltaX = d * cos(this->theta);
+        deltaY = d * sin(this->theta);
+        this->position.x += deltaX;
+        this->position.y += deltaY;
     } else {
         double d = (deltaRight + deltaLeft) / 2.0;
         double theta = (deltaRight - deltaLeft) / Robot::TRACK;
         double r = d / theta;
 
-        this->position.x += r * sin(this->theta + theta) - r * sin(this->theta);
-        this->position.y += -r * cos(this->theta + theta) + r * cos(this->theta);
-        this->theta = normalizeAngle(this->theta + theta);
+        deltaX = r * sin(this->theta + theta) - r * sin(this->theta);
+        deltaY = -r * cos(this->theta + theta) + r * cos(this->theta);
+
+
+        // TODO: check this on correctness!
+        //deltaTheta = Probability::diffAngle(this->theta, theta);
+        double newTheta = normalizeAngle(this->theta + theta);
+        deltaTheta = newTheta - oldTheta;
+
+        this->position.x += deltaX;
+        this->position.y += deltaY;
+        this->theta = newTheta;//fmod(this->theta + theta + (M_PI * 2.0), (M_PI * 2.0));
+    }
+
+    double newX = this->position.x;
+    double newY = this->position.y;
+    double newTheta = this->theta;
+
+    this->bigChangeInPose = fabs(deltaX) > 0.025 || fabs(deltaY) > 0.025 || fabs(deltaTheta) > 0.1;
+
+    // see if we should update the filter
+    if (this->bigChangeInPose && this->particleFilter.initialized) {
+//        ROS_INFO("we have a big change");
+        pfMutex.lock();
+        this->particleFilter.sampleMotionModel(oldX, oldY, oldTheta, newX, newY, newTheta);
+        pfMutex.unlock();
+    } else {
+//        ROS_INFO("no change");
+    }
+
+    Particle* best_hyp = this->particleFilter.getBestHypothesis();
+    if(best_hyp != NULL) {
+        //ROS_INFO("current pos: x=%lf, y=%lf, th=%lf, w=%lf", best_hyp->x, best_hyp->y, best_hyp->theta, best_hyp->weight);
     }
 
     this->publishPosition();
+    //ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
 }
 
 double Robot::angleDelta(double theta) {
@@ -308,14 +356,34 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
     this->timeDelta = (time - this->sensorTime).toSec();
     this->sensorTime = time;
 
+    // in calc_pos is also the particle filter
     calculatePosition(this->sensorData, msg);
     this->sensorData = msg;
 
-    if (this->sensorData->bumpLeft || this->sensorData->bumpRight) {
+//    ROS_INFO("left:%u, right:%u", this->sensorData->bumpLeft, this->sensorData->bumpRight);
+    if(this->sensorData->bumpLeft || this->sensorData->bumpRight){
         ROS_INFO("OH NO!");
         this->playSong(0);
         this->brake();
         exit(1);
+    }
+}
+
+void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
+    // NOTE: there is also a laserCallback in the gridPerceptor
+//    ROS_INFO("robot laser callback");
+
+    // if the robot has moved, update the filter
+    if (this->bigChangeInPose && this->particleFilter.initialized) {
+//        ROS_INFO("updating particle filter via laser");
+        pfMutex.lock();
+
+        // correction step
+        this->particleFilter.measurementModel(laserScan);
+        // resample the particles
+        this->particleFilter.resample();
+        pfMutex.unlock();
+        this->bigChangeInPose = false;
     }
 }
 
@@ -326,7 +394,7 @@ inline double distanceEllipse(double angle) {
     return a * b / sqrt(pow(b * cos(angle), 2.0) + pow(a * sin(angle), 2.0));
 }
 
-void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
+void Robot::wandererLaserCallback(const sensor_msgs::LaserScan::ConstPtr &msg) {
     double angle = msg->angle_min;
     this->obstacle = false;
 

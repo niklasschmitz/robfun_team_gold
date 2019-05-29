@@ -41,6 +41,7 @@ add_message_files(
 add_service_files(
         FILES
         ExecutePlan.srv
+		UpdateMap.srv
 )
 
 #common commands for building c++ executables and libraries
@@ -80,6 +81,9 @@ set(
         src/utils/DiscreteLocalizer.cpp src/utils/DiscreteLocalizer.h
         src/utils/geometry.cpp src/utils/geometry.h
         src/utils/probability.cpp src/utils/probability.h
+        src/utils/ParticleFilter.cpp src/utils/ParticleFilter.h
+        src/utils/Probability.cpp src/utils/Probability.h
+        src/utils/OccupancyGrid.cpp src/utils/OccupancyGrid.h
 )
 
 # Assignment 1
@@ -109,3 +113,7 @@ target_link_libraries(smooth_executer ${catkin_LIBRARIES})
 add_dependencies(smooth_executer create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
 
 # Assignment 3
+add_executable(localize_robot src/localize_robot.cpp src/utils/Robot.cpp src/utils/Robot.h src/utils/tools.cpp src/utils/tools.h src/utils/PID.cpp src/utils/PID.h src/utils/GridPerceptor.cpp src/utils/GridPerceptor.h src/utils/geometry.cpp src/utils/ParticleFilter.cpp src/utils/Probability.cpp src/utils/OccupancyGrid.cpp)
+target_link_libraries(localize_robot ${catkin_LIBRARIES})
+add_dependencies(localize_robot create_fundamentals_generate_messages_cpp)
+
