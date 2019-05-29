@@ -102,8 +102,8 @@ void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg_gr
         oc_grid.convertMsgGridToOccupancyGrid(msg_grid, inverse_resolution);
         oc_grid.printGrid();
         init();
-        printDistanceMap();
-        printLikelihoodMap();
+        //printDistanceMap();
+        //printLikelihoodMap();
         publishOcGridToRviz();
         //publishDistanceMapToRviz();
         publishAllParticlesToRviz();
@@ -732,12 +732,12 @@ void ParticleFilter::publishAllParticlesToRviz() {
         } else {
             if (!allParticlesPositionMarker.points.empty()) {
                 // only publish if we have data (preventing sigsegv?)
-                ROS_INFO("publishing allPosParticles");
+//                ROS_INFO("publishing allPosParticles");
                 allParticles_pub.publish(allParticlesPositionMarker);
             }
             if (!allParticlesDirectionMarker.points.empty()) {
                 // only publish if we have data (preventing sigsegv?)
-                ROS_INFO("publishing allDirParticles");
+//                ROS_INFO("publishing allDirParticles");
                 allParticles_pub.publish(allParticlesDirectionMarker);
             }
         }
@@ -784,7 +784,7 @@ void ParticleFilter::publishBestParticleToRviz() {
         } else {
             if (!bestParticleMarker.points.empty()) {
                 // only publish if we have data (preventing sigsegv?)
-                ROS_INFO("publishing bestParticle");
+//                ROS_INFO("publishing bestParticle");
                 bestParticle_pub.publish(bestParticleMarker);
             }
         }
@@ -819,8 +819,12 @@ void ParticleFilter::printLikelihoodMap() {
         std::ostringstream row_string;
         //row_string << row+1;
         for( int col=0; col<oc_grid.width; col++) {
+#if VISUALIZE_LIKELIHOODMAP == 0
             double val = likelihoodField[row * oc_grid.width + col];
-//            row_string << pow(M_E, val);
+            val = pow(M_E, val); //convert log likelihood to likelihood
+#else
+            double val = likelihoodField[row * oc_grid.width + col];
+#endif
             row_string << val;
             row_string << ',';
         }

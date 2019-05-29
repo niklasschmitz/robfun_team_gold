@@ -17,7 +17,11 @@ void OccupancyGrid::printGrid() {
         std::ostringstream row_string;
         //row_string << row+1;
         for( int col=0; col<width; col++) {
+#if MIRROR_MAP_ON_X_AXIS == 0
+            uint8_t val = grid_data[(height-1-row) * width + col];
+#else
             uint8_t val = grid_data[row * width + col];
+#endif
             if(val == 0) {
                 row_string << '-';
             } else {
@@ -85,7 +89,7 @@ OccupancyGrid::WallData OccupancyGrid::getWallData(const gold_fundamentals::Grid
     // find out how many walls there are
     int nr_of_walls = msg_grid->rows[row].cells[col].walls.size();
     WallData wallData;
-    wallData.Bot = false;
+    wallData.Bottom = false;
     wallData.Top = false;
     wallData.Right = false;
     wallData.Left = false;
@@ -103,7 +107,7 @@ OccupancyGrid::WallData OccupancyGrid::getWallData(const gold_fundamentals::Grid
                 wallData.Left = true;
                 break;
             case 3:
-                wallData.Bot = true;
+                wallData.Bottom = true;
                 break;
 
             default:
@@ -148,7 +152,7 @@ void OccupancyGrid::setSingleCellBorders(int cell_x, int cell_y, WallData wallDa
         }
     }
 
-    if(wallData.Bot) {
+    if(wallData.Bottom) {
         for(int col=0; col<boxSideLength; col++) {
             setSingleGridPixel(cell_x, cell_y, col, 0, 100);
         }
@@ -161,7 +165,7 @@ void OccupancyGrid::setSingleCellBorders(int cell_x, int cell_y, WallData wallDa
         }
     }
 
-    if(wallData.Bot) {
+    if(wallData.Bottom) {
         for(int col=0; col<boxSideLength; col++) {
             setSingleGridPixel(cell_x, cell_y, col, boxSideLength-1, 100);
         }

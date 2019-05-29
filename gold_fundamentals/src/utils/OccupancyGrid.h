@@ -24,7 +24,7 @@ public:
     struct WallData {
         bool Top;
         bool Right;
-        bool Bot;
+        bool Bottom;
         bool Left;
     };
 
