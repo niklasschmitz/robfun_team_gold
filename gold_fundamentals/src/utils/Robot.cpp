@@ -102,7 +102,7 @@ void Robot::publishPosition() {
     gold_fundamentals::Pose msg;
     msg.orientation = (int) round(this->theta / M_PI_2) % 4;
     msg.row = round(this->position.x);
-    msg.column = round(this->position.y);
+    msg.column = round(this->position.y); //TDOD: subtract #MapRows
     this->pose_pub.publish(msg);
 }
 
