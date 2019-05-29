@@ -25,7 +25,7 @@ Robot::Robot() {
     this->sensorTime = ros::Time::now();
     this->resetPosition();
     this->pose_pub = n.advertise<gold_fundamentals::Pose>("pose", 1);
-    this->bigChangeInPose = true;
+    this->bigChangeInPose = false;
 }
 
 void Robot::diffDrive(double left, double right) {
