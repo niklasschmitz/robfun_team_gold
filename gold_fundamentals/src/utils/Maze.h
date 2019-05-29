@@ -5,6 +5,11 @@
 
 namespace maze {
 
+    /**
+     * The Cell type stores 4 booleans indicating which walls are present.
+     * Note: It does not store its location withing the global maze. For
+     * that, see class 'Maze'
+     */
     struct Cell {
         bool right;
         bool top;
@@ -38,17 +43,24 @@ namespace maze {
         }
     };
 
+    /**
+     * A Maze object acts as an interface to a 2D array of Cells
+     * which describes the topology of the maze.
+     * Additionally it stores the CELL_SIDE_LENGTH.
+     */
     class Maze {
     public:
         // number of rows and columns
         static const int N_ROWS = 3;
         static const int N_COLS = 5;
 
-        // side length of a single cell in cm
+        // side length of a single cell in m
         static const double CELL_SIDE_LENGTH = 0.8;
 
         Cell map[N_ROWS][N_COLS];
 
+        // returns the discrete Cell to which the
+        // (continuous) position is mapped
         const Cell getCell(T_VECTOR2D position);
     };
 
