@@ -3,6 +3,7 @@
 #include "ParticleFilter.h"
 #include "Probability.h"
 #include <visualization_msgs/Marker.h>
+#include <std_msgs/Float32.h>
 
 //#include "tf/tf.h"
 
@@ -36,6 +37,8 @@ ParticleFilter::ParticleFilter() {
     distMap_pub = n.advertise<visualization_msgs::Marker>("distancemap_visualization", 10);
     allParticles_pub = n.advertise<visualization_msgs::Marker>("allparticles_visualization", 10);
     bestParticle_pub = n.advertise<visualization_msgs::Marker>("bestparticle_visualization", 10);
+    bestParticleWeight_pub = n.advertise<std_msgs::Float32>("bestparticle_weight", 10);
+    particleVariance_pub = n.advertise<std_msgs::Float32>("particleVariance", 10);
     updatemap_service = n.advertiseService("update_map", &ParticleFilter::setUpdateMap, this);
     this->update_map = true;
 
@@ -648,11 +651,10 @@ void ParticleFilter::publishLikelihoodMapToRviz() {
     }
 }
 
-RvizParticleVisualisation ParticleFilter::getRvizParticleVisualisation(const Particle &particle) {
+RvizParticleVisualisation ParticleFilter::getRvizParticleVisualisation(const Particle &particle, double indicator_length) {
     RvizParticleVisualisation part_vis;
     part_vis.x_pos = particle.x * inverse_resolution;
     part_vis.y_pos = particle.y * inverse_resolution;
-    double indicator_length = 0.01;
     part_vis.direction_indicator_x = (particle.x + indicator_length * cos(particle.theta)) * inverse_resolution;
     part_vis.direction_indicator_y = (particle.y + indicator_length * sin(particle.theta)) * inverse_resolution;
 
@@ -709,7 +711,7 @@ void ParticleFilter::publishAllParticlesToRviz() {
     allParticlesDirectionMarker.lifetime = ros::Duration();
 
     for(int part_idx=0; part_idx<numberOfParticles; part_idx++) {
-        RvizParticleVisualisation part_vis = getRvizParticleVisualisation(particleSet[part_idx]);
+        RvizParticleVisualisation part_vis = getRvizParticleVisualisation(particleSet[part_idx], 0.01);
 
         geometry_msgs::Point p;
         p.x = part_vis.x_pos;
@@ -755,12 +757,12 @@ void ParticleFilter::publishBestParticleToRviz() {
     bestParticleMarker.action = visualization_msgs::Marker::ADD;
     bestParticleMarker.pose.orientation.w = 1.0;
     bestParticleMarker.id = 5;
-    bestParticleMarker.type = visualization_msgs::Marker::POINTS;
+    bestParticleMarker.type = visualization_msgs::Marker::ARROW;
 
     // scale
-    bestParticleMarker.scale.x = 5.0;
-    bestParticleMarker.scale.y = 5.0;
-    bestParticleMarker.scale.z = 5.0;
+    bestParticleMarker.scale.x = 1.0;
+    bestParticleMarker.scale.y = 4.0;
+    bestParticleMarker.scale.z = 1.0;
 
     // color
     bestParticleMarker.color.r = 1.0;
@@ -770,12 +772,21 @@ void ParticleFilter::publishBestParticleToRviz() {
 
     bestParticleMarker.lifetime = ros::Duration();
 
-    geometry_msgs::Point p;
-    p.x = bestHypothesis->x*inverse_resolution;
-    p.y = bestHypothesis->y*inverse_resolution;
-    p.z = 0;//likelihoodField[col + row*oc_grid.width];
+    RvizParticleVisualisation part_vis = getRvizParticleVisualisation(bestHypothesis, 0.1);
 
-    bestParticleMarker.points.push_back(p);
+    //
+    geometry_msgs::Point start_point;
+    start_point.x = part_vis.x_pos;
+    start_point.y = part_vis.y_pos;
+    start_point.z = 0;//likelihoodField[col + row*oc_grid.width];
+
+    geometry_msgs::Point end_point;
+    end_point.x = part_vis.direction_indicator_x;
+    end_point.y = part_vis.direction_indicator_y;
+    end_point.z = 0;//likelihoodField[col + row*oc_grid.width];
+
+    bestParticleMarker.points.push_back(start_point);
+    bestParticleMarker.points.push_back(end_point);
 
     // Publish the marker
     if (bestParticle_pub) {
@@ -831,4 +842,28 @@ void ParticleFilter::printLikelihoodMap() {
 
         ROS_INFO("%s", row_string.str().c_str());
     }
+}
+
+void ParticleFilter::publishBestParticleWeight() {
+    std_msgs::Float32 bestParticleWeight;
+    Particle* bestParticle = getBestHypothesis();
+    if(bestParticle) {
+        bestParticleWeight.data = getBestHypothesis()->weight;
+        bestParticleWeight_pub.publish(bestParticleWeight);
+    }
+}
+
+void ParticleFilter::publishParticleVariance() {
+    std_msgs::Float32 particleVariance;
+    // cycle through all particles, calc distance to best particle and square
+    Particle* bestParticle = getBestHypothesis();
+    double variance = 0;
+    for(int part_idx=0; part_idx<particleSet.size(); part_idx++) {
+        double distance = sqrt(pow(bestParticle->x - particleSet[part_idx]->x, 2) + pow(bestParticle->y - particleSet[part_idx]->y, 2));
+        //ROS_INFO("dist %lf", distance);
+        variance += pow(distance, 2);
+    }
+    particleVariance.data = variance;
+    ROS_INFO("variance %lf", variance);
+    particleVariance_pub.publish(particleVariance);
 }

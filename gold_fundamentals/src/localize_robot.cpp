@@ -21,9 +21,11 @@ void mySigintHandler(int sig) {
 }
 
 void localize() {
-    robot->particleFilter.publishAllParticlesToRviz();
+    //robot->particleFilter.publishAllParticlesToRviz();
+//    robot->particleFilter.publishBestParticleWeight();
+    //robot->particleFilter.publishParticleVariance();
 //    robot->pf.setUpdateMap();
-    ros::Duration(0.5).sleep();
+    ros::Duration(0.1).sleep();
 }
 
 

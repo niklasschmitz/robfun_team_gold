@@ -99,6 +99,8 @@ private:
     ros::Publisher distMap_pub;
     ros::Publisher allParticles_pub;
     ros::Publisher bestParticle_pub;
+    ros::Publisher bestParticleWeight_pub;
+    ros::Publisher particleVariance_pub;
 
 public:
     ParticleFilter();
@@ -143,12 +145,15 @@ public:
     void publishOcGridToRviz();
     void publishDistanceMapToRviz();
     void publishLikelihoodMapToRviz();
-    RvizParticleVisualisation getRvizParticleVisualisation(const Particle &particle);
+    RvizParticleVisualisation getRvizParticleVisualisation(const Particle &particle, double indicator_length);
     void publishAllParticlesToRviz();
     void publishBestParticleToRviz();
 
     void printDistanceMap();
     void printLikelihoodMap();
+
+    void publishBestParticleWeight();
+    void publishParticleVariance();
 };
 
 #endif
