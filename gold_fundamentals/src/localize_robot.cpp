@@ -25,7 +25,7 @@ void localize() {
 //    robot->particleFilter.publishBestParticleWeight();
     //robot->particleFilter.publishParticleVariance();
 //    robot->pf.setUpdateMap();
-    ros::Duration(0.1).sleep();
+//    ros::Duration(0.1).sleep();
 }
 
 
@@ -34,11 +34,6 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "localize", ros::init_options::NoSigintHandler);
     robot = new Robot();
     signal(SIGINT, mySigintHandler);
-
-    while(ros::ok()) {
-        localize();
-        ros::spinOnce();
-    }
 
     delete(robot);
     return 0;
