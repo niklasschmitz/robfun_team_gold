@@ -42,7 +42,6 @@ public:
     ros::Subscriber sub_laser;
 
     static const double LOOPRATE;
-
     static const double LASER_OFFSET;
     static const double MAX_SPEED;
     static const double MIN_SPEED;
@@ -107,8 +106,6 @@ public:
     void drivePID(T_VECTOR2D goal);
 
     void driveMAX(T_VECTOR2D checkpoint);
-
-    void laserCallback(const sensor_msgs::LaserScan_<std::allocator<void> >::ConstPtr &msg);
 
     void wander();
 };
