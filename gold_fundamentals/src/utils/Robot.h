@@ -9,9 +9,11 @@
 #include "tools.h"
 #include "PID.h"
 #include "GridPerceptor.h"
+#include "ParticleFilter.h"
 #include <queue>
 #include "gold_fundamentals/Pose.h"
 #include "gold_fundamentals/Grid.h"
+#include <boost/thread/mutex.hpp>
 #include "geometry.h"
 
 
@@ -34,6 +36,7 @@ public:
     void align();
 
     void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg);
+    void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg);
 
     ros::Subscriber sub_sensor;
     ros::Subscriber sub_laser;
@@ -61,6 +64,9 @@ public:
     ros::ServiceClient play_song;
 
     GridPerceptor gp;
+    ParticleFilter particleFilter;
+    bool bigChangeInPose;
+    boost::mutex pfMutex;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
     ros::Time sensorTime;
