@@ -17,24 +17,52 @@ DiscreteLocalizer::DiscreteLocalizer() {
     }
 }
 
-DiscreteLocalizer::~DiscreteLocalizer(){}
+DiscreteLocalizer::~DiscreteLocalizer() {}
 
 // map = map from the node [[[T,L,R], ... ]]]
 void DiscreteLocalizer::convertMsgGridToMap(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
     // find out max horizontal, vertical spread of the map (x=max_nr_of_cols, y=max_nr_of_rows)
 
-    int rows = static_cast<int>(msg_grid_dims.x);
-    int cols = static_cast<int>(msg_grid_dims.y);
-    inverse_resolution = inverse_res;
-    width = static_cast<int>(msg_grid_dims.x * MAZE_SIDE_LENGTH * inverse_resolution); // *80 as one cell is 80cm
-    height = static_cast<int>(msg_grid_dims.y * MAZE_SIDE_LENGTH * inverse_resolution);
+    int n_rows = static_cast<int>(msg_grid_dims.x);
+    int n_cols = static_cast<int>(msg_grid_dims.y);
 
-    // delete any memory allocated before
-    delete[] grid_data;
-    // create new data object
-    grid_data = new uint8_t[width*height];
+    // create new Cell array
+    maze::Maze map = new maze::Maze(n_rows, n_cols);
 
-    setAllCellBorders(msg_grid);
+    // for every coodinate
+    for (int row = 0; row < n_rows; ++row) {
+        for (int col = 0; col < n_cols; ++col) {
+            // set Cell booleans for each wall present
+
+            int n_walls = msg_grid->rows[row].cells[col].walls.size();
+            maze::Cell cell;
+
+            // find out which walls are set
+            for (int wall_idx = 0; wall_idx < n_walls; wall_idx++) {
+                switch (msg_grid->rows[row].cells[col].walls[wall_idx]) {
+                    case 0:
+                        cell.right = true;
+                        break;
+                    case 1:
+                        cell.top = true;
+                        break;
+                    case 2:
+                        cell.left = true;
+                        break;
+                    case 3:
+                        cell.bottom = true;
+                        break;
+
+                    default:
+                        // shouldnt get here
+                        break;
+                }
+            }
+
+            // place cell on map
+            map.setCell(row, col, cell);
+        }
+    }
 
 }
 
