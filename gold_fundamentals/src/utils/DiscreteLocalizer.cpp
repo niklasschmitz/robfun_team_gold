@@ -20,7 +20,7 @@ DiscreteLocalizer::DiscreteLocalizer() {
 DiscreteLocalizer::~DiscreteLocalizer(){}
 
 // map = map from the node [[[T,L,R], ... ]]]
-void OccupancyGrid::convertMsgGridToMap(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
+void DiscreteLocalizer::convertMsgGridToMap(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
     // find out max horizontal, vertical spread of the map (x=max_nr_of_cols, y=max_nr_of_rows)
 
     int rows = static_cast<int>(msg_grid_dims.x);
