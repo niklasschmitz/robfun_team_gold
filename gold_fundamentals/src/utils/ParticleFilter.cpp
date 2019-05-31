@@ -479,6 +479,7 @@ void ParticleFilter::resample() {
 	}
 
     publishBestParticleToRviz();
+	publishAllParticlesToRviz();
 }
 
 Particle* ParticleFilter::getBestHypothesis() {
