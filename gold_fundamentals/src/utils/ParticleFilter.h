@@ -48,6 +48,9 @@ public:
 
 	// particle weight used for resampling
 	double weight;
+
+	// likelihood of particle before normalizing (to find out if we are localized)
+	double raw_likelihood;
 };
 
 class ParticleFilter {
@@ -101,6 +104,7 @@ private:
     ros::Publisher bestParticle_pub;
     ros::Publisher bestParticleWeight_pub;
     ros::Publisher particleVariance_pub;
+    ros::Publisher rawLikelihood_pub;
 
 public:
     ParticleFilter();
@@ -154,6 +158,9 @@ public:
 
     void publishBestParticleWeight();
     void publishParticleVariance();
+    void publishBestParticleRawLikelihood();
+
+        double calculateParticleVariance();
 };
 
 #endif

@@ -39,6 +39,7 @@ ParticleFilter::ParticleFilter() {
     bestParticle_pub = n.advertise<visualization_msgs::Marker>("bestparticle_visualization", 10);
     bestParticleWeight_pub = n.advertise<std_msgs::Float32>("bestparticle_weight", 10);
     particleVariance_pub = n.advertise<std_msgs::Float32>("particleVariance", 10);
+    rawLikelihood_pub = n.advertise<std_msgs::Float32>("bestparticle_rawLikelihood", 10);
     updatemap_service = n.advertiseService("update_map", &ParticleFilter::setUpdateMap, this);
     this->update_map = true;
 
@@ -365,10 +366,11 @@ void ParticleFilter::likelihoodFieldRangeFinderModel(
 			}
 		}
 
-		double tr_weight = exp(weight);
+        double tr_weight = exp(weight);
 
 		this->sumOfParticleWeights += tr_weight;
 		this->particleSet[i]->weight = tr_weight;
+		this->particleSet[i]->raw_likelihood = -weight;
 	}
 
 	//normalize the weights
@@ -465,6 +467,7 @@ void ParticleFilter::resample() {
 			this->bestHypothesis->y = this->particleSet[i]->y;
 			this->bestHypothesis->theta = this->particleSet[i]->theta;
 			this->bestHypothesis->weight = this->particleSet[i]->weight;
+			this->bestHypothesis->raw_likelihood = this->particleSet[i]->raw_likelihood;
 		}
 		pSetNew[j] = part;
 	}
@@ -476,6 +479,7 @@ void ParticleFilter::resample() {
 		this->particleSet[i]->y = pSetNew[i].y;
 		this->particleSet[i]->theta = pSetNew[i].theta;
 		this->particleSet[i]->weight = this->getNumberOfParticles();
+		this->particleSet[i]->raw_likelihood = pSetNew[i].raw_likelihood;
 	}
 
     publishBestParticleToRviz();
@@ -854,17 +858,32 @@ void ParticleFilter::publishBestParticleWeight() {
     }
 }
 
-void ParticleFilter::publishParticleVariance() {
-    std_msgs::Float32 particleVariance;
-    // cycle through all particles, calc distance to best particle and square
-    Particle* bestParticle = getBestHypothesis();
+// calculates distance of every particle to the current bestParticle, squares it and sums them up
+double ParticleFilter::calculateParticleVariance() {
     double variance = 0;
+    Particle* bestParticle = getBestHypothesis();
     for(int part_idx=0; part_idx<particleSet.size(); part_idx++) {
         double distance = sqrt(pow(bestParticle->x - particleSet[part_idx]->x, 2) + pow(bestParticle->y - particleSet[part_idx]->y, 2));
         //ROS_INFO("dist %lf", distance);
         variance += pow(distance, 2);
     }
+    return variance;
+}
+
+void ParticleFilter::publishParticleVariance() {
+    std_msgs::Float32 particleVariance;
+    // cycle through all particles, calc distance to best particle and square
+    double variance = this->calculateParticleVariance();
     particleVariance.data = variance;
     ROS_INFO("variance %lf", variance);
     particleVariance_pub.publish(particleVariance);
+}
+
+void ParticleFilter::publishBestParticleRawLikelihood() {
+    std_msgs::Float32 rawLikelihood;
+    Particle* bestPart = getBestHypothesis();
+    double raw_likelihood = bestPart->raw_likelihood;
+    ROS_INFO("raw_likelihood %lf", raw_likelihood);
+    rawLikelihood.data = raw_likelihood;
+    rawLikelihood_pub.publish(rawLikelihood);
 }

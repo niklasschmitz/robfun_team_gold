@@ -77,7 +77,7 @@ void Robot::diffDrive(double left, double right) {
     srv.request.right = right;
     diff_drive.call(srv);
 
-    //ROS_INFO("%lf, %lf", left, right);
+//    ROS_INFO("%lf, %lf", left, right);
 }
 
 void Robot::wander(){
@@ -91,15 +91,30 @@ void Robot::wander(){
     }
 }
 
-void Robot::localize(){
-    while (ros::ok()) { //TODO: run until localized
+bool Robot::isLocalized() {
+    double variance = this->particleFilter.calculateParticleVariance();
+    double threshold = 10;
+    if (variance < threshold && this->particleFilter.initialized) {
+        return true;
+    }
+    return false;
+}
+
+void Robot::localize() {
+    while (ros::ok() && !this->isLocalized()) { //TODO: run until localized
         ros::spinOnce();
+//        ROS_INFO("localized %d", this->isLocalized());
+        //this->particleFilter.publishBestParticleRawLikelihood();
+        //this->particleFilter.publishParticleVariance();
         if(this->obstacle){
             this->turnRandom();
         } else {
             this->diffDrive(Robot::MAX_SPEED, Robot::MAX_SPEED);
         }
     }
+    brake();
+    Particle* bestPart = this->particleFilter.getBestHypothesis();
+    ROS_INFO("my position is: cell_x: %lf, cell_y: %lf, theta_deg: %lf", bestPart->x/0.8, bestPart->y/0.8, bestPart->theta*180.0/M_PI);
 }
 
 void Robot::turnRandom() {
@@ -137,7 +152,7 @@ void Robot::publishPosition() {
     msg.row = round(this->position.x);
     msg.column = round(this->position.y); //TODO: subtract #MapRows
     this->pose_pub.publish(msg);
-    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y , this->theta);
+//    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y , this->theta);
 }
 
 void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,
@@ -394,6 +409,9 @@ inline double distanceEllipse(double angle) {
 }
 
 void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
+
+    //clock_t start, end;// = clock();
+    //start = clock();
     double angle = laserScan->angle_min;
     this->obstacle = false;
 
@@ -427,12 +445,16 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
             this->theta = normalizeAngle(best_hyp->theta);
         }
 
-        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2);
+        //clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2);
 
-        double dur = 1000.0 * ts2.tv_sec + 1e-6 *ts2.tv_nsec - (1000.0 * ts1.tv_sec + 1e-6 * ts1.tv_nsec);
+        //double dur = 1000.0 * ts2.tv_sec + 1e-6 *ts2.tv_nsec - (1000.0 * ts1.tv_sec + 1e-6 * ts1.tv_nsec);
 
-        ROS_INFO("delay = %lf", dur);
+        //ROS_INFO("delay = %lf", dur);
+
     }
+//    end = clock();
+//    double duration_sec = (end-start) / CLOCKS_PER_SEC;
+//    ROS_INFO("time for obstacle detect: %lf", duration_sec);
 }
 
 Robot::~Robot() {}
