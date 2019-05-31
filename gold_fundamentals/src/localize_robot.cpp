@@ -20,14 +20,6 @@ void mySigintHandler(int sig) {
     delete(robot);
 }
 
-void localize() {
-    //robot->particleFilter.publishAllParticlesToRviz();
-//    robot->particleFilter.publishBestParticleWeight();
-    //robot->particleFilter.publishParticleVariance();
-//    robot->pf.setUpdateMap();
-//    ros::Duration(0.1).sleep();
-}
-
 
 int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
@@ -35,7 +27,7 @@ int main(int argc, char **argv) {
     robot = new Robot();
     signal(SIGINT, mySigintHandler);
 
-    ros::spin();
+    robot->localize();
     delete(robot);
     return 0;
 }

@@ -114,5 +114,5 @@ add_dependencies(smooth_executer create_fundamentals_generate_messages_cpp gold_
 # Assignment 3
 add_executable(localize_robot src/localize_robot.cpp ${UTILS})
 target_link_libraries(localize_robot ${catkin_LIBRARIES})
-add_dependencies(localize_robot create_fundamentals_generate_messages_cpp)
+add_dependencies(localize_robot create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
 
