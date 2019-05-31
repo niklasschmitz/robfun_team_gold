@@ -79,10 +79,12 @@ void localization_demo() {
             int direction = rand() % 4;
             robot->turn(direction * M_PI_2);
             local_direction += direction;
-            //TODO action
         }
         // drive to next cell
         robot->drive(localizer->maze->CELL_SIDE_LENGTH);
+
+        // keep track of change in local configuration
+        // TODO action
 
 
         // if no candidate is left, restart estimation
