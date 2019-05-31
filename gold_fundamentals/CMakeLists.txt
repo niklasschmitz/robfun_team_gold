@@ -80,7 +80,6 @@ set(
         src/utils/Maze.cpp src/utils/Maze.h
         src/utils/DiscreteLocalizer.cpp src/utils/DiscreteLocalizer.h
         src/utils/geometry.cpp src/utils/geometry.h
-        src/utils/probability.cpp src/utils/probability.h
         src/utils/ParticleFilter.cpp src/utils/ParticleFilter.h
         src/utils/Probability.cpp src/utils/Probability.h
         src/utils/OccupancyGrid.cpp src/utils/OccupancyGrid.h
