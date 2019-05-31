@@ -55,9 +55,9 @@ struct RobotConfiguration {
  * consistent with previous cell observations of the environment
  */
 class DiscreteLocalizer {
+public:
     Maze* maze;
 
-public:
     // set of possible states consistent with history
     std::vector<RobotConfiguration> candidates;
 
