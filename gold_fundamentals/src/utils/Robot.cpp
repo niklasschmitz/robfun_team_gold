@@ -95,7 +95,7 @@ void Robot::turn(double angle) {
 
 void Robot::resetPosition() {
     this->position = T_VECTOR2D(0.0, 0.0);
-    this->theta = M_PI_2;
+    this->theta = 0.;
 }
 
 void Robot::publishPosition() {
