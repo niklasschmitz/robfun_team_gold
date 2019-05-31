@@ -368,6 +368,8 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
 //    ROS_INFO("left:%u, right:%u", this->sensorData->bumpLeft, this->sensorData->bumpRight);
     if(this->sensorData->bumpLeft || this->sensorData->bumpRight){
         ROS_INFO("OH NO!");
+        this->diffDrive(-1, -1);
+        ros::Duration(2).sleep();
         this->playSong(0);
         this->brake();
         exit(1);
