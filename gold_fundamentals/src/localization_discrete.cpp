@@ -79,6 +79,7 @@ void localization_demo() {
             int direction = rand() % 4;
             robot->turn(direction * M_PI_2);
             local_direction += direction;
+            //TODO action
         }
         // drive to next cell
         robot->drive(localizer->maze->CELL_SIDE_LENGTH);
@@ -89,7 +90,8 @@ void localization_demo() {
             localizer->populateCandidates();
         }
     }
-    // TODO: localized. play song
+    // localized. play mario song
+    robot->playSong(1);
 
 }
 
