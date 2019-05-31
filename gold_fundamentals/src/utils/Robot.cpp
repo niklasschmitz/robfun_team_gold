@@ -147,8 +147,8 @@ void Robot::resetPosition() {
 void Robot::publishPosition() {
     gold_fundamentals::Pose msg;
     msg.orientation = (int) round(this->theta / M_PI_2) % 4;
-    msg.row = round(this->position.x);
-    msg.column = round(this->position.y); //TODO: subtract #MapRows
+    msg.row = round((this->position.y - 0.4) / 0.8); //TODO: subtract #MapRows
+    msg.column = round((this->position.x - 0.4) / 0.8);
     this->pose_pub.publish(msg);
 //    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y , this->theta);
 }
