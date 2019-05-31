@@ -3,6 +3,9 @@
 
 #include "Maze.h"
 #include "geometry.h"
+#include "gold_fundamentals/Grid.h"
+
+using namespace maze;
 
 /**
  * The RobotConfiguration type stores a position vector and
@@ -52,7 +55,7 @@ struct RobotConfiguration {
  * consistent with previous cell observations of the environment
  */
 class DiscreteLocalizer {
-    maze::Maze map;
+    Maze* maze;
 
     // set of possible states consistent with history
     std::vector<RobotConfiguration> candidates;
@@ -68,6 +71,10 @@ class DiscreteLocalizer {
      *                     Note: this is relative to the robot
      */
     void estimateConfiguration(RobotConfiguration action, maze::Cell observation);
+
+    void populateCandidates();
+
+    void convertMsgGridToMap(const gold_fundamentals::Grid_<std::allocator<void> >::ConstPtr &msg_grid);
 };
 
 

@@ -109,3 +109,6 @@ target_link_libraries(smooth_executer ${catkin_LIBRARIES})
 add_dependencies(smooth_executer create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
 
 # Assignment 3
+add_executable(localization_discrete src/localization_discrete.cpp ${UTILS})
+target_link_libraries(localization_discrete ${catkin_LIBRARIES})
+add_dependencies(localization_discrete create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)

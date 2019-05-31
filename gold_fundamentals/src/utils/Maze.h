@@ -55,11 +55,12 @@ namespace maze {
         const int n_cols;
 
         // side length of a single cell in m
-        static const double CELL_SIDE_LENGTH = 0.8;
+        const double CELL_SIDE_LENGTH;
 
-        Cell[] map;
+        std::vector<Cell> map;
 
-        Maze();
+        Maze(const int nCols = 0, const int nRows = 0, const double cellSideLength = 0.8);
+
         ~Maze();
 
         const Cell getCell(int row, int col);

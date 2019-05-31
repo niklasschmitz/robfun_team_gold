@@ -1,21 +1,6 @@
 #include "DiscreteLocalizer.h"
 
-DiscreteLocalizer::DiscreteLocalizer() {
-    int n_cols = maze::Maze::N_COLS;
-    int n_rows = maze::Maze::N_ROWS;
-
-    // populate candidates with all possible aligned configurations
-    // this can be thought of as a uniform prio
-    for (int row = 0; row < n_rows; ++row) {
-        for (int col = 0; col < n_cols; ++col) {
-            for (int theta = 0; theta < 4; ++theta) {
-                double x = (row + 0.5) * maze::Maze::CELL_SIDE_LENGTH;
-                double y = (col + 0.5) * maze::Maze::CELL_SIDE_LENGTH;
-                this->candidates.push_back(RobotConfiguration(x, y, (double) theta * M_PI_2));
-            }
-        }
-    }
-}
+DiscreteLocalizer::DiscreteLocalizer() {}
 
 DiscreteLocalizer::~DiscreteLocalizer() {}
 
@@ -23,11 +8,11 @@ DiscreteLocalizer::~DiscreteLocalizer() {}
 void DiscreteLocalizer::convertMsgGridToMap(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
     // find out max horizontal, vertical spread of the map (x=max_nr_of_cols, y=max_nr_of_rows)
 
-    int n_rows = static_cast<int>(msg_grid_dims.x);
-    int n_cols = static_cast<int>(msg_grid_dims.y);
+    int n_rows = msg_grid->rows.size();
+    int n_cols = n_rows ? msg_grid->rows[0].cells.size() : 0;
 
     // create new Cell array
-    maze::Maze map = new maze::Maze(n_rows, n_cols);
+    maze::Maze* map = new maze::Maze(n_rows, n_cols);
 
     // for every coodinate
     for (int row = 0; row < n_rows; ++row) {
@@ -60,10 +45,25 @@ void DiscreteLocalizer::convertMsgGridToMap(const gold_fundamentals::Grid::Const
             }
 
             // place cell on map
-            map.setCell(row, col, cell);
+            maze->map.push_back(cell);
         }
     }
 
+}
+
+void DiscreteLocalizer::populateCandidates() {
+    // populate candidates with all possible aligned configurations
+    // this can be thought of as a uniform prior over states
+    this->candidates.clear();
+    for (int row = 0; row < maze->n_rows; ++row) {
+        for (int col = 0; col < maze->n_cols; ++col) {
+            for (int direction = 0; direction < 4; ++direction) {
+                double x = (row + 0.5) * maze->CELL_SIDE_LENGTH;
+                double y = (col + 0.5) * maze->CELL_SIDE_LENGTH;
+                this->candidates.push_back(RobotConfiguration(x, y, (double) direction * M_PI_2));
+            }
+        }
+    }
 }
 
 void DiscreteLocalizer::estimateConfiguration(RobotConfiguration action, maze::Cell observation) {
@@ -75,7 +75,7 @@ void DiscreteLocalizer::estimateConfiguration(RobotConfiguration action, maze::C
         RobotConfiguration candidate = candidates[i] + action;
 
         // get expected cell perception
-        maze::Cell expected_cell = this->map.getCell(candidate.position);
+        maze::Cell expected_cell = this->maze->getCell(candidate.position);
 
         // check if it still matches observation //TODO: make sure rotation is correct
         if (expected_cell == observation.rotate((int) (2 * candidate.theta / M_PI))) {

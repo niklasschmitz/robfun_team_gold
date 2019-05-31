@@ -2,14 +2,11 @@
 
 namespace maze {
 
-    Maze::Maze(int n_rows, int n_cols) {
-        this->n_rows = n_rows;
-        this->n_cols = n_cols;
-        this->map = new Cell[n_rows * n_cols];
-    }
+    Maze::Maze(const int nCols, const int nRows, const double cellSideLength)
+            : n_cols(nCols), n_rows(nRows), CELL_SIDE_LENGTH(cellSideLength) {}
 
     const Cell Maze::getCell(int row, int col) {
-        return map[row*n_cols + col];
+        return map[row * n_cols + col];
     }
 
     const Cell Maze::getCell(T_VECTOR2D position) {
@@ -19,8 +16,7 @@ namespace maze {
     }
 
     void Maze::setCell(int row, int col, Cell cell) {
-        map[row*n_cols + col] = cell;
+        map[row * n_cols + col] = cell;
     }
-
 
 } // namespace
