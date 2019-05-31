@@ -348,6 +348,12 @@ void ParticleFilter::likelihoodFieldRangeFinderModel(
 
 			double map_angle = Probability::normalizeTheta(laser_angle + particleTheta);
 
+			if(isnan(range)){
+                weight += log(0.7);
+			    continue;
+			}
+
+
 			//laser endpoint
 			int laser_hit_x_map = (int)particleX - (int)(cos(map_angle) * range / this->likelihoodFieldResolution);
 			int laser_hit_y_map = (int)particleY - (int)(sin(map_angle) * range / this->likelihoodFieldResolution);

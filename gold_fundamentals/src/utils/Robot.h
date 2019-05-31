@@ -57,6 +57,8 @@ public:
     double old_y;
     double old_theta;
 
+    bool updateTheta;
+
     PID turnControl;
     PID speedControl;
     PID steerControl;
