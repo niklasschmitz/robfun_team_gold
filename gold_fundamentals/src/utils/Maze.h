@@ -41,6 +41,20 @@ namespace maze {
                 return Cell(top, left, bottom, right);
             }
         }
+
+        void set(int direction, bool hasWall) {
+            direction %= 4;
+
+            if (direction == 0) {
+                right = hasWall;
+            } else if (direction == 1) {
+                top = hasWall;
+            } else if (direction == 2) {
+                left = hasWall;
+            } else {
+                bottom = hasWall;
+            }
+        }
     };
 
     /**

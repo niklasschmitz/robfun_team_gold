@@ -18,13 +18,34 @@ void mySigintHandler(int sig) {
     ros::shutdown();
 }
 
+// TODO: this is just a demo. might also be part of GridPerceptor
 bool wallInFront() {
-    return true; //TODO
+    std::vector<T_RATED_LINE> lines = robot->gp.getLines();
+
+    // for every line
+    for (int line_idx = 0; line_idx < lines.size(); ++line_idx) {
+        auto line = lines[line_idx].line;
+
+        // check if is loosely close to orthogonal to robot (which is facing along x axis)
+        // u is normalized
+        if (fabs(line.u.x) < 0.3) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
-maze::Cell observe_cell() {
+maze::Cell observe_cell(int initial_direction) {
     maze::Cell observation;
-    //TODO
+
+    for (int i = 0; i < 4; ++i) {
+        // check presence of wall in front
+        observation.set(initial_direction + i, wallInFront());
+
+        // turn 90 degrees
+        robot->turn(M_PI_2);
+    }
 
     return observation;
 }
@@ -38,23 +59,26 @@ void localization_demo() {
     DiscreteLocalizer *localizer = new DiscreteLocalizer();
     // TODO: make sure map is received already
 
+    int local_direction = 0;
+
     // initial action is (0,0,0)
     RobotConfiguration action;
 
     // while not localized
     while (localizer->candidates.size() > 1) {
         // observe cell (4 possible walls)
-        maze::Cell observation = observe_cell();
+        maze::Cell observation = observe_cell(local_direction);
 
         // estimate configuration
         localizer->estimateConfiguration(action, observation);
 
-        // choose action based on cell
+        // turn towards free direction to explore.
         // randomness makes this more robust against
         // getting stuck in a maze with a loop
         while (wallInFront()) {
             int direction = rand() % 4;
             robot->turn(direction * M_PI_2);
+            local_direction += direction;
         }
         // drive to next cell
         robot->drive(localizer->maze->CELL_SIDE_LENGTH);
@@ -65,6 +89,7 @@ void localization_demo() {
             localizer->populateCandidates();
         }
     }
+    // TODO: localized. play song
 
 }
 
