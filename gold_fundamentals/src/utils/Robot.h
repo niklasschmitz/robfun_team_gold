@@ -112,6 +112,8 @@ public:
     void driveMAX(T_VECTOR2D checkpoint);
 
     void wander();
+
+    void localize();
 };
 
 #endif //SRC_ROBOT_H

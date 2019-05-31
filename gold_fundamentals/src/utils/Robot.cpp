@@ -90,6 +90,17 @@ void Robot::wander(){
     }
 }
 
+void Robot::localize(){
+    while (ros::ok()) { //TODO: run until localized
+        ros::spinOnce();
+        if(this->obstacle){
+            this->turnRandom();
+        } else {
+            this->diffDrive(Robot::MAX_SPEED, Robot::MAX_SPEED);
+        }
+    }
+}
+
 void Robot::turnRandom() {
     int degree = rand() % 360 - 180;
     double radiant = degree * M_PI / 180.0;
