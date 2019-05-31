@@ -30,5 +30,5 @@ for row_layout in map_layout:
     grid.rows.append(row)
 
 while not rospy.is_shutdown():
-    sleep(1)
+    # sleep(1)
     pub.publish(grid)

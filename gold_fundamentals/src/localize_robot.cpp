@@ -26,7 +26,6 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "localize", ros::init_options::NoSigintHandler);
     robot = new Robot();
     signal(SIGINT, mySigintHandler);
-
     robot->localize();
     delete(robot);
     return 0;

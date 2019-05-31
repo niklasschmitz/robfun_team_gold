@@ -113,6 +113,8 @@ public:
 
     void wander();
 
+    bool isLocalized();
+
     void localize();
 };
 
