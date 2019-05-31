@@ -41,7 +41,7 @@ add_message_files(
 add_service_files(
         FILES
         ExecutePlan.srv
-		UpdateMap.srv
+        UpdateMap.srv
 )
 
 #common commands for building c++ executables and libraries
