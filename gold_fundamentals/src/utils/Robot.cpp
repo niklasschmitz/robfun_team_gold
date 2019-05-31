@@ -76,7 +76,7 @@ void Robot::diffDrive(double left, double right) {
     srv.request.right = right;
     diff_drive.call(srv);
 
-    ROS_INFO("%lf, %lf", left, right);
+    //ROS_INFO("%lf, %lf", left, right);
 }
 
 void Robot::wander(){
@@ -184,8 +184,6 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
     double newX = this->position.x;
     double newY = this->position.y;
     double newTheta = this->theta;
-
-    this->bigChangeInPose = fabs(deltaX) > 0.025 || fabs(deltaY) > 0.025 || fabs(deltaTheta) > 0.1;
 
     // see if we should update the filter
     if (this->particleFilter.initialized) {
