@@ -18,6 +18,16 @@ void mySigintHandler(int sig) {
     ros::shutdown();
 }
 
+void localization_demo() {
+    //while not localized:
+    //  observe cell
+    //  estimate configuration
+    //  choose action based on cell
+
+    DiscreteLocalizer* localizer = new DiscreteLocalizer;
+
+}
+
 int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     ros::init(argc, argv, "localization_discrete", ros::init_options::NoSigintHandler);
@@ -25,6 +35,8 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     robot = new Robot();
     robot->align();
+
+    localization_demo();
 
     delete (robot);
 
