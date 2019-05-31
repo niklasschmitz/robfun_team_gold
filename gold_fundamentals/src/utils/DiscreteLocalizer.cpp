@@ -4,17 +4,14 @@ DiscreteLocalizer::DiscreteLocalizer() {}
 
 DiscreteLocalizer::~DiscreteLocalizer() {}
 
+// TODO: Subscribe to mapPublisher
 // map = map from the node [[[T,L,R], ... ]]]
 void DiscreteLocalizer::convertMsgGridToMap(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
-    // find out max horizontal, vertical spread of the map (x=max_nr_of_cols, y=max_nr_of_rows)
 
     int n_rows = msg_grid->rows.size();
     int n_cols = n_rows ? msg_grid->rows[0].cells.size() : 0;
 
-    // create new Cell array
-    maze::Maze* map = new maze::Maze(n_rows, n_cols);
-
-    // for every coodinate
+    // for every coordinate
     for (int row = 0; row < n_rows; ++row) {
         for (int col = 0; col < n_cols; ++col) {
             // set Cell booleans for each wall present
