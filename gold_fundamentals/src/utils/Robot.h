@@ -13,7 +13,7 @@
 #include <queue>
 #include "gold_fundamentals/Pose.h"
 #include "gold_fundamentals/Grid.h"
-#include <boost/thread/mutex.hpp>
+//#include <boost/thread/mutex.hpp>
 #include "geometry.h"
 
 
@@ -53,6 +53,10 @@ public:
     T_VECTOR2D position;
     double theta;
 
+    double old_x;
+    double old_y;
+    double old_theta;
+
     PID turnControl;
     PID speedControl;
     PID steerControl;
@@ -65,7 +69,7 @@ public:
     GridPerceptor gp;
     ParticleFilter particleFilter;
     bool bigChangeInPose;
-    boost::mutex pfMutex;
+    //boost::mutex pfMutex;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
     ros::Time sensorTime;

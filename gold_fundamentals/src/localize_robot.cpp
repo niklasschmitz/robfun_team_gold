@@ -35,6 +35,7 @@ int main(int argc, char **argv) {
     robot = new Robot();
     signal(SIGINT, mySigintHandler);
 
+    ros::spin();
     delete(robot);
     return 0;
 }

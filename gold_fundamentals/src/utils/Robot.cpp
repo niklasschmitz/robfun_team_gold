@@ -123,8 +123,9 @@ void Robot::publishPosition() {
     gold_fundamentals::Pose msg;
     msg.orientation = (int) round(this->theta / M_PI_2) % 4;
     msg.row = round(this->position.x);
-    msg.column = round(this->position.y); //TDOD: subtract #MapRows
+    msg.column = round(this->position.y); //TODO: subtract #MapRows
     this->pose_pub.publish(msg);
+    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y , this->theta);
 }
 
 void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,
@@ -176,22 +177,12 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
     this->bigChangeInPose = fabs(deltaX) > 0.025 || fabs(deltaY) > 0.025 || fabs(deltaTheta) > 0.1;
 
     // see if we should update the filter
-    if (this->bigChangeInPose && this->particleFilter.initialized) {
+    if (this->particleFilter.initialized) {
 //        ROS_INFO("we have a big change");
-        pfMutex.lock();
         this->particleFilter.sampleMotionModel(oldX, oldY, oldTheta, newX, newY, newTheta);
-        pfMutex.unlock();
-    } else {
-//        ROS_INFO("no change");
-    }
-
-    Particle* best_hyp = this->particleFilter.getBestHypothesis();
-    if(best_hyp != NULL) {
-        //ROS_INFO("current pos: x=%lf, y=%lf, th=%lf, w=%lf", best_hyp->x, best_hyp->y, best_hyp->theta, best_hyp->weight);
     }
 
     this->publishPosition();
-    //ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y, this->theta);
 }
 
 double Robot::angleDelta(double theta) {
@@ -404,19 +395,21 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
     }
 
     // NOTE: there is also a laserCallback in the gridPerceptor
-//    ROS_INFO("robot laser callback");
 
     // if the robot has moved, update the filter
-    if (this->bigChangeInPose && this->particleFilter.initialized) {
-//        ROS_INFO("updating particle filter via laser");
-        pfMutex.lock();
-
+    if (this->particleFilter.initialized) {
         // correction step
         this->particleFilter.measurementModel(laserScan);
         // resample the particles
         this->particleFilter.resample();
-        pfMutex.unlock();
-        this->bigChangeInPose = false;
+
+        Particle* best_hyp = this->particleFilter.getBestHypothesis();
+
+        if(best_hyp != NULL) {
+            this->position.x = best_hyp->x;
+            this->position.y = best_hyp->y;
+            this->theta = normalizeAngle(best_hyp->theta);
+        }
     }
 }
 
