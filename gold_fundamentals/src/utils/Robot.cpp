@@ -17,10 +17,10 @@ const double Robot::WHEEL_RADIUS = 0.032;
 
 Robot::Robot() {
     ros::NodeHandle n;
-    this->turnControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
+    this->turnControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 10, 0.0, 0.0);
     this->speedControl = PID(Robot::MAX_SPEED - 3, Robot::MIN_SPEED, 12, 0.0, 0.0);
-    this->steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 15, 0.0, 0.0);
-    this->steerMaxControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 12, 0.0, 0.0);
+    this->steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 10, 0.0, 0.0);
+    this->steerMaxControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 7, 0.0, 0.0);
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->store_song = n.serviceClient<create_fundamentals::StoreSong>("store_song");
     this->play_song = n.serviceClient<create_fundamentals::PlaySong>("play_song");
@@ -33,6 +33,7 @@ Robot::Robot() {
     this->storeSong();
     this->playSong(0);
     this->bigChangeInPose = false;
+    this->updateTheta = true;
 }
 
 void Robot::storeSong() {
@@ -99,6 +100,7 @@ bool Robot::isLocalized() {
 }
 
 void Robot::localize() {
+    this->updateTheta = false;
     while (ros::ok() && !this->isLocalized()) { //TODO: run until localized
         ros::spinOnce();
 //        ROS_INFO("localized %d", this->isLocalized());
@@ -112,6 +114,8 @@ void Robot::localize() {
     }
     brake();
     Particle* bestPart = this->particleFilter.getBestHypothesis();
+    this->updateTheta = true;
+    this->theta = bestPart->theta;
     ROS_INFO("my position is: cell_x: %lf, cell_y: %lf, theta_deg: %lf", bestPart->x/0.8, bestPart->y/0.8, bestPart->theta*180.0/M_PI);
 }
 
@@ -281,6 +285,11 @@ void Robot::followPath(std::queue<T_VECTOR2D> path) {
 void Robot::drivePID(T_VECTOR2D goal) {
     T_VECTOR2D error = goal - this->position;
 
+    if(fabs(angleDelta(error.theta())) > 1.3){
+        turn(angleDelta(error.theta()));
+        return;
+    }
+
     double out = speedControl.calculate(error.magnitude(), 0.0, this->timeDelta);
     double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
 
@@ -302,6 +311,11 @@ void Robot::drivePID(T_VECTOR2D goal) {
 void Robot::driveMAX(T_VECTOR2D checkpoint) {
     T_VECTOR2D error = checkpoint - this->position;
 
+    if(fabs(angleDelta(error.theta())) > 1.3) {
+        turn(angleDelta(error.theta()));
+        return;
+    }
+
     double speed = Robot::MAX_SPEED;
     double turn = steerMaxControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
 
@@ -317,7 +331,7 @@ bool Robot::isCloseTo(T_VECTOR2D point) {
 }
 
 bool Robot::reachedGoal(T_VECTOR2D goal) {
-    return (goal - this->position).magnitude() < 0.02;
+    return (goal - this->position).magnitude() < 0.05;
 }
 
 bool Robot::reachedTheta(double thetaGoal) {
@@ -402,10 +416,11 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
 void Robot::driveCenterCell() {
     int x = round((this->position.x - 0.4) / 0.8);
     int y = round((this->position.y - 0.4) / 0.8);
-    T_VECTOR2D goal(x, y);
+    T_VECTOR2D goal(x * 0.8 + 0.4, y * 0.8 + 0.4);
     T_VECTOR2D error = goal - this->position;
+    double to = angleDelta(error.theta());
 
-    this->turnTo(angleDelta(error.theta()));
+    this->turn(to);
     this->driveTo(goal);
     this->turnTo(0);
 }
@@ -451,7 +466,8 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
         if(best_hyp != NULL) {
             this->position.x = best_hyp->x;
             this->position.y = best_hyp->y;
-            this->theta = normalizeAngle(best_hyp->theta);
+            if (updateTheta)
+                this->theta = normalizeAngle(best_hyp->theta);
         }
 
         //clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2);
