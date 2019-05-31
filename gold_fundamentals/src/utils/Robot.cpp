@@ -2,11 +2,12 @@
 
 #include "geometry.h"
 #include "Probability.h"
+#include "time.h"
 
 
 const double Robot::LOOPRATE = 100;
 const double Robot::LASER_OFFSET = 0.11;
-const double Robot::MAX_SPEED = 10.; //15.625
+const double Robot::MAX_SPEED = 7.; //15.625
 const double Robot::MIN_SPEED = 1.;
 const double Robot::RADIUS = 0.17425;
 const double Robot::SAFETY_DISTANCE = RADIUS + 0.1;
@@ -307,7 +308,7 @@ bool Robot::reachedGoal(T_VECTOR2D goal) {
 }
 
 bool Robot::reachedTheta(double thetaGoal) {
-    return fabs(thetaGoal - this->theta) < 0.02;
+    return fabs(thetaGoal - this->theta) < 0.1;
 }
 
 void Robot::spin(double thetaGoal) {
@@ -386,8 +387,8 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
 }
 
 inline double distanceEllipse(double angle) {
-    const double a = Robot::SAFETY_DISTANCE - Robot::LASER_OFFSET;
-    const double b = Robot::SAFETY_DISTANCE;
+    const double a = Robot::SAFETY_DISTANCE - Robot::LASER_OFFSET + 0.1;
+    const double b = Robot::SAFETY_DISTANCE - 0.05;
 
     return a * b / sqrt(pow(b * cos(angle), 2.0) + pow(a * sin(angle), 2.0));
 }
@@ -405,10 +406,14 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
         angle += laserScan->angle_increment;
     }
 
+
     // NOTE: there is also a laserCallback in the gridPerceptor
 
     // if the robot has moved, update the filter
     if (this->particleFilter.initialized) {
+
+        struct timespec ts1, ts2;
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts1);
         // correction step
         this->particleFilter.measurementModel(laserScan);
         // resample the particles
@@ -421,6 +426,12 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
             this->position.y = best_hyp->y;
             this->theta = normalizeAngle(best_hyp->theta);
         }
+
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2);
+
+        double dur = 1000.0 * ts2.tv_sec + 1e-6 *ts2.tv_nsec - (1000.0 * ts1.tv_sec + 1e-6 * ts1.tv_nsec);
+
+        ROS_INFO("delay = %lf", dur);
     }
 }
 
