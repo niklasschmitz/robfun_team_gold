@@ -27,6 +27,7 @@ int main(int argc, char **argv) {
     robot = new Robot();
     signal(SIGINT, mySigintHandler);
     robot->localize();
+    robot->driveCenterCell();
     delete(robot);
     return 0;
 }

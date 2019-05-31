@@ -116,6 +116,8 @@ public:
     bool isLocalized();
 
     void localize();
+
+    void driveCenterCell();
 };
 
 #endif //SRC_ROBOT_H

@@ -76,8 +76,6 @@ void Robot::diffDrive(double left, double right) {
     srv.request.left = left;
     srv.request.right = right;
     diff_drive.call(srv);
-
-//    ROS_INFO("%lf, %lf", left, right);
 }
 
 void Robot::wander(){
@@ -399,6 +397,17 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
         this->brake();
         exit(1);
     }
+}
+
+void Robot::driveCenterCell() {
+    int x = round((this->position.x - 0.4) / 0.8);
+    int y = round((this->position.y - 0.4) / 0.8);
+    T_VECTOR2D goal(x, y);
+    T_VECTOR2D error = goal - this->position;
+
+    this->turnTo(angleDelta(error.theta()));
+    this->driveTo(goal);
+    this->turnTo(0);
 }
 
 inline double distanceEllipse(double angle) {
