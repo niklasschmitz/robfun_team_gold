@@ -25,17 +25,20 @@ public:
     ~DiscreteLocalizer();
 
     /**
-     *
-     * @param action  acts like a delta in config space.
-     *                will be added to each previous configuration.
+     * @param action  0 - move forward one cell
+     *                1 - turn left and move forward
+     *                2 - turn 180 degrees and move forward
+     *                3 - turn right and move forward
      * @param observation  a Cell indicating in what directions walls are perceived.
      *                     Note: this is relative to the robot
      */
-    void estimateConfiguration(gold_fundamentals::Pose action, maze::Cell observation);
+    void estimateConfiguration(int action, maze::Cell observation);
 
     void populateCandidates();
 
     void convertMsgGridToMap(const gold_fundamentals::Grid_<std::allocator<void> >::ConstPtr &msg_grid);
+
+    gold_fundamentals::Pose actWithCandidate(gold_fundamentals::Pose candidate, int action);
 };
 
 

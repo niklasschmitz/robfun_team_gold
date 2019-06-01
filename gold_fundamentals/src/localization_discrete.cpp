@@ -62,7 +62,7 @@ void localization_demo() {
     int local_direction = 0;
 
     // initial action is (0,0,0)
-    gold_fundamentals::Pose action;
+    int action = 0;
 
     // while not localized
     while (localizer->candidates.size() > 1) {

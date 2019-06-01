@@ -65,20 +65,50 @@ void DiscreteLocalizer::populateCandidates() {
     }
 }
 
-void DiscreteLocalizer::estimateConfiguration(gold_fundamentals::Pose action, maze::Cell observation) {
+gold_fundamentals::Pose DiscreteLocalizer::actWithCandidate(gold_fundamentals::Pose candidate, int action) {
+    // action:  0 - move forward one cell
+    //          1 - turn left and move forward
+    //          2 - turn 180 degrees and move forward
+    //          3 - turn right and move forward
+
+    gold_fundamentals::Pose new_candidate = candidate;
+    new_candidate.orientation += action;
+    new_candidate.orientation %= 4;
+
+    // from here on the movement is with respect to the global frame
+    if (new_candidate.orientation == 0) {
+        new_candidate.column++; // move one cell to the right
+    } else if (new_candidate.orientation == 1) {
+        new_candidate.row--; // move one cell up
+    } else if (new_candidate.orientation == 2) {
+        new_candidate.column--; // move one cell to the left
+    } else {
+        new_candidate.row++; // move one cell down
+    }
+
+    return new_candidate;
+}
+
+void DiscreteLocalizer::estimateConfiguration(int action, maze::Cell observation) {
     std::vector<gold_fundamentals::Pose> new_candidates;
 
     for (int i = 0; i < this->candidates.size(); ++i) {
 
         // project old candidate into future position according to discrete motion model
-        gold_fundamentals::Pose candidate = candidates[i];// + action; //TODO
+        gold_fundamentals::Pose new_candidate = actWithCandidate(candidates[i], action);
+
+        // check if new_candidate is still within bounds of the maze
+        if (new_candidate.row < 0 || new_candidate.row >= maze->n_rows
+            || new_candidate.column < 0 || new_candidate.column >= maze->n_rows) {
+            continue;
+        }
 
         // get expected cell perception
-        maze::Cell expected_cell = this->maze->getCell(candidate.row, candidate.column);
+        maze::Cell expected_cell = this->maze->getCell(new_candidate.row, new_candidate.column);
 
-        // check if it still matches observation //TODO: make sure rotation is correct
-        if (expected_cell == observation.rotate(candidate.orientation)) {
-            new_candidates.push_back(candidate);
+        // check if it still matches observation
+        if (expected_cell == observation.rotate(new_candidate.orientation)) {
+            new_candidates.push_back(new_candidate);
         }
 
     }
