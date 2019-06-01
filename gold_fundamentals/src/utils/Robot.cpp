@@ -508,8 +508,6 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
                 this->theta = normalizeAngle(best_hyp->theta);
         }
 
-        //clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2);
-
         //double dur = 1000.0 * ts2.tv_sec + 1e-6 *ts2.tv_nsec - (1000.0 * ts1.tv_sec + 1e-6 * ts1.tv_nsec);
 
         //ROS_INFO("delay = %lf", dur);
