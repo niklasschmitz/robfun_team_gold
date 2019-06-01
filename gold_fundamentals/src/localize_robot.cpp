@@ -1,13 +1,16 @@
 #include "ros/ros.h"
-#include <csignal>
 #include <cmath>
-#include "gold_fundamentals/ExecutePlan.h"
+#include <csignal>
+#include <cstdlib>
 #include "create_fundamentals/DiffDrive.h"
+#include "create_fundamentals/SensorPacket.h"
 #include "utils/Robot.h"
+#include "utils/tools.h"
 #include "utils/GridPerceptor.h"
+#include "gold_fundamentals/ExecutePlan.h"
+#include "utils/geometry.h"
 
-
-Robot *robot;
+Robot* robot;
 
 bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::ExecutePlan::Response &res) {
     if (req.plan.size() == 0) {
@@ -21,27 +24,28 @@ bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::Ex
     return true;
 }
 
+
 void mySigintHandler(int sig) {
     ROS_INFO("exiting.. sig:%d", sig);
     robot->brake();
 
-    delete (robot);
-
     ros::shutdown();
+    delete(robot);
 }
+
 
 int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
-    ros::init(argc, argv, "smooth_executer", ros::init_options::NoSigintHandler);
+    ros::init(argc, argv, "localize", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
     ros::ServiceServer service = n.advertiseService("execute_plan", execute);
-    signal(SIGINT, mySigintHandler);
     robot = new Robot();
-    //robot->align();
-
+    signal(SIGINT, mySigintHandler);
+    robot->localize();
+    robot->playSong(1);
+    robot->driveCenterCell();
     ros::spin();
-
-    delete (robot);
-
+    delete(robot);
     return 0;
 }
+

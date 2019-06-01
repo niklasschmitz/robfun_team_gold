@@ -9,9 +9,11 @@
 #include "tools.h"
 #include "PID.h"
 #include "GridPerceptor.h"
+#include "ParticleFilter.h"
 #include <queue>
 #include "gold_fundamentals/Pose.h"
 #include "gold_fundamentals/Grid.h"
+//#include <boost/thread/mutex.hpp>
 #include "geometry.h"
 
 
@@ -30,16 +32,18 @@ public:
     void turn(double angle);
 
     void turnRandom();
+    void turnRandomLeft();
+    void turnRandomRight();
 
     void align();
 
     void sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg);
+    void laserCallback(const sensor_msgs::LaserScan::ConstPtr &msg);
 
     ros::Subscriber sub_sensor;
     ros::Subscriber sub_laser;
 
     static const double LOOPRATE;
-
     static const double LASER_OFFSET;
     static const double MAX_SPEED;
     static const double MIN_SPEED;
@@ -51,6 +55,8 @@ public:
     T_VECTOR2D position;
     double theta;
 
+    bool updateTheta;
+
     PID turnControl;
     PID speedControl;
     PID steerControl;
@@ -61,11 +67,15 @@ public:
     ros::ServiceClient play_song;
 
     GridPerceptor gp;
+    ParticleFilter particleFilter;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
     ros::Time sensorTime;
     double timeDelta;
     double obstacle;
+    double obstacle_front;
+    double obstacle_left;
+    double obstacle_right;
 
     ros::Publisher pose_pub;
 
@@ -102,9 +112,17 @@ public:
 
     void driveMAX(T_VECTOR2D checkpoint);
 
-    void laserCallback(const sensor_msgs::LaserScan_<std::allocator<void> >::ConstPtr &msg);
-
     void wander();
+
+    bool isLocalized();
+
+    void localize();
+
+    void driveCenterCell();
+
+    void executePlan(std::vector<int> plan);
+
+    T_VECTOR2D getCell();
 };
 
 #endif //SRC_ROBOT_H

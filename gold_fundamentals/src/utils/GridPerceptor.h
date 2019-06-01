@@ -9,6 +9,7 @@
 #include "geometry.h"
 
 double const MAZE_SIDE_LENGTH = 0.8;
+double const MAZE_SIDE_LENGTH_2 = MAZE_SIDE_LENGTH / 2.0;
 
 class GridPerceptor {
 public:
