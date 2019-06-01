@@ -64,6 +64,8 @@ void localization_demo() {
         ros::spinOnce();
     }
 
+    localizer->populateCandidates();
+
     int local_direction = 0;
 
     // while not localized
