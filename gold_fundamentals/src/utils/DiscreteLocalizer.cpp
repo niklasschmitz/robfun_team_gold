@@ -18,7 +18,6 @@ void DiscreteLocalizer::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg
     }
 }
 
-// TODO: Subscribe to mapPublisher
 // map = map from the node [[[T,L,R], ... ]]]
 void DiscreteLocalizer::convertMsgGridToMap(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
 
