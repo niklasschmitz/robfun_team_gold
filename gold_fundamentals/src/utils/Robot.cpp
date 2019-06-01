@@ -101,9 +101,17 @@ void Robot::localize() {
     this->updateTheta = false;
     while (ros::ok() && !this->isLocalized()) { //TODO: run until localized
         ros::spinOnce();
-        if(this->obstacle){
+
+        if(this->obstacle_left){
+            ROS_INFO("obst left");
+            this->turnRandomRight();
+        } else if(this->obstacle_right) {
+            ROS_INFO("obst right");
+            this->turnRandomLeft();
+        } else if(this->obstacle_front) {
+            ROS_INFO("obst front");
             this->turnRandom();
-        } else {
+        }else {
             this->diffDrive(Robot::MAX_SPEED, Robot::MAX_SPEED);
         }
     }
@@ -116,6 +124,22 @@ void Robot::localize() {
 
 void Robot::turnRandom() {
     int degree = rand() % 360 - 180;
+    double radiant = degree * M_PI / 180.0;
+    turn(radiant);
+}
+
+//turns random left 0 to 90°
+void Robot::turnRandomLeft() {
+    ROS_INFO("random left");
+    int degree = rand() % 90;
+    double radiant = degree * M_PI / 180.0;
+    turn(radiant);
+}
+
+//turns random right 0 to 90°
+void Robot::turnRandomRight() {
+    ROS_INFO("random right");
+    int degree = rand() % 90 - 90;
     double radiant = degree * M_PI / 180.0;
     turn(radiant);
 }
@@ -433,13 +457,31 @@ inline double distanceEllipse(double angle) {
 }
 
 void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-    double angle = laserScan->angle_min;
+    double angle = laserScan->angle_min;  // = -1.57 = -90°
     this->obstacle = false;
+    this->obstacle_left = false;
+    this->obstacle_front = false;
+    this->obstacle_right = false;
+
+    // from which degree from the center do we say that the obstacle is left/right
+    double obstacle_side_limit = 30.0;
+    // until which degree from the center do we say that the obstacle is in the front
+    double obstacle_front_limit = 30.0;
 
     for (int i = 0; i < laserScan->ranges.size(); i++) {
         if (laserScan->ranges[i] < distanceEllipse(angle)) {
+
+            if(angle < -obstacle_side_limit * M_PI/180.0) {
+                this->obstacle_right = true;
+            }
+            if(angle > obstacle_side_limit * M_PI/180.0) {
+                this->obstacle_left = true;
+            }
+            if(angle > -obstacle_front_limit && angle < obstacle_front_limit) {
+                this->obstacle_front = true;
+            }
             this->obstacle = true;
-            break;
+            //break;
         }
         angle += laserScan->angle_increment;
     }
