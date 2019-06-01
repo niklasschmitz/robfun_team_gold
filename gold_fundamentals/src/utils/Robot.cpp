@@ -186,6 +186,7 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
 
     if (this->particleFilter.initialized) {
         this->particleFilter.sampleMotionModel(oldX, oldY, oldTheta, newX, newY, newTheta);
+        this->particleFilter.resample();
     }
 
     this->publishPosition();
@@ -237,12 +238,13 @@ T_VECTOR2D Robot::getCell() {
 
 void Robot::executePlan(std::vector<int> plan){
 
-    T_VECTOR2D dist(MAZE_SIDE_LENGTH, 0);
+    T_VECTOR2D dist(MAZE_SIDE_LENGTH_2, 0);
     T_VECTOR2D next = this->getCell();
 
     std::queue<T_VECTOR2D> path;
 
     for (int i = 0; i < plan.size(); i++) {
+        next = next + dist.rotate(plan[i] * M_PI_2);
         next = next + dist.rotate(plan[i] * M_PI_2);
         path.push(next);
     }
@@ -286,7 +288,7 @@ void Robot::followPath(std::queue<T_VECTOR2D> path) {
 void Robot::drivePID(T_VECTOR2D goal) {
     T_VECTOR2D error = goal - this->position;
 
-    if(fabs(angleDelta(error.theta())) > M_PI_2){ //TODO: M_PI_4 for fine grained path
+    if(fabs(angleDelta(error.theta())) > M_PI_2){
         turn(angleDelta(error.theta()));
         return;
     }
@@ -312,7 +314,7 @@ void Robot::drivePID(T_VECTOR2D goal) {
 void Robot::driveMAX(T_VECTOR2D checkpoint) {
     T_VECTOR2D error = checkpoint - this->position;
 
-    if(fabs(angleDelta(error.theta())) > M_PI_2){ //TODO: M_PI_4 for fine grained path
+    if(fabs(angleDelta(error.theta())) > M_PI_2){
         turn(angleDelta(error.theta()));
         return;
     }
@@ -328,7 +330,7 @@ void Robot::driveMAX(T_VECTOR2D checkpoint) {
 }
 
 bool Robot::isCloseTo(T_VECTOR2D point) {
-    return (point - this->position).magnitude() < 0.4;
+    return (point - this->position).magnitude() < 0.2;
 }
 
 bool Robot::reachedGoal(T_VECTOR2D goal) {
@@ -395,6 +397,14 @@ void Robot::alignToWall() {
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
+    ros::Time time = ros::Time::now();
+    this->timeDelta = (time - this->sensorTime).toSec();
+    this->sensorTime = time;
+
+    calculatePosition(this->sensorData, msg);
+
+    this->sensorData = msg;
+
     if(this->sensorData->bumpLeft || this->sensorData->bumpRight){
         ROS_INFO("OH NO!");
         this->playSong(0);
@@ -403,13 +413,6 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
         this->brake();
         exit(1);
     }
-
-    ros::Time time = ros::Time::now();
-    this->timeDelta = (time - this->sensorTime).toSec();
-    this->sensorTime = time;
-
-    calculatePosition(this->sensorData, msg);
-    this->sensorData = msg;
 }
 
 void Robot::driveCenterCell() {

@@ -5,10 +5,13 @@
 
 #define MIRROR_MAP_ON_X_AXIS 0
 
-OccupancyGrid::OccupancyGrid() {}
+OccupancyGrid::OccupancyGrid() {
+    grid_data = NULL;
+}
 
 OccupancyGrid::~OccupancyGrid() {
-    delete[] grid_data;
+    if(!grid_data)
+        delete[] grid_data;
 }
 
 void OccupancyGrid::printGrid() {
@@ -45,7 +48,8 @@ void OccupancyGrid::convertMsgGridToOccupancyGrid(const gold_fundamentals::Grid:
     height = static_cast<int>(msg_grid_dims.y * MAZE_SIDE_LENGTH * inverse_resolution);
 
     // delete any memory allocated before
-    delete[] grid_data;
+    if(!grid_data)
+        delete[] grid_data;
     // create new data object
     grid_data = new uint8_t[width*height];
 
