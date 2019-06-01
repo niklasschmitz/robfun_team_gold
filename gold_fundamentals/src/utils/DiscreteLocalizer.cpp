@@ -54,28 +54,30 @@ void DiscreteLocalizer::populateCandidates() {
     this->candidates.clear();
     for (int row = 0; row < maze->n_rows; ++row) {
         for (int col = 0; col < maze->n_cols; ++col) {
-            for (int direction = 0; direction < 4; ++direction) {
-                double x = (row + 0.5) * maze->CELL_SIDE_LENGTH;
-                double y = (col + 0.5) * maze->CELL_SIDE_LENGTH;
-                this->candidates.push_back(RobotConfiguration(x, y, (double) direction * M_PI_2));
+            for (int orientation = 0; orientation < 4; ++orientation) {
+                gold_fundamentals::Pose pose;
+                pose.row = row;
+                pose.column = col;
+                pose.orientation = orientation;
+                this->candidates.push_back(pose);
             }
         }
     }
 }
 
-void DiscreteLocalizer::estimateConfiguration(RobotConfiguration action, maze::Cell observation) {
-    std::vector<RobotConfiguration> new_candidates;
+void DiscreteLocalizer::estimateConfiguration(gold_fundamentals::Pose action, maze::Cell observation) {
+    std::vector<gold_fundamentals::Pose> new_candidates;
 
     for (int i = 0; i < this->candidates.size(); ++i) {
 
         // project old candidate into future position according to discrete motion model
-        RobotConfiguration candidate = candidates[i] + action;
+        gold_fundamentals::Pose candidate = candidates[i];// + action; //TODO
 
         // get expected cell perception
-        maze::Cell expected_cell = this->maze->getCell(candidate.position);
+        maze::Cell expected_cell = this->maze->getCell(candidate.row, candidate.column);
 
         // check if it still matches observation //TODO: make sure rotation is correct
-        if (expected_cell == observation.rotate((int) (candidate.theta / M_PI_2 + M_PI_4))) {
+        if (expected_cell == observation.rotate(candidate.orientation)) {
             new_candidates.push_back(candidate);
         }
 

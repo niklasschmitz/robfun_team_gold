@@ -4,49 +4,9 @@
 #include "Maze.h"
 #include "geometry.h"
 #include "gold_fundamentals/Grid.h"
+#include "gold_fundamentals/Pose.h"
 
 using namespace maze;
-
-/**
- * The RobotConfiguration type stores a position vector and
- * an orientation angle theta. It can be thought as an element
- * of the (continuous) configuration space of our robot
- */
-struct RobotConfiguration {
-    T_VECTOR2D position;
-    double theta; // TODO: ensure valid theta in a consistent representation
-
-    // constructor
-    RobotConfiguration(double x = 0, double y = 0, double theta = 0) {
-        position = T_VECTOR2D(x, y);
-        this->theta = theta;
-    }
-
-    RobotConfiguration(T_VECTOR2D position, double theta = 0)
-            : position(position), theta(theta) {}
-
-    // trivial copy constructor
-    RobotConfiguration &operator=(const RobotConfiguration &other) {
-        position = other.position;
-        theta = other.theta;
-    }
-
-    // equality
-    bool operator==(const RobotConfiguration &other) {
-        return (position == other.position && theta == other.theta);
-    }
-
-    // addition
-    RobotConfiguration operator+(const RobotConfiguration &other) const {
-        return RobotConfiguration(position + other.position, theta + other.theta);
-    }
-
-    // subtraction
-    RobotConfiguration operator-(const RobotConfiguration &other) const {
-        return RobotConfiguration(position - other.position, theta - other.theta);
-    }
-};
-
 
 /**
  * The DiscreteLocalizer knows the map of the maze. That includes the connectivity
@@ -59,7 +19,7 @@ public:
     Maze* maze;
 
     // set of possible states consistent with history
-    std::vector<RobotConfiguration> candidates;
+    std::vector<gold_fundamentals::Pose> candidates;
 
     DiscreteLocalizer();
     ~DiscreteLocalizer();
@@ -71,7 +31,7 @@ public:
      * @param observation  a Cell indicating in what directions walls are perceived.
      *                     Note: this is relative to the robot
      */
-    void estimateConfiguration(RobotConfiguration action, maze::Cell observation);
+    void estimateConfiguration(gold_fundamentals::Pose action, maze::Cell observation);
 
     void populateCandidates();
 
