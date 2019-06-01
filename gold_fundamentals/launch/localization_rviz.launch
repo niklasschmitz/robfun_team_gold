@@ -1,3 +1,4 @@
 <launch>
+    <node pkg="rviz" name="rviz" type="rviz"/>
     <node pkg="gold_fundamentals" name="localize_robot" type="localize_robot"/>
 </launch>
