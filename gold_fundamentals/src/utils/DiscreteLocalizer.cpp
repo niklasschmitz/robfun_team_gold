@@ -1,6 +1,7 @@
 #include "DiscreteLocalizer.h"
 
 DiscreteLocalizer::DiscreteLocalizer() {
+    maze = new maze::Maze();
     ros::NodeHandle n;
     update_map = true;
     received_map = false;
@@ -23,6 +24,8 @@ void DiscreteLocalizer::convertMsgGridToMap(const gold_fundamentals::Grid::Const
 
     int n_rows = msg_grid->rows.size();
     int n_cols = n_rows ? msg_grid->rows[0].cells.size() : 0;
+
+    maze->map.clear();
 
     // for every coordinate
     for (int row = 0; row < n_rows; ++row) {
