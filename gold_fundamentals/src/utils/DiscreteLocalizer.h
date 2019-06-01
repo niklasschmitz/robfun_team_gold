@@ -45,6 +45,7 @@ public:
     void mapCallback(const gold_fundamentals::Grid_<std::allocator<void>>::ConstPtr &msg_grid);
 
     bool update_map;
+    bool received_map;
 };
 
 

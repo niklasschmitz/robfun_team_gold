@@ -57,7 +57,12 @@ void localization_demo() {
     //  choose action based on cell
 
     DiscreteLocalizer *localizer = new DiscreteLocalizer();
-    // TODO: make sure map is received already
+
+    // wait until map is received
+    while (!localizer->received_map) {
+        ros::Duration(0.5).sleep();
+        ros::spinOnce();
+    }
 
     int local_direction = 0;
 
