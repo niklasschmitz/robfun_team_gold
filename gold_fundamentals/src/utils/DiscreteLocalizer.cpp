@@ -97,7 +97,7 @@ void DiscreteLocalizer::estimateConfiguration(int action, maze::Cell observation
         // project old candidate into future position according to discrete motion model
         gold_fundamentals::Pose new_candidate = actWithCandidate(candidates[i], action);
 
-        // check if new_candidate is still within bounds of the maze
+        // discard if new_candidate is not within bounds of the maze anymore
         if (new_candidate.row < 0 || new_candidate.row >= maze->n_rows
             || new_candidate.column < 0 || new_candidate.column >= maze->n_rows) {
             continue;
