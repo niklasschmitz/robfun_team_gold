@@ -42,7 +42,7 @@ public:
 
     gold_fundamentals::Pose actWithCandidate(gold_fundamentals::Pose candidate, int action);
 
-    void mapCallback(const gold_fundamentals::Grid_<std::allocator<void>>::ConstPtr &msg_grid);
+    void mapCallback(const gold_fundamentals::Grid_<std::allocator<void> >::ConstPtr &msg_grid);
 
     bool update_map;
     bool received_map;
