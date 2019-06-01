@@ -463,8 +463,6 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
     this->obstacle_front = false;
     this->obstacle_right = false;
 
-//    this->obstacle = false;
-
     // from which degree from the center do we say that the obstacle is left/right
     double obstacle_side_limit = 30.0;
     // until which degree from the center do we say that the obstacle is in the front
