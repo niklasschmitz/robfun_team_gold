@@ -1,8 +1,19 @@
 #include "DiscreteLocalizer.h"
 
-DiscreteLocalizer::DiscreteLocalizer() {}
+DiscreteLocalizer::DiscreteLocalizer() {
+    ros::NodeHandle n;
+    update_map = true;
+    map_sub = n.subscribe("map", 1, &DiscreteLocalizer::mapCallback, this);
+}
 
 DiscreteLocalizer::~DiscreteLocalizer() {}
+
+void DiscreteLocalizer::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
+    if (update_map) {
+        convertMsgGridToMap(msg_grid);
+        update_map = false;
+    }
+}
 
 // TODO: Subscribe to mapPublisher
 // map = map from the node [[[T,L,R], ... ]]]

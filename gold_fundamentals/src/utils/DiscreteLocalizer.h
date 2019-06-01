@@ -16,6 +16,8 @@ using namespace maze;
  */
 class DiscreteLocalizer {
 public:
+    ros::Subscriber map_sub;
+
     Maze* maze;
 
     // set of possible states consistent with history
@@ -39,6 +41,10 @@ public:
     void convertMsgGridToMap(const gold_fundamentals::Grid_<std::allocator<void> >::ConstPtr &msg_grid);
 
     gold_fundamentals::Pose actWithCandidate(gold_fundamentals::Pose candidate, int action);
+
+    void mapCallback(const gold_fundamentals::Grid_<std::allocator<void>>::ConstPtr &msg_grid);
+
+    bool update_map;
 };
 
 
