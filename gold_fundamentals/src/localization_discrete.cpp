@@ -24,7 +24,7 @@ bool wallInFront() {
 
     // for every line
     for (int line_idx = 0; line_idx < lines.size(); ++line_idx) {
-        auto line = lines[line_idx].line;
+        T_LINE line = lines[line_idx].line;
 
         // check if is loosely close to orthogonal to robot (which is facing along x axis)
         // u is normalized
