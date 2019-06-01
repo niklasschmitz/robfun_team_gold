@@ -99,7 +99,7 @@ bool Robot::isLocalized() {
 
 void Robot::localize() {
     this->updateTheta = false;
-    while (ros::ok() && !this->isLocalized()) { //TODO: run until localized
+    while (ros::ok() && !this->isLocalized()) {
         ros::spinOnce();
 
         if(this->obstacle_left){
@@ -171,7 +171,7 @@ void Robot::publishPosition() {
     T_VECTOR2D position = this->getCell();
     gold_fundamentals::Pose msg;
     msg.orientation = (int) round(this->theta / M_PI_2) % 4;
-    msg.row = position.x; //TODO: subtract #MapRows
+    msg.row = this->particleFilter.oc_grid.max_cells_y - position.x;
     msg.column = position.y;
     this->pose_pub.publish(msg);
 //    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y , this->theta);
