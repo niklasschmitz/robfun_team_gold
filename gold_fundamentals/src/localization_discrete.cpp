@@ -27,8 +27,10 @@ bool wallInFront() {
         T_LINE line = lines[line_idx].line;
 
         // check if is loosely close to orthogonal to robot (which is facing along x axis)
+        // and not too far away (<0.6m)
         // u is normalized
-        if (fabs(line.u.x) < 0.3) {
+        T_VECTOR2D origin;
+        if (fabs(line.u.x) < 0.3 && distBetweenLineAndPoint(line, origin) < 0.6) {
             return true;
         }
     }
