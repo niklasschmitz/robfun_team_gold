@@ -3,47 +3,10 @@
 
 #include "Maze.h"
 #include "geometry.h"
+#include "gold_fundamentals/Grid.h"
+#include "gold_fundamentals/Pose.h"
 
-/**
- * The RobotConfiguration type stores a position vector and
- * an orientation angle theta. It can be thought as an element
- * of the (continuous) configuration space of our robot
- */
-struct RobotConfiguration {
-    T_VECTOR2D position;
-    double theta; // TODO: ensure valid theta in a consistent representation
-
-    // constructor
-    RobotConfiguration(double x = 0, double y = 0, double theta = 0) {
-        position = T_VECTOR2D(x, y);
-        this->theta = theta;
-    }
-
-    RobotConfiguration(T_VECTOR2D position, double theta = 0)
-            : position(position), theta(theta) {}
-
-    // trivial copy constructor
-    RobotConfiguration &operator=(const RobotConfiguration &other) {
-        position = other.position;
-        theta = other.theta;
-    }
-
-    // equality
-    bool operator==(const RobotConfiguration &other) {
-        return (position == other.position && theta == other.theta);
-    }
-
-    // addition
-    RobotConfiguration operator+(const RobotConfiguration &other) const {
-        return RobotConfiguration(position + other.position, theta + other.theta);
-    }
-
-    // subtraction
-    RobotConfiguration operator-(const RobotConfiguration &other) const {
-        return RobotConfiguration(position - other.position, theta - other.theta);
-    }
-};
-
+using namespace maze;
 
 /**
  * The DiscreteLocalizer knows the map of the maze. That includes the connectivity
@@ -52,22 +15,37 @@ struct RobotConfiguration {
  * consistent with previous cell observations of the environment
  */
 class DiscreteLocalizer {
-    maze::Maze map;
+public:
+    ros::Subscriber map_sub;
+
+    Maze* maze;
 
     // set of possible states consistent with history
-    std::vector<RobotConfiguration> candidates;
+    std::vector<gold_fundamentals::Pose> candidates;
 
     DiscreteLocalizer();
     ~DiscreteLocalizer();
 
     /**
-     *
-     * @param action  acts like a delta in config space.
-     *                will be added to each previous configuration.
+     * @param action  0 - move forward one cell
+     *                1 - turn left and move forward
+     *                2 - turn 180 degrees and move forward
+     *                3 - turn right and move forward
      * @param observation  a Cell indicating in what directions walls are perceived.
      *                     Note: this is relative to the robot
      */
-    void estimateConfiguration(RobotConfiguration action, maze::Cell observation);
+    void estimateConfiguration(int action, maze::Cell observation);
+
+    void populateCandidates();
+
+    void convertMsgGridToMap(const gold_fundamentals::Grid_<std::allocator<void> >::ConstPtr &msg_grid);
+
+    gold_fundamentals::Pose actWithCandidate(gold_fundamentals::Pose candidate, int action);
+
+    void mapCallback(const gold_fundamentals::Grid_<std::allocator<void> >::ConstPtr &msg_grid);
+
+    bool update_map;
+    bool received_map;
 };
 
 
