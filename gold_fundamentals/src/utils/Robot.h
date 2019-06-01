@@ -123,6 +123,8 @@ public:
     void executePlan(std::vector<int> plan);
 
     T_VECTOR2D getCell();
+
+    T_VECTOR2D getCellxy();
 };
 
 #endif //SRC_ROBOT_H

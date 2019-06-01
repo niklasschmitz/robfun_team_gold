@@ -100,13 +100,10 @@ void Robot::localize() {
         ros::spinOnce();
 
         if(this->obstacle_left){
-            ROS_INFO("obst left");
             this->turnRandomRight();
         } else if(this->obstacle_right) {
-            ROS_INFO("obst right");
             this->turnRandomLeft();
         } else if(this->obstacle_front) {
-            ROS_INFO("obst front");
             this->turnRandom();
         }else {
             this->diffDrive(Robot::MAX_SPEED, Robot::MAX_SPEED);
@@ -165,11 +162,11 @@ void Robot::resetPosition() {
 }
 
 void Robot::publishPosition() {
-    T_VECTOR2D position = this->getCell();
+    T_VECTOR2D position = this->getCellxy();
     gold_fundamentals::Pose msg;
     msg.orientation = (int) round(this->theta / M_PI_2) % 4;
-    msg.row = this->particleFilter.oc_grid.max_cells_y - position.x;
-    msg.column = position.y;
+    msg.row = (this->particleFilter.oc_grid.max_cells_y - 1) - position.y;
+    msg.column = position.x;
     this->pose_pub.publish(msg);
     //ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y , this->theta);
 }
@@ -250,10 +247,18 @@ void Robot::driveTo(T_VECTOR2D goal) {
     this->followPath(path);
 }
 
+// returns nearest cell center
 T_VECTOR2D Robot::getCell() {
     int x = round((this->position.x - MAZE_SIDE_LENGTH_2) / MAZE_SIDE_LENGTH);
     int y = round((this->position.y - MAZE_SIDE_LENGTH_2) / MAZE_SIDE_LENGTH);
     return T_VECTOR2D(x * MAZE_SIDE_LENGTH + MAZE_SIDE_LENGTH_2, y * MAZE_SIDE_LENGTH + MAZE_SIDE_LENGTH_2);
+}
+
+// returns robot cell position (for pose pub)
+T_VECTOR2D Robot::getCellxy() {
+    int x = round((this->position.x - MAZE_SIDE_LENGTH_2) / MAZE_SIDE_LENGTH);
+    int y = round((this->position.y - MAZE_SIDE_LENGTH_2) / MAZE_SIDE_LENGTH);
+    return T_VECTOR2D(x, y);
 }
 
 void Robot::executePlan(std::vector<int> plan){
@@ -470,12 +475,15 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
         if (laserScan->ranges[i] < distanceEllipse(angle)) {
 
             if(angle < -obstacle_side_limit * M_PI/180.0) {
+                ROS_INFO("obst right");
                 this->obstacle_right = true;
             }
             if(angle > obstacle_side_limit * M_PI/180.0) {
+                ROS_INFO("obst left");
                 this->obstacle_left = true;
             }
             if(angle > -obstacle_front_limit && angle < obstacle_front_limit) {
+                ROS_INFO("obst front");
                 this->obstacle_front = true;
             }
             this->obstacle = true;
