@@ -36,12 +36,12 @@ bool wallInFront() {
     return false;
 }
 
-maze::Cell observe_cell(int initial_direction) {
+maze::Cell observe_cell() {
     maze::Cell observation;
 
     for (int i = 0; i < 4; ++i) {
         // check presence of wall in front
-        observation.set(initial_direction + i, wallInFront());
+        observation.set(i, wallInFront());
 
         // turn 90 degrees
         robot->turn(M_PI_2);
@@ -61,16 +61,13 @@ void localization_demo() {
 
     int local_direction = 0;
 
-    // initial action is (0,0,0)
-    int action = 0;
-
     // while not localized
     while (localizer->candidates.size() > 1) {
         // observe cell (4 possible walls)
-        maze::Cell observation = observe_cell(local_direction);
+        maze::Cell observation = observe_cell();
 
         // estimate configuration
-        localizer->estimateConfiguration(action, observation);
+        localizer->estimateConfiguration(local_direction, observation);
 
         // turn towards free direction to explore.
         // randomness makes this more robust against
@@ -79,13 +76,10 @@ void localization_demo() {
             int direction = rand() % 4;
             robot->turn(direction * M_PI_2);
             local_direction += direction;
+            local_direction %= 4;
         }
         // drive to next cell
         robot->drive(localizer->maze->CELL_SIDE_LENGTH);
-
-        // keep track of change in local configuration
-        // TODO action
-
 
         // if no candidate is left, restart estimation
         if (localizer->candidates.size() == 0) {
