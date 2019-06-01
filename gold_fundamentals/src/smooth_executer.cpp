@@ -15,18 +15,7 @@ bool execute(gold_fundamentals::ExecutePlan::Request &req, gold_fundamentals::Ex
         return true;
     }
 
-    T_VECTOR2D dist(MAZE_SIDE_LENGTH, 0);
-    T_VECTOR2D next = robot->position;
-
-    std::queue<T_VECTOR2D> plan;
-
-    for (int i = 0; i < req.plan.size(); i++) {
-        next = next + dist.rotate(req.plan[i] * M_PI_2);
-        plan.push(next);
-    }
-
-    robot->turnTo(req.plan[0] * M_PI_2);
-    robot->followPath(plan);
+    robot->executePlan(req.plan);
 
     res.success = true;
     return true;

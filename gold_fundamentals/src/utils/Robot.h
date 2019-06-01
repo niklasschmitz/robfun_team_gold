@@ -53,10 +53,6 @@ public:
     T_VECTOR2D position;
     double theta;
 
-    double old_x;
-    double old_y;
-    double old_theta;
-
     bool updateTheta;
 
     PID turnControl;
@@ -70,8 +66,6 @@ public:
 
     GridPerceptor gp;
     ParticleFilter particleFilter;
-    bool bigChangeInPose;
-    //boost::mutex pfMutex;
 
     create_fundamentals::SensorPacket::ConstPtr sensorData;
     ros::Time sensorTime;
@@ -120,6 +114,10 @@ public:
     void localize();
 
     void driveCenterCell();
+
+    void executePlan(std::vector<int> plan);
+
+    T_VECTOR2D getCell();
 };
 
 #endif //SRC_ROBOT_H
