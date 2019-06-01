@@ -36,6 +36,13 @@ bool wallInFront() {
     return false;
 }
 
+/**
+ * checks for presence of each wall
+ * right is the direction the robot faces
+ * when this method is called. the labeling
+ * continues clock-wise
+ * @return Cell observation
+ */
 maze::Cell observe_cell() {
     maze::Cell observation;
 
