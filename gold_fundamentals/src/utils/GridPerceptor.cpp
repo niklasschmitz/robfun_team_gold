@@ -92,6 +92,11 @@ std::vector<T_RATED_LINE> GridPerceptor::ransac(std::vector<T_VECTOR2D> coordina
 
     int nr_of_coords = coordinates.size();
 
+    // make sure we have at least two, otherwise we cant find 2 different rands
+    if(nr_of_coords < 2) {
+        return lines;
+    }
+
     // take random samples for x iterations, see how well it fits
     for (int i = 0; i < iterations; ++i) {
         // generate two random numbers to select two coordinates randomly
