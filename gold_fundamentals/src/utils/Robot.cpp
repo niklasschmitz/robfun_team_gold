@@ -288,9 +288,9 @@ void Robot::followPath(std::queue<T_VECTOR2D> path) {
             if (path.size() == 1) {
                 if (this->reachedGoal(path.front())) {
                     path.pop();
-                    return;
+                } else {
+                    this->drivePID(path.front());
                 }
-                this->drivePID(path.front());
             } else {
                 this->driveMAX(path.front());
             }
