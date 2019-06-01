@@ -1,4 +1,5 @@
 <launch>
-    <node pkg="rviz" name="rviz" type="rviz"/>
-    <node pkg="gold_fundamentals" name="localize_robot" type="localize_robot"/>
+    <arg name="node_start_delay" default="5.0"/>
+    <node pkg="rviz" name="rviz" type="rviz" args="-d $(find gold_fundamentals)/rviz/rviz.rviz"/>
+    <node pkg="gold_fundamentals" name="localize_robot" type="localize_robot" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
 </launch>
