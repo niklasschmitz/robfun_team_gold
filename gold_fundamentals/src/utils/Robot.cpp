@@ -457,8 +457,6 @@ inline double distanceEllipse(double angle) {
 
 void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
 
-    //clock_t start, end;// = clock();
-    //start = clock();
     double angle = laserScan->angle_min; // = -1.57 = -90°
     this->obstacle = false;
     this->obstacle_left = false;
