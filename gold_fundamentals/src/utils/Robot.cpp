@@ -27,11 +27,11 @@ Robot::Robot() {
     this->sub_laser = n.subscribe("scan_filtered", 1, &Robot::laserCallback, this);
     this->pose_pub = n.advertise<gold_fundamentals::Pose>("pose", 1);
     this->sensorTime = ros::Time::now();
-    this->resetPosition();
     this->obstacle = false;
     this->storeSong();
     this->playSong(0);
     this->updateTheta = true;
+    this->resetPosition();
 }
 
 void Robot::storeSong() {
@@ -91,10 +91,7 @@ void Robot::wander(){
 bool Robot::isLocalized() {
     double variance = this->particleFilter.calculateParticleVariance();
     double threshold = 10;
-    if (variance < threshold && this->particleFilter.initialized) {
-        return true;
-    }
-    return false;
+    return variance < threshold && this->particleFilter.initialized;
 }
 
 void Robot::localize() {
@@ -272,7 +269,8 @@ void Robot::executePlan(std::vector<int> plan){
         path.push(next);
     }
 
-    this->turnTo(path.front().theta() * M_PI_2);
+    double to = plan.front() * M_PI_2;
+    this->turnTo(to);
     this->followPath(path);
 }
 
