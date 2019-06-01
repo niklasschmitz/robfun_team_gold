@@ -41,6 +41,20 @@ namespace maze {
                 return Cell(top, left, bottom, right);
             }
         }
+
+        void set(int direction, bool hasWall) {
+            direction %= 4;
+
+            if (direction == 0) {
+                right = hasWall;
+            } else if (direction == 1) {
+                top = hasWall;
+            } else if (direction == 2) {
+                left = hasWall;
+            } else {
+                bottom = hasWall;
+            }
+        }
     };
 
     /**
@@ -51,17 +65,25 @@ namespace maze {
     class Maze {
     public:
         // number of rows and columns
-        static const int N_ROWS = 3;
-        static const int N_COLS = 5;
+        const int n_rows;
+        const int n_cols;
 
         // side length of a single cell in m
-        static const double CELL_SIDE_LENGTH = 0.8;
+        const double CELL_SIDE_LENGTH;
 
-        Cell map[N_ROWS][N_COLS];
+        std::vector<Cell> map;
+
+        Maze(const int nCols = 0, const int nRows = 0, const double cellSideLength = 0.8);
+
+        ~Maze();
+
+        const Cell getCell(int row, int col);
 
         // returns the discrete Cell to which the
         // (continuous) position is mapped
         const Cell getCell(T_VECTOR2D position);
+
+        void setCell(int row, int col, Cell cell);
     };
 
 } // namespace
