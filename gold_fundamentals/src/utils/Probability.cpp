@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include <math.h>
 
+double Probability::randomNrBetween0and1() {
+    double rand_nr = ((double) rand() / (RAND_MAX));
+    return rand_nr;
+}
+
 double Probability::gaussian( double x, double std, double mean ) {
 	return exp( -(x - mean)*(x - mean) / (2.0*(std * std)));
 }
