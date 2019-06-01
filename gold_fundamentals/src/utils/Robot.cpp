@@ -2,7 +2,6 @@
 
 #include "geometry.h"
 #include "Probability.h"
-#include "time.h"
 
 
 const double Robot::LOOPRATE = 100;
@@ -32,7 +31,6 @@ Robot::Robot() {
     this->obstacle = false;
     this->storeSong();
     this->playSong(0);
-    this->bigChangeInPose = false;
     this->updateTheta = true;
 }
 
@@ -103,9 +101,6 @@ void Robot::localize() {
     this->updateTheta = false;
     while (ros::ok() && !this->isLocalized()) { //TODO: run until localized
         ros::spinOnce();
-//        ROS_INFO("localized %d", this->isLocalized());
-        //this->particleFilter.publishBestParticleRawLikelihood();
-        //this->particleFilter.publishParticleVariance();
         if(this->obstacle){
             this->turnRandom();
         } else {
@@ -149,10 +144,11 @@ void Robot::resetPosition() {
 }
 
 void Robot::publishPosition() {
+    T_VECTOR2D position = this->getCell();
     gold_fundamentals::Pose msg;
     msg.orientation = (int) round(this->theta / M_PI_2) % 4;
-    msg.row = round((this->position.y - 0.4) / 0.8); //TODO: subtract #MapRows
-    msg.column = round((this->position.x - 0.4) / 0.8);
+    msg.row = position.x; //TODO: subtract #MapRows
+    msg.column = position.y;
     this->pose_pub.publish(msg);
 //    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y , this->theta);
 }
@@ -166,46 +162,29 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
     double deltaLeft = (newData->encoderLeft - oldData->encoderLeft) * Robot::WHEEL_RADIUS;
     double deltaRight = (newData->encoderRight - oldData->encoderRight) * Robot::WHEEL_RADIUS;
 
-    double deltaX = 0;
-    double deltaY = 0;
-    double deltaTheta = 0;
-
     double oldX = this->position.x;
     double oldY = this->position.y;
     double oldTheta = this->theta;
 
     if (fabs(deltaRight - deltaLeft) < std::numeric_limits<float>::epsilon() * 10.0) {
         double d = (deltaRight + deltaLeft) / 2.0;
-        deltaX = d * cos(this->theta);
-        deltaY = d * sin(this->theta);
-        this->position.x += deltaX;
-        this->position.y += deltaY;
+        this->position.x += d * cos(this->theta);;
+        this->position.y += d * sin(this->theta);;
     } else {
         double d = (deltaRight + deltaLeft) / 2.0;
         double theta = (deltaRight - deltaLeft) / Robot::TRACK;
         double r = d / theta;
 
-        deltaX = r * sin(this->theta + theta) - r * sin(this->theta);
-        deltaY = -r * cos(this->theta + theta) + r * cos(this->theta);
-
-
-        // TODO: check this on correctness!
-        //deltaTheta = Probability::diffAngle(this->theta, theta);
-        double newTheta = normalizeAngle(this->theta + theta);
-        deltaTheta = newTheta - oldTheta;
-
-        this->position.x += deltaX;
-        this->position.y += deltaY;
-        this->theta = newTheta;//fmod(this->theta + theta + (M_PI * 2.0), (M_PI * 2.0));
+        this->position.x += r * sin(this->theta + theta) - r * sin(this->theta);;
+        this->position.y += -r * cos(this->theta + theta) + r * cos(this->theta);
+        this->theta = normalizeAngle(this->theta + theta);
     }
 
     double newX = this->position.x;
     double newY = this->position.y;
     double newTheta = this->theta;
 
-    // see if we should update the filter
     if (this->particleFilter.initialized) {
-//        ROS_INFO("we have a big change");
         this->particleFilter.sampleMotionModel(oldX, oldY, oldTheta, newX, newY, newTheta);
     }
 
@@ -250,6 +229,28 @@ void Robot::driveTo(T_VECTOR2D goal) {
     this->followPath(path);
 }
 
+T_VECTOR2D Robot::getCell() {
+    int x = round((this->position.x - MAZE_SIDE_LENGTH_2) / MAZE_SIDE_LENGTH);
+    int y = round((this->position.y - MAZE_SIDE_LENGTH_2) / MAZE_SIDE_LENGTH);
+    return T_VECTOR2D(x * MAZE_SIDE_LENGTH + MAZE_SIDE_LENGTH_2, y * MAZE_SIDE_LENGTH + MAZE_SIDE_LENGTH_2);
+}
+
+void Robot::executePlan(std::vector<int> plan){
+
+    T_VECTOR2D dist(MAZE_SIDE_LENGTH, 0);
+    T_VECTOR2D next = this->getCell();
+
+    std::queue<T_VECTOR2D> path;
+
+    for (int i = 0; i < plan.size(); i++) {
+        next = next + dist.rotate(plan[i] * M_PI_2);
+        path.push(next);
+    }
+
+    this->turnTo(path.front().theta() * M_PI_2);
+    this->followPath(path);
+}
+
 void Robot::followPath(std::queue<T_VECTOR2D> path) {
     ros::Rate loop_rate(LOOPRATE);
     create_fundamentals::SensorPacket_<std::allocator<void> >::ConstPtr last = this->sensorData;
@@ -285,7 +286,7 @@ void Robot::followPath(std::queue<T_VECTOR2D> path) {
 void Robot::drivePID(T_VECTOR2D goal) {
     T_VECTOR2D error = goal - this->position;
 
-    if(fabs(angleDelta(error.theta())) > 1.3){
+    if(fabs(angleDelta(error.theta())) > M_PI_2){ //TODO: M_PI_4 for fine grained path
         turn(angleDelta(error.theta()));
         return;
     }
@@ -311,7 +312,7 @@ void Robot::drivePID(T_VECTOR2D goal) {
 void Robot::driveMAX(T_VECTOR2D checkpoint) {
     T_VECTOR2D error = checkpoint - this->position;
 
-    if(fabs(angleDelta(error.theta())) > 1.3) {
+    if(fabs(angleDelta(error.theta())) > M_PI_2){ //TODO: M_PI_4 for fine grained path
         turn(angleDelta(error.theta()));
         return;
     }
@@ -394,29 +395,25 @@ void Robot::alignToWall() {
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
+    if(this->sensorData->bumpLeft || this->sensorData->bumpRight){
+        ROS_INFO("OH NO!");
+        this->playSong(0);
+        this->diffDrive(-1, -1);
+        ros::Duration(2).sleep();
+        this->brake();
+        exit(1);
+    }
+
     ros::Time time = ros::Time::now();
     this->timeDelta = (time - this->sensorTime).toSec();
     this->sensorTime = time;
 
-    // in calc_pos is also the particle filter
     calculatePosition(this->sensorData, msg);
     this->sensorData = msg;
-
-//    ROS_INFO("left:%u, right:%u", this->sensorData->bumpLeft, this->sensorData->bumpRight);
-    if(this->sensorData->bumpLeft || this->sensorData->bumpRight){
-        ROS_INFO("OH NO!");
-        this->diffDrive(-1, -1);
-        ros::Duration(2).sleep();
-        this->playSong(0);
-        this->brake();
-        exit(1);
-    }
 }
 
 void Robot::driveCenterCell() {
-    int x = round((this->position.x - 0.4) / 0.8);
-    int y = round((this->position.y - 0.4) / 0.8);
-    T_VECTOR2D goal(x * 0.8 + 0.4, y * 0.8 + 0.4);
+    T_VECTOR2D goal = this->getCell();
     T_VECTOR2D error = goal - this->position;
     double to = angleDelta(error.theta());
 
@@ -433,9 +430,6 @@ inline double distanceEllipse(double angle) {
 }
 
 void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
-
-    //clock_t start, end;// = clock();
-    //start = clock();
     double angle = laserScan->angle_min;
     this->obstacle = false;
 
@@ -444,21 +438,11 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
             this->obstacle = true;
             break;
         }
-
         angle += laserScan->angle_increment;
     }
 
-
-    // NOTE: there is also a laserCallback in the gridPerceptor
-
-    // if the robot has moved, update the filter
     if (this->particleFilter.initialized) {
-
-        struct timespec ts1, ts2;
-        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts1);
-        // correction step
         this->particleFilter.measurementModel(laserScan);
-        // resample the particles
         this->particleFilter.resample();
 
         Particle* best_hyp = this->particleFilter.getBestHypothesis();
@@ -469,17 +453,7 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
             if (updateTheta)
                 this->theta = normalizeAngle(best_hyp->theta);
         }
-
-        //clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2);
-
-        //double dur = 1000.0 * ts2.tv_sec + 1e-6 *ts2.tv_nsec - (1000.0 * ts1.tv_sec + 1e-6 * ts1.tv_nsec);
-
-        //ROS_INFO("delay = %lf", dur);
-
     }
-//    end = clock();
-//    double duration_sec = (end-start) / CLOCKS_PER_SEC;
-//    ROS_INFO("time for obstacle detect: %lf", duration_sec);
 }
 
 Robot::~Robot() {}
