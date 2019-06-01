@@ -168,14 +168,14 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
 
     if (fabs(deltaRight - deltaLeft) < std::numeric_limits<float>::epsilon() * 10.0) {
         double d = (deltaRight + deltaLeft) / 2.0;
-        this->position.x += d * cos(this->theta);;
-        this->position.y += d * sin(this->theta);;
+        this->position.x += d * cos(this->theta);
+        this->position.y += d * sin(this->theta);
     } else {
         double d = (deltaRight + deltaLeft) / 2.0;
         double theta = (deltaRight - deltaLeft) / Robot::TRACK;
         double r = d / theta;
 
-        this->position.x += r * sin(this->theta + theta) - r * sin(this->theta);;
+        this->position.x += r * sin(this->theta + theta) - r * sin(this->theta);
         this->position.y += -r * cos(this->theta + theta) + r * cos(this->theta);
         this->theta = normalizeAngle(this->theta + theta);
     }
@@ -186,7 +186,6 @@ void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr 
 
     if (this->particleFilter.initialized) {
         this->particleFilter.sampleMotionModel(oldX, oldY, oldTheta, newX, newY, newTheta);
-        this->particleFilter.resample();
     }
 
     this->publishPosition();
@@ -401,15 +400,16 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
     this->timeDelta = (time - this->sensorTime).toSec();
     this->sensorTime = time;
 
+    // in calc_pos is also the particle filter
     calculatePosition(this->sensorData, msg);
-
     this->sensorData = msg;
 
+//    ROS_INFO("left:%u, right:%u", this->sensorData->bumpLeft, this->sensorData->bumpRight);
     if(this->sensorData->bumpLeft || this->sensorData->bumpRight){
         ROS_INFO("OH NO!");
-        this->playSong(0);
         this->diffDrive(-1, -1);
         ros::Duration(2).sleep();
+        this->playSong(0);
         this->brake();
         exit(1);
     }
