@@ -42,8 +42,8 @@ int main(int argc, char **argv) {
     robot = new Robot();
     signal(SIGINT, mySigintHandler);
     robot->localize();
-    robot->playSong(1);
     robot->driveCenterCell();
+    robot->playSong(1);
     ros::spin();
     delete(robot);
     return 0;
