@@ -171,7 +171,7 @@ void Robot::publishPosition() {
     msg.row = this->particleFilter.oc_grid.max_cells_y - position.x;
     msg.column = position.y;
     this->pose_pub.publish(msg);
-//    ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y , this->theta);
+    //ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y , this->theta);
 }
 
 void Robot::calculatePosition(const create_fundamentals::SensorPacket::ConstPtr &oldData,

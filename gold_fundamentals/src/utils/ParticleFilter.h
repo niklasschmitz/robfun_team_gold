@@ -83,7 +83,6 @@ private:
 
     void likelihoodFieldRangeFinderModel( const sensor_msgs::LaserScanConstPtr& laserScan );
 
-	OccupancyGrid oc_grid;
 	int inverse_resolution; // pixel / meter
 
 	double* distMap;
@@ -110,6 +109,9 @@ private:
     ros::Publisher rawLikelihood_pub;
 
 public:
+
+    OccupancyGrid oc_grid;
+
     ParticleFilter();
 	//ParticleFilter( int numberOfParticles );
 	~ParticleFilter();
