@@ -3,6 +3,7 @@
 DiscreteLocalizer::DiscreteLocalizer() {
     ros::NodeHandle n;
     update_map = true;
+    received_map = false;
     map_sub = n.subscribe("map", 1, &DiscreteLocalizer::mapCallback, this);
 }
 
@@ -12,6 +13,7 @@ void DiscreteLocalizer::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg
     if (update_map) {
         convertMsgGridToMap(msg_grid);
         update_map = false;
+        received_map = true;
     }
 }
 
