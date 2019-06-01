@@ -70,6 +70,9 @@ ParticleFilter::ParticleFilter() {
 
     this->initialized = false;
 
+    this->uniformResamplingPercentage = 0.5;
+    this->uniformResamplingPercentageDecay = 0.005;
+
 }
 
 ParticleFilter::~ParticleFilter() {
@@ -96,6 +99,7 @@ void ParticleFilter::init() {
     this->setMeasurementModelLikelihoodField(oc_grid, minLikelihood, standardDev);
     this->initParticlesUniform();
     this->initialized = true;
+//    ROS_INFO("pf initialized");
 }
 
 void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg_grid) {
@@ -479,14 +483,26 @@ void ParticleFilter::resample() {
 	}
 
 	//replace the old particles with the the new ones
+	//early we replace some of the converging particles by uniform samples to slow conversion
 	for(int i = 0; i < nofP; i++)
 	{
-		this->particleSet[i]->x = pSetNew[i].x;
-		this->particleSet[i]->y = pSetNew[i].y;
-		this->particleSet[i]->theta = pSetNew[i].theta;
-		this->particleSet[i]->weight = this->getNumberOfParticles();
-		this->particleSet[i]->raw_likelihood = pSetNew[i].raw_likelihood;
+	    if(Probability::randomNrBetween0and1() < this->uniformResamplingPercentage) {
+            // uniform sampling
+
+            this->particleSet[i]->x = Probability::uniformRandom(0,this->likelihoodFieldWidth*this->likelihoodFieldResolution);
+            this->particleSet[i]->y = Probability::uniformRandom(0,this->likelihoodFieldHeight*this->likelihoodFieldResolution);
+            this->particleSet[i]->theta = Probability::uniformRandom(-M_PI,M_PI);
+            this->particleSet[i]->weight = 1.0 / this->getNumberOfParticles();
+	    } else {
+            this->particleSet[i]->x = pSetNew[i].x;
+            this->particleSet[i]->y = pSetNew[i].y;
+            this->particleSet[i]->theta = pSetNew[i].theta;
+            this->particleSet[i]->weight = this->getNumberOfParticles();
+            this->particleSet[i]->raw_likelihood = pSetNew[i].raw_likelihood;
+        }
 	}
+	// decrease uniform resampling percentage to allow conversion
+	this->uniformResamplingPercentage = std::max(0.0, this->uniformResamplingPercentage - this->uniformResamplingPercentageDecay);
 
     publishBestParticleToRviz();
 	publishAllParticlesToRviz();

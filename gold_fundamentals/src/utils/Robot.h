@@ -32,6 +32,8 @@ public:
     void turn(double angle);
 
     void turnRandom();
+    void turnRandomLeft();
+    void turnRandomRight();
 
     void align();
 
@@ -71,6 +73,9 @@ public:
     ros::Time sensorTime;
     double timeDelta;
     double obstacle;
+    double obstacle_front;
+    double obstacle_left;
+    double obstacle_right;
 
     ros::Publisher pose_pub;
 

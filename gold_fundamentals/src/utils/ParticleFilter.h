@@ -77,8 +77,11 @@ private:
 	int likelihoodFieldWidth, likelihoodFieldHeight;
 	double likelihoodFieldResolution;
 	int laserSkip;
-	
-	void likelihoodFieldRangeFinderModel( const sensor_msgs::LaserScanConstPtr& laserScan );
+
+    double uniformResamplingPercentage;
+    double uniformResamplingPercentageDecay;
+
+    void likelihoodFieldRangeFinderModel( const sensor_msgs::LaserScanConstPtr& laserScan );
 
 	OccupancyGrid oc_grid;
 	int inverse_resolution; // pixel / meter
