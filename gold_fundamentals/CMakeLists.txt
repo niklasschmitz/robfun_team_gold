@@ -87,7 +87,7 @@ add_executable(wanderer src/wanderer.cpp ${UTILS})
 target_link_libraries(wanderer ${catkin_LIBRARIES})
 add_dependencies(wanderer create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
 
-add_executable(square_no_sensors src/square_no_sensors.cpp ${UTILS})
+add_executable(square_no_sensors src/square_no_sensors.cpp)
 target_link_libraries(square_no_sensors ${catkin_LIBRARIES})
 add_dependencies(square_no_sensors create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
 
