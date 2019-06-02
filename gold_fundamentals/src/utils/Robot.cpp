@@ -25,7 +25,7 @@ Robot::Robot() {
     this->store_song = n.serviceClient<create_fundamentals::StoreSong>("store_song");
     this->play_song = n.serviceClient<create_fundamentals::PlaySong>("play_song");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
-    this->sub_laser = n.subscribe("scan_filtered", 1, &Robot::laserCallback, this);
+    this->sub_laser = n.subscribe("scan", 1, &Robot::laserCallback, this);
     this->pose_pub = n.advertise<gold_fundamentals::Pose>("pose", 1);
     this->sensorTime = ros::Time::now();
     this->obstacle = true;
