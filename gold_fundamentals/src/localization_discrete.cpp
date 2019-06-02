@@ -59,7 +59,7 @@ maze::Cell observe_cell() {
     return observation;
 }
 
-void localization_demo() {
+gold_fundamentals::Pose localization_demo() {
     //while not localized:
     //  observe cell
     //  estimate configuration
@@ -105,7 +105,10 @@ void localization_demo() {
     // localized. play mario song
     robot->playSong(1);
 
+    gold_fundamentals::Pose pose = localizer->candidates[0];
+    return pose;
 }
+
 
 int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
@@ -115,7 +118,14 @@ int main(int argc, char **argv) {
     robot = new Robot();
     robot->align();
 
-    localization_demo();
+    // localize
+    gold_fundamentals::Pose pose = localization_demo();
+
+    // publish the position
+    while (true) {
+        robot->pose_pub.publish(pose);
+        ros::Duration(0.5).sleep();
+    }
 
     delete (robot);
 
