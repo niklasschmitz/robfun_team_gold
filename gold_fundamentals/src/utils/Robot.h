@@ -48,14 +48,14 @@ public:
     static const double MAX_SPEED;
     static const double MIN_SPEED;
     static const double RADIUS;
-    static const double SAFETY_DISTANCE;
+    static double SAFETY_DISTANCE;
     static const double TRACK;
     static const double WHEEL_RADIUS;
 
     T_VECTOR2D position;
     double theta;
 
-    bool updateTheta;
+    bool localized;
 
     PID turnControl;
     PID speedControl;
@@ -72,10 +72,10 @@ public:
     create_fundamentals::SensorPacket::ConstPtr sensorData;
     ros::Time sensorTime;
     double timeDelta;
-    double obstacle;
-    double obstacle_front;
-    double obstacle_left;
-    double obstacle_right;
+    bool obstacle;
+    bool obstacle_front;
+    bool obstacle_left;
+    bool obstacle_right;
 
     ros::Publisher pose_pub;
 

@@ -3,13 +3,14 @@
 #include "geometry.h"
 #include "Probability.h"
 
+#define RELOCALISATION_DETECTION 1
 
 const double Robot::LOOPRATE = 100;
 const double Robot::LASER_OFFSET = 0.11;
 const double Robot::MAX_SPEED = 7.; //15.625
 const double Robot::MIN_SPEED = 1.;
 const double Robot::RADIUS = 0.17425;
-const double Robot::SAFETY_DISTANCE = RADIUS + 0.1;
+double Robot::SAFETY_DISTANCE = RADIUS + 0.1;
 const double Robot::TRACK = 0.258;
 const double Robot::WHEEL_RADIUS = 0.032;
 
@@ -30,7 +31,7 @@ Robot::Robot() {
     this->obstacle = false;
     this->storeSong();
     this->playSong(0);
-    this->updateTheta = true;
+    this->localized = false;
     this->resetPosition();
 }
 
@@ -95,7 +96,8 @@ bool Robot::isLocalized() {
 }
 
 void Robot::localize() {
-    this->updateTheta = false;
+    ROS_INFO("starting localization");
+    this->localized = false;
     while (ros::ok() && !this->isLocalized()) {
         ros::spinOnce();
 
@@ -110,8 +112,13 @@ void Robot::localize() {
         }
     }
     brake();
+    this->driveCenterCell();
+    this->playSong(1);
+
+    // we have a localisation proposal, decrease wanderer obstacle sensitivity for plan execution?
+    //SAFETY_DISTANCE = SAFETY_DISTANCE - 0.05;
+
     Particle* bestPart = this->particleFilter.getBestHypothesis();
-    this->updateTheta = true;
     this->theta = bestPart->theta;
     ROS_INFO("my position is: cell_x: %lf, cell_y: %lf, theta_deg: %lf", bestPart->x/0.8, bestPart->y/0.8, bestPart->theta*180.0/M_PI);
 }
@@ -124,7 +131,6 @@ void Robot::turnRandom() {
 
 //turns random left 0 to 90°
 void Robot::turnRandomLeft() {
-    ROS_INFO("random left");
     int degree = rand() % 90;
     double radiant = degree * M_PI / 180.0;
     turn(radiant);
@@ -132,7 +138,6 @@ void Robot::turnRandomLeft() {
 
 //turns random right 0 to 90°
 void Robot::turnRandomRight() {
-    ROS_INFO("random right");
     int degree = rand() % 90 - 90;
     double radiant = degree * M_PI / 180.0;
     turn(radiant);
@@ -282,7 +287,7 @@ void Robot::executePlan(std::vector<int> plan){
 void Robot::followPath(std::queue<T_VECTOR2D> path) {
     ros::Rate loop_rate(LOOPRATE);
     create_fundamentals::SensorPacket_<std::allocator<void> >::ConstPtr last = this->sensorData;
-    while (ros::ok() && !path.empty()) {
+    while (ros::ok() && !path.empty() && localized) {
         if (last != this->sensorData) {
             last = this->sensorData;
 
@@ -447,9 +452,15 @@ void Robot::driveCenterCell() {
     T_VECTOR2D error = goal - this->position;
     double to = angleDelta(error.theta());
 
+    ROS_INFO("turning to cell center");
     this->turn(to);
+    ROS_INFO("setting localized true and driving to cell center");
+    this->localized = true;
     this->driveTo(goal);
+    ROS_INFO("aligning to cell");
     this->turnTo(0);
+    ros::Duration(1).sleep();
+    ROS_INFO("debug");
 }
 
 inline double distanceEllipse(double angle) {
@@ -471,26 +482,39 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
     // until which degree from the center do we say that the obstacle is in the front
     double obstacle_front_limit = 30.0;
 
+    // detect if there are obstacles
     for (int i = 0; i < laserScan->ranges.size(); i++) {
         if (laserScan->ranges[i] < distanceEllipse(angle)) {
 
             if(angle < -obstacle_side_limit * M_PI/180.0) {
-                ROS_INFO("obst right");
                 this->obstacle_right = true;
             }
             if(angle > obstacle_side_limit * M_PI/180.0) {
-                ROS_INFO("obst left");
                 this->obstacle_left = true;
             }
             if(angle > -obstacle_front_limit && angle < obstacle_front_limit) {
-                ROS_INFO("obst front");
                 this->obstacle_front = true;
             }
             this->obstacle = true;
-            //break;
         }
         angle += laserScan->angle_increment;
     }
+
+    //ROS_INFO("loc %d, obst %d", this->localized, this->obstacle);
+    // if we were localized (and executing a plan right now), we should not see any obstacles
+    // if we do, we lost localisation and should reinitialise the particle filter
+#if RELOCALISATION_DETECTION == 1
+    if(this->localized && this->obstacle == true) {
+        ROS_INFO("resetting localisation");
+        this->localized = false;
+//        this->obstacle = false;
+        this->particleFilter.initParticlesUniform();
+        this->particleFilter.resetUniformResamplingPercentage();
+        this->playSong(0);
+        this->localize();
+        return;
+    }
+#endif
 
     if (this->particleFilter.initialized) {
         this->particleFilter.measurementModel(laserScan);
@@ -501,7 +525,7 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
         if(best_hyp != NULL) {
             this->position.x = best_hyp->x;
             this->position.y = best_hyp->y;
-            if (updateTheta)
+            if (this->localized)
                 this->theta = normalizeAngle(best_hyp->theta);
         }
     }

@@ -125,6 +125,8 @@ public:
 	int getNumberOfParticles();
 	std::vector<Particle*>* getParticleSet();
 
+	void resetUniformResamplingPercentage();
+
 	void init();
 	void initParticlesUniform();
 	void initParticlesGaussian( double mean_x, double mean_y, double mean_theta, double std_xx, double std_yy, double std_tt );
