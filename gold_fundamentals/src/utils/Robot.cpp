@@ -77,10 +77,10 @@ void Robot::diffDrive(double left, double right) {
     diff_drive.call(srv);
 }
 
-void Robot::wander(){
+void Robot::wander() {
     while (ros::ok()) {
         ros::spinOnce();
-        if(this->obstacle){
+        if (this->obstacle) {
             this->turnRandom();
         } else {
             this->diffDrive(Robot::MAX_SPEED, Robot::MAX_SPEED);
@@ -99,21 +99,22 @@ void Robot::localize() {
     while (ros::ok() && !this->isLocalized()) {
         ros::spinOnce();
 
-        if(this->obstacle_left){
+        if (this->obstacle_left) {
             this->turnRandomRight();
-        } else if(this->obstacle_right) {
+        } else if (this->obstacle_right) {
             this->turnRandomLeft();
-        } else if(this->obstacle_front) {
+        } else if (this->obstacle_front) {
             this->turnRandom();
-        }else {
+        } else {
             this->diffDrive(Robot::MAX_SPEED, Robot::MAX_SPEED);
         }
     }
     brake();
-    Particle* bestPart = this->particleFilter.getBestHypothesis();
+    Particle *bestPart = this->particleFilter.getBestHypothesis();
     this->updateTheta = true;
     this->theta = bestPart->theta;
-    ROS_INFO("my position is: cell_x: %lf, cell_y: %lf, theta_deg: %lf", bestPart->x/0.8, bestPart->y/0.8, bestPart->theta*180.0/M_PI);
+    ROS_INFO("my position is: cell_x: %lf, cell_y: %lf, theta_deg: %lf", bestPart->x / 0.8, bestPart->y / 0.8,
+             bestPart->theta * 180.0 / M_PI);
 }
 
 void Robot::turnRandom() {
@@ -261,7 +262,7 @@ T_VECTOR2D Robot::getCellxy() {
     return T_VECTOR2D(x, y);
 }
 
-void Robot::executePlan(std::vector<int> plan){
+void Robot::executePlan(std::vector<int> plan) {
 
     T_VECTOR2D dist(MAZE_SIDE_LENGTH_2, 0);
     T_VECTOR2D next = this->getCell();
@@ -314,7 +315,7 @@ void Robot::followPath(std::queue<T_VECTOR2D> path) {
 void Robot::drivePID(T_VECTOR2D goal) {
     T_VECTOR2D error = goal - this->position;
 
-    if(fabs(angleDelta(error.theta())) > M_PI_2){
+    if (fabs(angleDelta(error.theta())) > M_PI_2) {
         turn(angleDelta(error.theta()));
         return;
     }
@@ -340,7 +341,7 @@ void Robot::drivePID(T_VECTOR2D goal) {
 void Robot::driveMAX(T_VECTOR2D checkpoint) {
     T_VECTOR2D error = checkpoint - this->position;
 
-    if(fabs(angleDelta(error.theta())) > M_PI_2){
+    if (fabs(angleDelta(error.theta())) > M_PI_2) {
         turn(angleDelta(error.theta()));
         return;
     }
@@ -432,7 +433,7 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
     this->sensorData = msg;
 
 //    ROS_INFO("left:%u, right:%u", this->sensorData->bumpLeft, this->sensorData->bumpRight);
-    if(this->sensorData->bumpLeft || this->sensorData->bumpRight){
+    if (this->sensorData->bumpLeft || this->sensorData->bumpRight) {
         ROS_INFO("OH NO!");
         this->diffDrive(-1, -1);
         ros::Duration(2).sleep();
@@ -474,15 +475,15 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
     for (int i = 0; i < laserScan->ranges.size(); i++) {
         if (laserScan->ranges[i] < distanceEllipse(angle)) {
 
-            if(angle < -obstacle_side_limit * M_PI/180.0) {
+            if (angle < -obstacle_side_limit * M_PI / 180.0) {
                 ROS_INFO("obst right");
                 this->obstacle_right = true;
             }
-            if(angle > obstacle_side_limit * M_PI/180.0) {
+            if (angle > obstacle_side_limit * M_PI / 180.0) {
                 ROS_INFO("obst left");
                 this->obstacle_left = true;
             }
-            if(angle > -obstacle_front_limit && angle < obstacle_front_limit) {
+            if (angle > -obstacle_front_limit && angle < obstacle_front_limit) {
                 ROS_INFO("obst front");
                 this->obstacle_front = true;
             }
@@ -496,13 +497,12 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
         this->particleFilter.measurementModel(laserScan);
         this->particleFilter.resample();
 
-        Particle* best_hyp = this->particleFilter.getBestHypothesis();
+        Particle *best_hyp = this->particleFilter.getBestHypothesis();
 
-        if(best_hyp != NULL) {
+        if (best_hyp != NULL && updateTheta) {
             this->position.x = best_hyp->x;
             this->position.y = best_hyp->y;
-            if (updateTheta)
-                this->theta = normalizeAngle(best_hyp->theta);
+            this->theta = normalizeAngle(best_hyp->theta);
         }
     }
 }
