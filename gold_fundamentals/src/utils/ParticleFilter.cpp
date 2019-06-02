@@ -90,7 +90,7 @@ void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg_gr
         oc_grid.printGrid();
         init();
         //printDistanceMap();
-        //printLikelihoodMap();
+//        printLikelihoodMap();
         publishOcGridToRviz();
         //publishDistanceMapToRviz();
         publishAllParticlesToRviz();
@@ -351,7 +351,21 @@ void ParticleFilter::likelihoodFieldRangeFinderModel(
 			//Check whether the endpoint is inside the map. If not use a lower prob then the min prob inside the map
 			if (laser_hit_x_map < 0 || laser_hit_y_map < 0 || laser_hit_x_map >= likelihoodFieldWidth || laser_hit_y_map >= likelihoodFieldHeight)
 			{
-				weight += log(7e-1);
+			    double x_dist = 0;
+                double y_dist = 0;
+
+                if (laser_hit_x_map < 0 || laser_hit_x_map >= likelihoodFieldWidth)
+                {
+                    x_dist = std::min(abs(laser_hit_x_map-0), abs(laser_hit_x_map-likelihoodFieldWidth));
+
+                } else if (laser_hit_y_map < 0 || laser_hit_y_map >= likelihoodFieldHeight) {
+                    y_dist = std::min(abs(laser_hit_y_map-0), abs(laser_hit_y_map-likelihoodFieldHeight));
+                }
+
+                double dist = sqrt(pow(x_dist,2) + pow(y_dist,2)) / oc_grid.inverse_resolution;
+
+//				weight += log(7e-1);
+				weight += log(1 / (1+dist));
 			}
 			else
 			{

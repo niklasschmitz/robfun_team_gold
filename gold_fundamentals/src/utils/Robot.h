@@ -48,14 +48,16 @@ public:
     static const double MAX_SPEED;
     static const double MIN_SPEED;
     static const double RADIUS;
-    static double SAFETY_DISTANCE;
+    static const double SAFETY_DISTANCE;
     static const double TRACK;
     static const double WHEEL_RADIUS;
 
     T_VECTOR2D position;
     double theta;
 
+    bool update_theta;
     bool localized;
+    bool doNotAbort;
 
     PID turnControl;
     PID speedControl;
@@ -86,11 +88,11 @@ public:
 
     double angleDelta(double theta);
 
-    void driveTo(T_VECTOR2D position);
+    void driveTo(T_VECTOR2D position, bool ignore_localized=false);
 
     bool isCloseTo(T_VECTOR2D point);
 
-    void followPath(std::queue<T_VECTOR2D> path);
+    void followPath(std::queue<T_VECTOR2D> path, bool ignore_localized=false);
 
     bool reachedGoal(T_VECTOR2D goal);
 
