@@ -55,7 +55,9 @@ public:
     T_VECTOR2D position;
     double theta;
 
-    bool updateTheta;
+    bool update_theta;
+    bool localized;
+    bool doNotAbort;
 
     PID turnControl;
     PID speedControl;
@@ -72,10 +74,10 @@ public:
     create_fundamentals::SensorPacket::ConstPtr sensorData;
     ros::Time sensorTime;
     double timeDelta;
-    double obstacle;
-    double obstacle_front;
-    double obstacle_left;
-    double obstacle_right;
+    bool obstacle;
+    bool obstacle_front;
+    bool obstacle_left;
+    bool obstacle_right;
 
     ros::Publisher pose_pub;
 
@@ -86,11 +88,11 @@ public:
 
     double angleDelta(double theta);
 
-    void driveTo(T_VECTOR2D position);
+    void driveTo(T_VECTOR2D position, bool ignore_localized=false);
 
     bool isCloseTo(T_VECTOR2D point);
 
-    void followPath(std::queue<T_VECTOR2D> path);
+    void followPath(std::queue<T_VECTOR2D> path, bool ignore_localized=false);
 
     bool reachedGoal(T_VECTOR2D goal);
 

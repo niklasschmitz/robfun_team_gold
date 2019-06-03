@@ -1,33 +1,12 @@
-/* NOTE: Some of the code was developed by some group members during another course and was integrated here */
 
 #include "ParticleFilter.h"
 #include "Probability.h"
 #include <visualization_msgs/Marker.h>
 #include <std_msgs/Float32.h>
 
-//#include "tf/tf.h"
-
-//using namespace std;
-
-//ParticleFilter::ParticleFilter(int numberOfParticles) {
-//	this->numberOfParticles = numberOfParticles;
-//
-//	// initialize particles
-//	for (int i = 0; i <this->numberOfParticles; i++) {
-//		this->particleSet.push_back(new Particle());
-//	}
-//
-//	// this variable holds the estimated robot pose
-//	this->bestHypothesis = new Particle();
-//
-//	// at each correction step of the filter only the laserSkip-th beam of a scan should be integrated
-//	this->laserSkip = 5;
-//
-//	// distance map used for computing the likelihood field
-//	this->distMap = NULL;
-//}
-
 #define VISUALIZE_LIKELIHOODMAP 0
+
+/* NOTE: Some of the code was developed by some group members during another course and was integrated here */
 
 ParticleFilter::ParticleFilter() {
     ros::NodeHandle n;
@@ -70,7 +49,7 @@ ParticleFilter::ParticleFilter() {
 
     this->initialized = false;
 
-    this->uniformResamplingPercentage = 0.5;
+    this->resetUniformResamplingPercentage();
     this->uniformResamplingPercentageDecay = 0.005;
 
 }
@@ -111,7 +90,7 @@ void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg_gr
         oc_grid.printGrid();
         init();
         //printDistanceMap();
-        //printLikelihoodMap();
+//        printLikelihoodMap();
         publishOcGridToRviz();
         //publishDistanceMapToRviz();
         publishAllParticlesToRviz();
@@ -131,6 +110,10 @@ bool ParticleFilter::setUpdateMap(gold_fundamentals::UpdateMap::Request &req, go
 
 int ParticleFilter::getNumberOfParticles() {
 	return this->numberOfParticles;
+}
+
+void ParticleFilter::resetUniformResamplingPercentage() {
+    this->uniformResamplingPercentage = 0.5;
 }
 
 std::vector<Particle*>* ParticleFilter::getParticleSet() {
@@ -368,7 +351,21 @@ void ParticleFilter::likelihoodFieldRangeFinderModel(
 			//Check whether the endpoint is inside the map. If not use a lower prob then the min prob inside the map
 			if (laser_hit_x_map < 0 || laser_hit_y_map < 0 || laser_hit_x_map >= likelihoodFieldWidth || laser_hit_y_map >= likelihoodFieldHeight)
 			{
-				weight += log(7e-1);
+			    double x_dist = 0;
+                double y_dist = 0;
+
+                if (laser_hit_x_map < 0 || laser_hit_x_map >= likelihoodFieldWidth)
+                {
+                    x_dist = std::min(abs(laser_hit_x_map-0), abs(laser_hit_x_map-likelihoodFieldWidth));
+
+                } else if (laser_hit_y_map < 0 || laser_hit_y_map >= likelihoodFieldHeight) {
+                    y_dist = std::min(abs(laser_hit_y_map-0), abs(laser_hit_y_map-likelihoodFieldHeight));
+                }
+
+                double dist = sqrt(pow(x_dist,2) + pow(y_dist,2)) / oc_grid.inverse_resolution;
+
+//				weight += log(7e-1);
+				weight += log(1 / (1+dist));
 			}
 			else
 			{

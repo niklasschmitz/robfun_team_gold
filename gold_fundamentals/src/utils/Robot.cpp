@@ -3,6 +3,7 @@
 #include "geometry.h"
 #include "Probability.h"
 
+#define RELOCALISATION_DETECTION 1
 
 const double Robot::LOOPRATE = 100;
 const double Robot::LASER_OFFSET = 0.11;
@@ -24,13 +25,15 @@ Robot::Robot() {
     this->store_song = n.serviceClient<create_fundamentals::StoreSong>("store_song");
     this->play_song = n.serviceClient<create_fundamentals::PlaySong>("play_song");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
-    this->sub_laser = n.subscribe("scan_filtered", 1, &Robot::laserCallback, this);
+    this->sub_laser = n.subscribe("scan", 1, &Robot::laserCallback, this);
     this->pose_pub = n.advertise<gold_fundamentals::Pose>("pose", 1);
     this->sensorTime = ros::Time::now();
-    this->obstacle = false;
+    this->obstacle = true;
     this->storeSong();
     this->playSong(0);
-    this->updateTheta = true;
+    this->localized = false;
+    this->update_theta = false;
+    this->doNotAbort = true;
     this->resetPosition();
 }
 
@@ -77,10 +80,10 @@ void Robot::diffDrive(double left, double right) {
     diff_drive.call(srv);
 }
 
-void Robot::wander() {
+void Robot::wander(){
     while (ros::ok()) {
         ros::spinOnce();
-        if (this->obstacle) {
+        if(this->obstacle){
             this->turnRandom();
         } else {
             this->diffDrive(Robot::MAX_SPEED, Robot::MAX_SPEED);
@@ -95,26 +98,35 @@ bool Robot::isLocalized() {
 }
 
 void Robot::localize() {
-    this->updateTheta = false;
+    ROS_INFO("starting localization");
+    this->localized = false;
+    this->update_theta = false;
     while (ros::ok() && !this->isLocalized()) {
         ros::spinOnce();
 
-        if (this->obstacle_left) {
+        if(this->obstacle_left){
             this->turnRandomRight();
-        } else if (this->obstacle_right) {
+        } else if(this->obstacle_right) {
             this->turnRandomLeft();
-        } else if (this->obstacle_front) {
+        } else if(this->obstacle_front) {
             this->turnRandom();
-        } else {
+        }else {
             this->diffDrive(Robot::MAX_SPEED, Robot::MAX_SPEED);
         }
     }
+    this->update_theta = true;
     brake();
-    Particle *bestPart = this->particleFilter.getBestHypothesis();
-    this->updateTheta = true;
+    this->driveCenterCell();
+    this->playSong(1);
+
+    // we have a localisation proposal, decrease wanderer obstacle sensitivity for plan execution?
+//    SAFETY_DISTANCE = SAFETY_DISTANCE - 0.05;
+
+    Particle* bestPart = this->particleFilter.getBestHypothesis();
     this->theta = bestPart->theta;
-    ROS_INFO("my position is: cell_x: %lf, cell_y: %lf, theta_deg: %lf", bestPart->x / 0.8, bestPart->y / 0.8,
-             bestPart->theta * 180.0 / M_PI);
+    ROS_INFO("my position is: cell_x: %lf, cell_y: %lf, theta_deg: %lf", bestPart->x/0.8, bestPart->y/0.8, bestPart->theta*180.0/M_PI);
+
+//    this->localized = true;
 }
 
 void Robot::turnRandom() {
@@ -125,7 +137,6 @@ void Robot::turnRandom() {
 
 //turns random left 0 to 90°
 void Robot::turnRandomLeft() {
-    ROS_INFO("random left");
     int degree = rand() % 90;
     double radiant = degree * M_PI / 180.0;
     turn(radiant);
@@ -133,7 +144,6 @@ void Robot::turnRandomLeft() {
 
 //turns random right 0 to 90°
 void Robot::turnRandomRight() {
-    ROS_INFO("random right");
     int degree = rand() % 90 - 90;
     double radiant = degree * M_PI / 180.0;
     turn(radiant);
@@ -151,7 +161,6 @@ void Robot::drive(double distance) {
     T_VECTOR2D goal = this->position + T_VECTOR2D(distance, 0.0).rotate(this->theta);
     this->driveTo(goal);
 }
-
 
 void Robot::turn(double angle) {
     this->turnTo(this->theta + angle);
@@ -241,11 +250,11 @@ void Robot::turnTo(double theta) {
     this->brake();
 }
 
-void Robot::driveTo(T_VECTOR2D goal) {
+void Robot::driveTo(T_VECTOR2D goal, bool ignore_localized) {
     std::queue<T_VECTOR2D> path;
     path.push(goal);
 
-    this->followPath(path);
+    this->followPath(path, ignore_localized);
 }
 
 // returns nearest cell center
@@ -262,7 +271,7 @@ T_VECTOR2D Robot::getCellxy() {
     return T_VECTOR2D(x, y);
 }
 
-void Robot::executePlan(std::vector<int> plan) {
+void Robot::executePlan(std::vector<int> plan){
 
     T_VECTOR2D dist(MAZE_SIDE_LENGTH_2, 0);
     T_VECTOR2D next = this->getCell();
@@ -280,10 +289,12 @@ void Robot::executePlan(std::vector<int> plan) {
     this->followPath(path);
 }
 
-void Robot::followPath(std::queue<T_VECTOR2D> path) {
+void Robot::followPath(std::queue<T_VECTOR2D> path, bool ignore_localized) {
     ros::Rate loop_rate(LOOPRATE);
     create_fundamentals::SensorPacket_<std::allocator<void> >::ConstPtr last = this->sensorData;
-    while (ros::ok() && !path.empty()) {
+//    while (ros::ok() && !path.empty() && (localized || ignore_localized) && doNotAbort) {
+    while (ros::ok() && !path.empty() && !(this->localized && this->obstacle == true)) {
+        ROS_INFO("following path");
         if (last != this->sensorData) {
             last = this->sensorData;
 
@@ -309,13 +320,30 @@ void Robot::followPath(std::queue<T_VECTOR2D> path) {
     this->steerControl.reset();
     this->speedControl.reset();
     this->steerMaxControl.reset();
+    ROS_INFO("braking");
     this->brake();
+
+    //    ROS_INFO("loc %d, obst %d", this->localized, this->obstacle);
+    // if we were localized (and executing a plan right now), we should not see any obstacles
+    // if we do, we lost localisation and should reinitialise the particle filter
+#if RELOCALISATION_DETECTION == 1
+    if(this->localized && this->obstacle == true) {
+        ROS_INFO("resetting localisation");
+        this->localized = false;
+//        this->obstacle = false;
+        this->particleFilter.initParticlesUniform();
+        this->particleFilter.resetUniformResamplingPercentage();
+        this->playSong(0);
+        this->localize();
+        return;
+    }
+#endif
 }
 
 void Robot::drivePID(T_VECTOR2D goal) {
     T_VECTOR2D error = goal - this->position;
 
-    if (fabs(angleDelta(error.theta())) > M_PI_2) {
+    if(fabs(angleDelta(error.theta())) > M_PI_2){
         turn(angleDelta(error.theta()));
         return;
     }
@@ -341,7 +369,7 @@ void Robot::drivePID(T_VECTOR2D goal) {
 void Robot::driveMAX(T_VECTOR2D checkpoint) {
     T_VECTOR2D error = checkpoint - this->position;
 
-    if (fabs(angleDelta(error.theta())) > M_PI_2) {
+    if(fabs(angleDelta(error.theta())) > M_PI_2){
         turn(angleDelta(error.theta()));
         return;
     }
@@ -433,7 +461,7 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
     this->sensorData = msg;
 
 //    ROS_INFO("left:%u, right:%u", this->sensorData->bumpLeft, this->sensorData->bumpRight);
-    if (this->sensorData->bumpLeft || this->sensorData->bumpRight) {
+    if(this->sensorData->bumpLeft || this->sensorData->bumpRight){
         ROS_INFO("OH NO!");
         this->diffDrive(-1, -1);
         ros::Duration(2).sleep();
@@ -448,14 +476,19 @@ void Robot::driveCenterCell() {
     T_VECTOR2D error = goal - this->position;
     double to = angleDelta(error.theta());
 
+    ROS_INFO("turning to cell center");
     this->turn(to);
-    this->driveTo(goal);
+    this->localized = true;
+    ROS_INFO("setting localized true and driving to cell center");
+    this->driveTo(goal, true);
+    ROS_INFO("aligning to cell");
     this->turnTo(0);
+    ROS_INFO("debug");
 }
 
 inline double distanceEllipse(double angle) {
-    const double a = Robot::SAFETY_DISTANCE - Robot::LASER_OFFSET + 0.1;
-    const double b = Robot::SAFETY_DISTANCE - 0.05;
+    const double a = Robot::SAFETY_DISTANCE - Robot::LASER_OFFSET + 0.08;
+    const double b = Robot::SAFETY_DISTANCE - 0.06;
 
     return a * b / sqrt(pow(b * cos(angle), 2.0) + pow(a * sin(angle), 2.0));
 }
@@ -472,23 +505,20 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
     // until which degree from the center do we say that the obstacle is in the front
     double obstacle_front_limit = 30.0;
 
+    // detect if there are obstacles
     for (int i = 0; i < laserScan->ranges.size(); i++) {
         if (laserScan->ranges[i] < distanceEllipse(angle)) {
 
-            if (angle < -obstacle_side_limit * M_PI / 180.0) {
-                ROS_INFO("obst right");
+            if(angle < -obstacle_side_limit * M_PI/180.0) {
                 this->obstacle_right = true;
             }
-            if (angle > obstacle_side_limit * M_PI / 180.0) {
-                ROS_INFO("obst left");
+            if(angle > obstacle_side_limit * M_PI/180.0) {
                 this->obstacle_left = true;
             }
-            if (angle > -obstacle_front_limit && angle < obstacle_front_limit) {
-                ROS_INFO("obst front");
+            if(angle > -obstacle_front_limit && angle < obstacle_front_limit) {
                 this->obstacle_front = true;
             }
             this->obstacle = true;
-            //break;
         }
         angle += laserScan->angle_increment;
     }
@@ -497,12 +527,13 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
         this->particleFilter.measurementModel(laserScan);
         this->particleFilter.resample();
 
-        Particle *best_hyp = this->particleFilter.getBestHypothesis();
+        Particle* best_hyp = this->particleFilter.getBestHypothesis();
 
-        if (best_hyp != NULL && updateTheta) {
+        if(best_hyp != NULL) {
             this->position.x = best_hyp->x;
             this->position.y = best_hyp->y;
-            this->theta = normalizeAngle(best_hyp->theta);
+            if (this->update_theta)
+                this->theta = normalizeAngle(best_hyp->theta);
         }
     }
 }
