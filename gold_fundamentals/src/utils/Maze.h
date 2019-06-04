@@ -85,23 +85,25 @@ namespace maze {
         // side length of a single cell in m
         const double CELL_SIDE_LENGTH;
 
-        std::vector<CellWallData> map;
+        std::vector<Cell> map;
 
         Maze(const int nCols = 0, const int nRows = 0, const double cellSideLength = 0.8);
 
         ~Maze();
 
-        const CellWallData getCell(int row, int col);
+        const Cell getCell(int row, int col);
 
         // returns the discrete Cell to which the
         // (continuous) position is mapped
-        const CellWallData getCell(T_VECTOR2D position);
+        const Cell getCell(T_VECTOR2D position);
 
         void setCell(int row, int col, CellWallData cell);
 
         std::vector<Cell> getNeighbors(Cell cell);
 
         std::vector<Cell> breadthFirstSearch(Cell goal);
+
+        bool isValidIndex(int row, int col);
     };
 
 } // namespace
