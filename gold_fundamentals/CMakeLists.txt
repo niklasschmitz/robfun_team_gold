@@ -2,6 +2,10 @@
 # Catkin CMake Standard: http://www.ros.org/doc/groovy/api/catkin/html/user_guide/standards.html
 cmake_minimum_required(VERSION 2.8.3)
 project(gold_fundamentals)
+
+# Team GOLD prefers C++11
+add_compile_options(-std=c++11)
+
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS roscpp rospy sensor_msgs create_fundamentals message_generation)
 
@@ -84,6 +88,7 @@ set(
         src/utils/ParticleFilter.cpp src/utils/ParticleFilter.h
         src/utils/Probability.cpp src/utils/Probability.h
         src/utils/OccupancyGrid.cpp src/utils/OccupancyGrid.h
+        src/utils/PathPlanner.cpp src/utils/PathPlanner.h
 )
 
 # Assignment 1

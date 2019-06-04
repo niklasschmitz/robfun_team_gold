@@ -99,9 +99,7 @@ namespace maze {
 
         void setCell(int row, int col, CellWallData cell);
 
-        std::vector<Cell> getNeighbors(Cell cell);
-
-        std::vector<Cell> breadthFirstSearch(Cell goal);
+        const std::vector<Cell> getNeighbors(Cell cell) const;
 
         bool isValidIndex(int row, int col);
     };

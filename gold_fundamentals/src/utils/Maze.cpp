@@ -23,7 +23,7 @@ namespace maze {
         map[row * n_cols + col] = cell;
     }
 
-    std::vector<Cell> Maze::getNeighbors(Cell cell) {
+    const std::vector<Cell> Maze::getNeighbors(Cell cell) const {
         std::vector<Cell> neighbors;
 
         if (!cell.walls.right && isValidIndex(cell.row, cell.col + 1)) {
@@ -40,10 +40,6 @@ namespace maze {
         }
 
         return neighbors;
-    }
-
-    std::vector<Cell> Maze::breadthFirstSearch(Cell goal) {
-        return std::vector<Cell>();
     }
 
     bool Maze::isValidIndex(int row, int col) {
