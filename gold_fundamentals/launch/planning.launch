@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="gold_fundamentals" name="planning" type="planning"/>
+</launch>

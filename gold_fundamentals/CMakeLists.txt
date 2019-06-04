@@ -41,6 +41,7 @@ add_message_files(
 add_service_files(
         FILES
         ExecutePlan.srv
+        MoveToPosition.srv
         UpdateMap.srv
 )
 
@@ -119,3 +120,7 @@ add_dependencies(localization_discrete create_fundamentals_generate_messages_cpp
 add_executable(localize_robot src/localize_robot.cpp ${UTILS})
 target_link_libraries(localize_robot ${catkin_LIBRARIES})
 add_dependencies(localize_robot create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
+
+add_executable(planning src/planning.cpp ${UTILS})
+target_link_libraries(planning ${catkin_LIBRARIES})
+add_dependencies(planning create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
