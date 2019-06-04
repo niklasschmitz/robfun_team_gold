@@ -32,7 +32,7 @@ void DiscreteLocalizer::convertMsgGridToMap(const gold_fundamentals::Grid::Const
             // set Cell booleans for each wall present
 
             int n_walls = msg_grid->rows[row].cells[col].walls.size();
-            maze::Cell cell;
+            maze::CellWallData cell;
 
             // find out which walls are set
             for (int wall_idx = 0; wall_idx < n_walls; wall_idx++) {
@@ -104,7 +104,7 @@ gold_fundamentals::Pose DiscreteLocalizer::actWithCandidate(gold_fundamentals::P
     return new_candidate;
 }
 
-void DiscreteLocalizer::estimateConfiguration(int action, maze::Cell observation) {
+void DiscreteLocalizer::estimateConfiguration(int action, maze::CellWallData observation) {
     std::vector<gold_fundamentals::Pose> new_candidates;
 
     for (int i = 0; i < this->candidates.size(); ++i) {
@@ -119,7 +119,7 @@ void DiscreteLocalizer::estimateConfiguration(int action, maze::Cell observation
         }
 
         // get expected cell perception
-        maze::Cell expected_cell = this->maze->getCell(new_candidate.row, new_candidate.column);
+        maze::CellWallData expected_cell = this->maze->getCell(new_candidate.row, new_candidate.column);
 
         // check if it still matches observation
         if (expected_cell == observation.rotate(new_candidate.orientation)) {

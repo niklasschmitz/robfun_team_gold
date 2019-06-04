@@ -34,7 +34,7 @@ public:
      * @param observation  a Cell indicating in what directions walls are perceived.
      *                     Note: this is relative to the robot
      */
-    void estimateConfiguration(int action, maze::Cell observation);
+    void estimateConfiguration(int action, maze::CellWallData observation);
 
     void populateCandidates();
 

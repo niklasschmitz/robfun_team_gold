@@ -19,4 +19,8 @@ namespace maze {
         map[row * n_cols + col] = cell;
     }
 
+    void Maze::buildBFSTree(int goal_row, int goal_col) {
+        std::vector<> queue;
+    }
+
 } // namespace

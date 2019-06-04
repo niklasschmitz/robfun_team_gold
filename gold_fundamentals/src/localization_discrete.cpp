@@ -45,8 +45,8 @@ bool wallInFront() {
  * continues clock-wise
  * @return Cell observation
  */
-maze::Cell observe_cell() {
-    maze::Cell observation;
+maze::CellWallData observe_cell() {
+    maze::CellWallData observation;
 
     for (int i = 0; i < 4; ++i) {
         // check presence of wall in front
@@ -80,7 +80,7 @@ gold_fundamentals::Pose localization_demo() {
     // while not localized
     while (localizer->candidates.size() > 1) {
         // observe cell (4 possible walls)
-        maze::Cell observation = observe_cell();
+        maze::CellWallData observation = observe_cell();
 
         // estimate configuration
         localizer->estimateConfiguration(local_direction, observation);
@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
     gold_fundamentals::Pose pose = localization_demo();
 
     // publish the position
-    while (true) {
+    while (ros::ok()) {
         robot->pose_pub.publish(pose);
         ros::Duration(0.5).sleep();
     }
