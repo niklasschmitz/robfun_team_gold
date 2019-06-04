@@ -5,11 +5,11 @@ namespace maze {
     Maze::Maze(const int nCols, const int nRows, const double cellSideLength)
             : n_cols(nCols), n_rows(nRows), CELL_SIDE_LENGTH(cellSideLength) {}
 
-    const Cell Maze::getCell(int row, int col) {
+    const Cell Maze::getCell(int row, int col) const {
         return map[row * n_cols + col];
     }
 
-    const Cell Maze::getCell(T_VECTOR2D position) {
+    const Cell Maze::getCell(T_VECTOR2D position) const {
         int x = (int) position.x;
         int y = (int) position.y;
         return this->getCell(x, y);
@@ -23,7 +23,7 @@ namespace maze {
         map[row * n_cols + col] = cell;
     }
 
-    const std::vector<Cell> Maze::getNeighbors(Cell cell) const {
+    std::vector<Cell> Maze::getNeighbors(Cell cell) const {
         std::vector<Cell> neighbors;
 
         if (!cell.walls.right && isValidIndex(cell.row, cell.col + 1)) {
@@ -42,7 +42,7 @@ namespace maze {
         return neighbors;
     }
 
-    bool Maze::isValidIndex(int row, int col) {
+    bool Maze::isValidIndex(int row, int col) const {
         return (row >= 0 && row < this->n_rows && col >= 0 && col < this->n_cols);
     }
 

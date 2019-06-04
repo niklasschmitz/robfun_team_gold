@@ -6,7 +6,7 @@
 using namespace maze;
 
 class PathPlanner {
-
+public:
     /**
      *
      * @param maze
@@ -14,7 +14,7 @@ class PathPlanner {
      * @return tree with all cells of the maze, having predecessors set.
      *         essentially represents all shortest paths from the goal to any other node
      */
-    std::vector<Cell> PathPlanner::breadthFirstSearch(const Maze& maze, Cell start);
+    Maze* breadthFirstSearch(const Maze& maze, const Cell& start);
 };
 
 

@@ -91,17 +91,17 @@ namespace maze {
 
         ~Maze();
 
-        const Cell getCell(int row, int col);
+        const Cell getCell(int row, int col) const;
 
         // returns the discrete Cell to which the
         // (continuous) position is mapped
-        const Cell getCell(T_VECTOR2D position);
+        const Cell getCell(T_VECTOR2D position) const;
 
         void setCell(int row, int col, CellWallData cell);
 
-        const std::vector<Cell> getNeighbors(Cell cell) const;
+        std::vector<Cell> getNeighbors(Cell cell) const;
 
-        bool isValidIndex(int row, int col);
+        bool isValidIndex(int row, int col) const;
     };
 
 } // namespace
