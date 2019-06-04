@@ -66,7 +66,7 @@ namespace maze {
         bool visited;
         Cell* predecessor;
 
-        Cell(int row = 0, int col = 0, bool visited = false, Cell* predecessor = nullptr)
+        Cell(int row = 0, int col = 0, bool visited = false, Cell* predecessor = NULL)
                     : row(row), col(col), visited(visited), predecessor(predecessor) {}
 
     };
@@ -99,9 +99,9 @@ namespace maze {
 
         void setCell(int row, int col, CellWallData cell);
 
-        std::vector<Coordinate> getNeighbors(Coordinate coordinate);
+        std::vector<Cell> getNeighbors(Cell cell);
 
-        std::vector<Coordinate> breadthFirstSearch(Coordinate goal);
+        std::vector<Cell> breadthFirstSearch(Cell goal);
     };
 
 } // namespace
