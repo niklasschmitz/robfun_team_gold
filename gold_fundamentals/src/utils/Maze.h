@@ -6,39 +6,39 @@
 namespace maze {
 
     /**
-     * The Cell type stores 4 booleans indicating which walls are present.
-     * Note: It does not store its location withing the global maze. For
+     * The CellWallData type stores 4 booleans indicating which walls are present.
+     * Note: It does not store its location within the global maze. For
      * that, see class 'Maze'
      */
-    struct Cell {
+    struct CellWallData {
         bool right;
         bool top;
         bool left;
         bool bottom;
 
         // constructor
-        Cell(bool right = false, bool top = false, bool left = false, bool bottom = false)
+        CellWallData(bool right = false, bool top = false, bool left = false, bool bottom = false)
                 : right(right), top(top), left(left), bottom(bottom) {}
 
         // equality
-        bool operator==(const Cell &other) {
+        bool operator==(const CellWallData &other) {
             return (right == other.right && top == other.top
                     && left == other.left && bottom == other.bottom);
         }
 
 
         // returns a new cell which is this cell rotated i * 90 degrees counter-clockwise
-        const Cell rotate(int i) const {
+        const CellWallData rotate(int i) const {
             i = i % 4;
 
             if (i == 0) {
-                return Cell(right, top, left, bottom);
+                return CellWallData(right, top, left, bottom);
             } else if (i == 1) {
-                return Cell(bottom, right, top, left);
+                return CellWallData(bottom, right, top, left);
             } else if (i == 2) {
-                return Cell(left, bottom, right, top);
+                return CellWallData(left, bottom, right, top);
             } else {
-                return Cell(top, left, bottom, right);
+                return CellWallData(top, left, bottom, right);
             }
         }
 
@@ -57,6 +57,20 @@ namespace maze {
         }
     };
 
+    struct Cell {
+        int row;
+        int col;
+        CellWallData walls;
+
+        // for breadth-first search
+        bool visited;
+        Cell* predecessor;
+
+        Cell(int row = 0, int col = 0, bool visited = false, Cell* predecessor = nullptr)
+                    : row(row), col(col), visited(visited), predecessor(predecessor) {}
+
+    };
+
     /**
      * A Maze object acts as an interface to a 2D array of Cells
      * which describes the topology of the maze.
@@ -71,19 +85,23 @@ namespace maze {
         // side length of a single cell in m
         const double CELL_SIDE_LENGTH;
 
-        std::vector<Cell> map;
+        std::vector<CellWallData> map;
 
         Maze(const int nCols = 0, const int nRows = 0, const double cellSideLength = 0.8);
 
         ~Maze();
 
-        const Cell getCell(int row, int col);
+        const CellWallData getCell(int row, int col);
 
         // returns the discrete Cell to which the
         // (continuous) position is mapped
-        const Cell getCell(T_VECTOR2D position);
+        const CellWallData getCell(T_VECTOR2D position);
 
-        void setCell(int row, int col, Cell cell);
+        void setCell(int row, int col, CellWallData cell);
+
+        std::vector<Coordinate> getNeighbors(Coordinate coordinate);
+
+        std::vector<Coordinate> breadthFirstSearch(Coordinate goal);
     };
 
 } // namespace
