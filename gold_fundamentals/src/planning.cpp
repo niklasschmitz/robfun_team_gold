@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include "utils/Robot.h"
 #include "utils/tools.h"
-#include "utils/GridPerceptor.h"
 #include "utils/geometry.h"
 #include "gold_fundamentals/MoveToPosition.h"
 
@@ -29,7 +28,7 @@ void mySigintHandler(int sig) {
 
 int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
-    ros::init(argc, argv, "localize", ros::init_options::NoSigintHandler);
+    ros::init(argc, argv, "planning", ros::init_options::NoSigintHandler);
     ros::NodeHandle n;
     ros::ServiceServer service = n.advertiseService("move_to_position", execute);
     robot = new Robot();
