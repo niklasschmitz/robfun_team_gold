@@ -37,6 +37,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 add_message_files(
         FILES
         Cell.msg
+        Goal.msg
         Grid.msg
         Pose.msg
         Row.msg

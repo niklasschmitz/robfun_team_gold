@@ -17,7 +17,7 @@ with open(filename, 'r') as f:
 
 print "publishing map: {}".format(map_layout)
 
-node = rospy.init_node('example_map_publisher')
+node = rospy.init_node('map_publisher')
 pub = rospy.Publisher('map', Grid, queue_size=1)
 
 grid = Grid()
@@ -30,6 +30,5 @@ for row_layout in map_layout:
     grid.rows.append(row)
 
 while not rospy.is_shutdown():
-    sleep(0.5)
     pub.publish(grid)
     sleep(0.5)
