@@ -38,26 +38,19 @@ Robot::Robot() {
 }
 
 void Robot::storeSong() {
-    create_fundamentals::StoreSong song0;
+    create_fundamentals::StoreSong song0; //Warning
     song0.request.number = 0;
-    song0.request.song.push_back(36);
-    song0.request.song.push_back(64);
+    song0.request.song = {36, 64};
     store_song.call(song0);
 
     create_fundamentals::StoreSong song1; //Mario 1UP
     song1.request.number = 1;
-    song1.request.song.push_back(88);
-    song1.request.song.push_back(8);
-    song1.request.song.push_back(91);
-    song1.request.song.push_back(8);
-    song1.request.song.push_back(100);
-    song1.request.song.push_back(8);
-    song1.request.song.push_back(96);
-    song1.request.song.push_back(8);
-    song1.request.song.push_back(98);
-    song1.request.song.push_back(8);
-    song1.request.song.push_back(103);
-    song1.request.song.push_back(16);
+    song1.request.song = {88, 8, 91, 8, 100, 8, 96, 8, 98, 8, 103, 16};
+    store_song.call(song1);
+
+    create_fundamentals::StoreSong song2; //Indiana Jones
+    song1.request.number = 2;
+    song1.request.song = {64, 16, 65, 8, 67, 8, 72, 48, 62, 16, 64, 8, 65, 40, 65, 16, 67, 8, 69, 8, 77, 48, 69, 16, 71, 8, 72, 24, 74, 24, 76, 24};
     store_song.call(song1);
 }
 
@@ -80,10 +73,10 @@ void Robot::diffDrive(double left, double right) {
     diff_drive.call(srv);
 }
 
-void Robot::wander(){
+void Robot::wander() {
     while (ros::ok()) {
         ros::spinOnce();
-        if(this->obstacle){
+        if (this->obstacle) {
             this->turnRandom();
         } else {
             this->diffDrive(Robot::MAX_SPEED, Robot::MAX_SPEED);
@@ -104,13 +97,13 @@ void Robot::localize() {
     while (ros::ok() && !this->isLocalized()) {
         ros::spinOnce();
 
-        if(this->obstacle_left){
+        if (this->obstacle_left) {
             this->turnRandomRight();
-        } else if(this->obstacle_right) {
+        } else if (this->obstacle_right) {
             this->turnRandomLeft();
-        } else if(this->obstacle_front) {
+        } else if (this->obstacle_front) {
             this->turnRandom();
-        }else {
+        } else {
             this->diffDrive(Robot::MAX_SPEED, Robot::MAX_SPEED);
         }
     }
@@ -122,9 +115,10 @@ void Robot::localize() {
     // we have a localisation proposal, decrease wanderer obstacle sensitivity for plan execution?
 //    SAFETY_DISTANCE = SAFETY_DISTANCE - 0.05;
 
-    Particle* bestPart = this->particleFilter.getBestHypothesis();
+    Particle *bestPart = this->particleFilter.getBestHypothesis();
     this->theta = bestPart->theta;
-    ROS_INFO("my position is: cell_x: %lf, cell_y: %lf, theta_deg: %lf", bestPart->x/0.8, bestPart->y/0.8, bestPart->theta*180.0/M_PI);
+    ROS_INFO("my position is: cell_x: %lf, cell_y: %lf, theta_deg: %lf", bestPart->x / 0.8, bestPart->y / 0.8,
+             bestPart->theta * 180.0 / M_PI);
 
 //    this->localized = true;
 }
@@ -271,7 +265,7 @@ T_VECTOR2D Robot::getCellxy() {
     return T_VECTOR2D(x, y);
 }
 
-void Robot::executePlan(std::vector<int> plan){
+void Robot::executePlan(std::vector<int> plan) {
 
     T_VECTOR2D dist(MAZE_SIDE_LENGTH_2, 0);
     T_VECTOR2D next = this->getCell();
@@ -327,7 +321,7 @@ void Robot::followPath(std::queue<T_VECTOR2D> path, bool ignore_localized) {
     // if we were localized (and executing a plan right now), we should not see any obstacles
     // if we do, we lost localisation and should reinitialise the particle filter
 #if RELOCALISATION_DETECTION == 1
-    if(this->localized && this->obstacle == true) {
+    if (this->localized && this->obstacle == true) {
         ROS_INFO("resetting localisation");
         this->localized = false;
 //        this->obstacle = false;
@@ -343,7 +337,7 @@ void Robot::followPath(std::queue<T_VECTOR2D> path, bool ignore_localized) {
 void Robot::drivePID(T_VECTOR2D goal) {
     T_VECTOR2D error = goal - this->position;
 
-    if(fabs(angleDelta(error.theta())) > M_PI_2){
+    if (fabs(angleDelta(error.theta())) > M_PI_2) {
         turn(angleDelta(error.theta()));
         return;
     }
@@ -369,7 +363,7 @@ void Robot::drivePID(T_VECTOR2D goal) {
 void Robot::driveMAX(T_VECTOR2D checkpoint) {
     T_VECTOR2D error = checkpoint - this->position;
 
-    if(fabs(angleDelta(error.theta())) > M_PI_2){
+    if (fabs(angleDelta(error.theta())) > M_PI_2) {
         turn(angleDelta(error.theta()));
         return;
     }
@@ -461,7 +455,7 @@ void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &ms
     this->sensorData = msg;
 
 //    ROS_INFO("left:%u, right:%u", this->sensorData->bumpLeft, this->sensorData->bumpRight);
-    if(this->sensorData->bumpLeft || this->sensorData->bumpRight){
+    if (this->sensorData->bumpLeft || this->sensorData->bumpRight) {
         ROS_INFO("OH NO!");
         this->diffDrive(-1, -1);
         ros::Duration(2).sleep();
@@ -509,13 +503,13 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
     for (int i = 0; i < laserScan->ranges.size(); i++) {
         if (laserScan->ranges[i] < distanceEllipse(angle)) {
 
-            if(angle < -obstacle_side_limit * M_PI/180.0) {
+            if (angle < -obstacle_side_limit * M_PI / 180.0) {
                 this->obstacle_right = true;
             }
-            if(angle > obstacle_side_limit * M_PI/180.0) {
+            if (angle > obstacle_side_limit * M_PI / 180.0) {
                 this->obstacle_left = true;
             }
-            if(angle > -obstacle_front_limit && angle < obstacle_front_limit) {
+            if (angle > -obstacle_front_limit && angle < obstacle_front_limit) {
                 this->obstacle_front = true;
             }
             this->obstacle = true;
@@ -527,9 +521,9 @@ void Robot::laserCallback(const sensor_msgs::LaserScan::ConstPtr &laserScan) {
         this->particleFilter.measurementModel(laserScan);
         this->particleFilter.resample();
 
-        Particle* best_hyp = this->particleFilter.getBestHypothesis();
+        Particle *best_hyp = this->particleFilter.getBestHypothesis();
 
-        if(best_hyp != NULL) {
+        if (best_hyp != NULL) {
             this->position.x = best_hyp->x;
             this->position.y = best_hyp->y;
             if (this->update_theta)
