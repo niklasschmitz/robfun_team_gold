@@ -57,10 +57,10 @@ void DiscreteLocalizer::convertMsgGridToMap(const gold_fundamentals::Grid::Const
             }
 
             // place cell on map
-            Cell cell;
-            cell.row = row;
-            cell.col = col;
-            cell.walls = walls;
+            Cell* cell = new Cell();
+            cell->row = row;
+            cell->col = col;
+            cell->walls = walls;
             maze->map.push_back(cell);
         }
     }
@@ -123,7 +123,7 @@ void DiscreteLocalizer::estimateConfiguration(int action, maze::CellWallData obs
         }
 
         // get expected cell perception
-        maze::CellWallData expected_cell = this->maze->getCell(new_candidate.row, new_candidate.column).walls;
+        maze::CellWallData expected_cell = this->maze->getCell(new_candidate.row, new_candidate.column)->walls;
 
         // check if it still matches observation
         if (expected_cell == observation.rotate(new_candidate.orientation)) {

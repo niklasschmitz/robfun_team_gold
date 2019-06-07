@@ -14,7 +14,7 @@ public:
      * @return tree with all cells of the maze, having predecessors set.
      *         essentially represents all shortest paths from the goal to any other node
      */
-    Maze* breadthFirstSearch(const Maze& maze, const Cell& start);
+    Maze* breadthFirstSearch(const Maze& maze, Cell* start);
 };
 
 

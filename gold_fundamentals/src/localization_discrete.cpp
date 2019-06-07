@@ -5,6 +5,7 @@
 #include "utils/Robot.h"
 #include "utils/GridPerceptor.h"
 #include "utils/DiscreteLocalizer.h"
+#include "utils/PathPlanner.h"
 
 Robot *robot;
 
@@ -73,6 +74,14 @@ gold_fundamentals::Pose localization_demo() {
         ros::spinOnce();
     }
 
+    Maze* maze = (localizer->maze);
+    PathPlanner planner;
+    Cell* start = maze->getCell(0,0);
+
+
+    Maze* tree = planner.breadthFirstSearch(*maze, start);
+
+
     localizer->populateCandidates();
 
     int local_direction = 0;
@@ -116,7 +125,7 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
     signal(SIGINT, mySigintHandler);
     robot = new Robot();
-    robot->align();
+    //robot->align();
 
     // localize
     gold_fundamentals::Pose pose = localization_demo();
