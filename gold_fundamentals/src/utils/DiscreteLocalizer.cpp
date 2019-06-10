@@ -61,6 +61,8 @@ void DiscreteLocalizer::convertMsgGridToMap(const gold_fundamentals::Grid::Const
             cell->row = row;
             cell->col = col;
             cell->walls = walls;
+            cell->predecessor = NULL;
+            cell->visited = false;
             maze->map.push_back(cell);
         }
     }

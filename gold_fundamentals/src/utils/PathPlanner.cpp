@@ -3,11 +3,11 @@
 
 
 void PathPlanner::populateBreadthFirstSearch(const Maze &maze, Cell* goal) {
-    delete(treeOfShortestPaths);
     treeOfShortestPaths = new Maze(maze);
 
     std::queue<Cell*> queue;
     Cell* v = goal; //TODO copy constructor? i.e. create new?
+    v->visited = true;
     queue.push(v);
     while (queue.size() > 0) {
         v = queue.front();

@@ -46,4 +46,8 @@ namespace maze {
         return (row >= 0 && row < this->n_rows && col >= 0 && col < this->n_cols);
     }
 
+    Maze::~Maze() {
+
+    }
+
 } // namespace
