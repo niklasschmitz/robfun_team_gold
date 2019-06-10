@@ -74,14 +74,6 @@ gold_fundamentals::Pose localization_demo() {
         ros::spinOnce();
     }
 
-    Maze* maze = (localizer->maze);
-    PathPlanner planner;
-    Cell* start = maze->getCell(0,0);
-
-
-    Maze* tree = planner.breadthFirstSearch(*maze, start);
-
-
     localizer->populateCandidates();
 
     int local_direction = 0;
