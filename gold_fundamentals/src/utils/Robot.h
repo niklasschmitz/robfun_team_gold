@@ -60,7 +60,9 @@ public:
     bool update_theta;
     bool localized;
     bool doNotAbort;
+
     int gold_count;
+    bool keyboard_received;
 
     PID turnControl;
     PID speedControl;

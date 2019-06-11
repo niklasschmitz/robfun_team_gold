@@ -8,10 +8,12 @@
 #include "gold_fundamentals/MoveToPosition.h"
 #include "gold_fundamentals/Goal.h"
 #include "gold_fundamentals/Pose.h"
+#include <DiscreteLocalizer.h>
+#include <PathPlanner.h>
 
 Robot* robot = NULL;
-std::vector<gold_fundamentals::Pose> *gold = NULL;
-std::vector<gold_fundamentals::Pose> *pickup = NULL;
+std::vector<T_VECTOR2D> *gold = NULL;
+std::vector<T_VECTOR2D> *pickup = NULL;
 
 
 void mySigintHandler(int sig) {
@@ -24,18 +26,44 @@ void mySigintHandler(int sig) {
 
 void goldCallback(const gold_fundamentals::Goal::ConstPtr &msg) {
     if (!gold) {
-        gold = new std::vector<gold_fundamentals::Pose>;
+        gold = new std::vector<T_VECTOR2D>;
         for (gold_fundamentals::Pose p: msg->positions)
-            gold->push_back(p);
+            gold->push_back(T_VECTOR2D(p.row, p.column));
     }
 }
 
 void pickupCallback(const gold_fundamentals::Goal::ConstPtr &msg) {
     if (!pickup) {
-        pickup = new std::vector<gold_fundamentals::Pose>;
+        pickup = new std::vector<T_VECTOR2D>;
         for (gold_fundamentals::Pose p: msg->positions)
-            pickup->push_back(p);
+            pickup->push_back(T_VECTOR2D(p.row, p.column));
     }
+}
+
+int driveTo(T_VECTOR2D point) {
+    DiscreteLocalizer localizer;
+
+    // wait until map is received
+    while (!localizer.received_map) {
+        ros::Duration(0.5).sleep();
+        ros::spinOnce();
+    }
+
+    Maze* maze = (localizer.maze);
+    PathPlanner planner;
+
+    Cell* start = maze->getCell(robot->getCellxy());
+    Cell* goal = maze->getCell(point.x, point.y);
+
+    // calculate path
+    planner.populateBreadthFirstSearch(*maze, goal);
+    std::vector<int> plan = planner.extractPlan(start, goal);
+
+    // follow path
+    robot->executePlan(plan);
+
+    bool arrived = robot->getCellxy() == point;
+    return arrived;
 }
 
 int main(int argc, char **argv) {
@@ -63,7 +91,25 @@ int main(int argc, char **argv) {
         ros::spinOnce();
     }
 
-    //TODO: pickup gold and drive to Helipad
+    //pickup gold and drive to Helipad
+    for (T_VECTOR2D g: *gold) {
+        while(!driveTo(g)) {
+
+        }
+        ROS_INFO("arrived at gold");
+        robot->digForGold();
+        ROS_INFO("digging for gold");
+        ROS_INFO("gold count %d", robot->gold_count);
+    }
+
+    for (T_VECTOR2D p: *pickup) {
+        while(!driveTo(p)) {
+
+        }
+        //TODO pickup
+        robot->playSong(1);
+        mySigintHandler(0);
+    }
 
     ros::spin();
 
