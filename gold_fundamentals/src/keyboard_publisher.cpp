@@ -52,10 +52,8 @@ int main(int argc, char **argv) {
     signal(SIGINT, mySigintHandler);
     ros::Publisher keyboard_pub = n.advertise<std_msgs::String>("keyboard", 1);;
     std_msgs::String message;
-    message.data = "i";
     while(ros::ok) {
-        std::string input;
-        input.push_back(getch());
+        message.data = getch();
         keyboard_pub.publish(message);
     }
     return 0;

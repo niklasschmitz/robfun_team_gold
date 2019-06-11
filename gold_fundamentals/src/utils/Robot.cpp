@@ -451,7 +451,7 @@ void Robot::alignToWall() {
 }
 
 void Robot::keyboardCallback(const std_msgs::String::ConstPtr& msg) {
-    ROS_INFO("input received");
+    ROS_INFO("input received %s", msg->data.c_str());
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
