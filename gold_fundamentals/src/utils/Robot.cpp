@@ -169,7 +169,7 @@ void Robot::publishPosition() {
     T_VECTOR2D position = this->getCellxy();
     gold_fundamentals::Pose msg;
     msg.orientation = (int) round(this->theta / M_PI_2) % 4;
-    msg.row = (this->particleFilter.oc_grid.max_cells_y - 1) - position.y;
+    msg.row = position.y;
     msg.column = position.x;
     this->pose_pub.publish(msg);
     //ROS_INFO("x:%lf, y:%lf, theta:%lf", this->position.x, this->position.y , this->theta);
@@ -262,7 +262,7 @@ T_VECTOR2D Robot::getCell() {
 T_VECTOR2D Robot::getCellxy() {
     int x = round((this->position.x - MAZE_SIDE_LENGTH_2) / MAZE_SIDE_LENGTH);
     int y = round((this->position.y - MAZE_SIDE_LENGTH_2) / MAZE_SIDE_LENGTH);
-    return T_VECTOR2D(x, y);
+    return T_VECTOR2D(x, (this->particleFilter.oc_grid.max_cells_y - 1) - y);
 }
 
 void Robot::executePlan(std::vector<int> plan) {

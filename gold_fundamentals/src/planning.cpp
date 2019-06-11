@@ -12,8 +12,6 @@
 Robot* robot;
 
 bool execute(gold_fundamentals::MoveToPosition::Request &req, gold_fundamentals::MoveToPosition::Response &res) {
-    //TODO: drive robot to (x,y)
-
     DiscreteLocalizer *localizer = new DiscreteLocalizer();
 
     // wait until map is received
@@ -25,10 +23,8 @@ bool execute(gold_fundamentals::MoveToPosition::Request &req, gold_fundamentals:
     Maze* maze = (localizer->maze);
     PathPlanner planner;
 
-    // TODO: replace start with robot pose
-
     T_VECTOR2D position = robot->getCellxy();
-    int row = (robot->particleFilter.oc_grid.max_cells_y - 1) - position.y;
+    int row = position.y;
     int column = position.x;
     Cell* start = maze->getCell(row,column);
     Cell* goal = maze->getCell(req.row, req.column);
