@@ -10,8 +10,8 @@ namespace maze {
     }
 
     Cell *Maze::getCell(T_VECTOR2D position) {
-        int x = (int) position.x;
-        int y = (int) position.y;
+        int x = (int) round(position.x);
+        int y = (int) round(position.y);
         return this->getCell(x, y);
     }
 
