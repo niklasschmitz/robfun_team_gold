@@ -26,7 +26,11 @@ bool execute(gold_fundamentals::MoveToPosition::Request &req, gold_fundamentals:
     PathPlanner planner;
 
     // TODO: replace start with robot pose
-    Cell* start = maze->getCell(0,0);
+
+    T_VECTOR2D position = robot->getCellxy();
+    int row = (robot->particleFilter.oc_grid.max_cells_y - 1) - position.y;
+    int column = position.x;
+    Cell* start = maze->getCell(row,column);
     Cell* goal = maze->getCell(req.row, req.column);
 
     // calculate path
