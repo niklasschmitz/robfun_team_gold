@@ -12,8 +12,6 @@
 Robot* robot;
 
 bool execute(gold_fundamentals::MoveToPosition::Request &req, gold_fundamentals::MoveToPosition::Response &res) {
-    //TODO: drive robot to (x,y)
-
     DiscreteLocalizer *localizer = new DiscreteLocalizer();
 
     // wait until map is received
@@ -25,8 +23,7 @@ bool execute(gold_fundamentals::MoveToPosition::Request &req, gold_fundamentals:
     Maze* maze = (localizer->maze);
     PathPlanner planner;
 
-    // TODO: replace start with robot pose
-    Cell* start = maze->getCell(0,0);
+    Cell* start = maze->getCell(robot->getCellxy());
     Cell* goal = maze->getCell(req.row, req.column);
 
     // calculate path
