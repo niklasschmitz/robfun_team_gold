@@ -403,7 +403,7 @@ void Robot::spin(double thetaGoal) {
 }
 
 void Robot::digForGold() {
-    this->playSong(2));
+    this->playSong(2);
 }
 
 void Robot::align() {
