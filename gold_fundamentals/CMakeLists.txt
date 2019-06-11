@@ -131,6 +131,10 @@ add_executable(planning src/planning.cpp ${UTILS})
 target_link_libraries(planning ${catkin_LIBRARIES})
 add_dependencies(planning create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
 
+add_executable(keyboard_publisher src/keyboard_publisher.cpp ${UTILS})
+target_link_libraries(keyboard_publisher ${catkin_LIBRARIES})
+add_dependencies(keyboard_publisher create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)
+
 add_executable(challenge src/challenge.cpp ${UTILS})
 target_link_libraries(challenge ${catkin_LIBRARIES})
 add_dependencies(challenge create_fundamentals_generate_messages_cpp gold_fundamentals_generate_messages_cpp)

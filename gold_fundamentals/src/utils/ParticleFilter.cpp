@@ -87,7 +87,7 @@ void ParticleFilter::mapCallback(const gold_fundamentals::Grid::ConstPtr &msg_gr
 //        ROS_INFO("map callback %d", msg_grid->rows[0].cells[1].walls.size());
         initialized = false;
         oc_grid.convertMsgGridToOccupancyGrid(msg_grid, inverse_resolution);
-        oc_grid.printGrid();
+//        oc_grid.printGrid();
         init();
         //printDistanceMap();
 //        printLikelihoodMap();

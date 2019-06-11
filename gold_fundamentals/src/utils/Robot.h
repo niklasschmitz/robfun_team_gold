@@ -6,6 +6,7 @@
 #include "create_fundamentals/SensorPacket.h"
 #include "create_fundamentals/PlaySong.h"
 #include "create_fundamentals/StoreSong.h"
+#include "std_msgs/String.h"
 #include "tools.h"
 #include "PID.h"
 #include "GridPerceptor.h"
@@ -42,6 +43,7 @@ public:
 
     ros::Subscriber sub_sensor;
     ros::Subscriber sub_laser;
+    ros::Subscriber sub_keyboard;
 
     static const double LOOPRATE;
     static const double LASER_OFFSET;
@@ -58,6 +60,7 @@ public:
     bool update_theta;
     bool localized;
     bool doNotAbort;
+    int gold_count;
 
     PID turnControl;
     PID speedControl;

@@ -26,6 +26,7 @@ Robot::Robot() {
     this->play_song = n.serviceClient<create_fundamentals::PlaySong>("play_song");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
     this->sub_laser = n.subscribe("scan", 1, &Robot::laserCallback, this);
+    this->sub_keyboard = n.subscribe("keyboard", 1, &Robot::keyboardCallback, this);
     this->pose_pub = n.advertise<gold_fundamentals::Pose>("pose", 1);
     this->sensorTime = ros::Time::now();
     this->obstacle = true;
@@ -35,6 +36,7 @@ Robot::Robot() {
     this->update_theta = false;
     this->doNotAbort = true;
     this->resetPosition();
+    this->gold_count = 0;
 }
 
 void Robot::storeSong() {
@@ -400,6 +402,9 @@ void Robot::spin(double thetaGoal) {
 
 }
 
+void Robot::digForGold() {
+    this->playSong(2));
+}
 
 void Robot::align() {
     std::vector<T_RATED_LINE> lines;
@@ -443,6 +448,10 @@ void Robot::alignToWall() {
         best_line = gp.getLineWithMostInliers();
         angle = T_VECTOR2D::angleBetweenRobotAndVector(best_line.line.u);
     }
+}
+
+void Robot::keyboardCallback(const std_msgs::String::ConstPtr& msg) {
+    ROS_INFO("input received");
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
