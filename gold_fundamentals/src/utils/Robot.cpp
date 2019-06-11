@@ -264,7 +264,7 @@ T_VECTOR2D Robot::getCell() {
 T_VECTOR2D Robot::getCellxy() {
     int x = round((this->position.x - MAZE_SIDE_LENGTH_2) / MAZE_SIDE_LENGTH);
     int y = round((this->position.y - MAZE_SIDE_LENGTH_2) / MAZE_SIDE_LENGTH);
-    return T_VECTOR2D(x, (this->particleFilter.oc_grid.max_cells_y - 1) - y);
+    return T_VECTOR2D((this->particleFilter.oc_grid.max_cells_y - 1) - y, x);
 }
 
 void Robot::executePlan(std::vector<int> plan) {
