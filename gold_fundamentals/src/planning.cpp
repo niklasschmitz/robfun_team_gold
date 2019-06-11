@@ -23,10 +23,7 @@ bool execute(gold_fundamentals::MoveToPosition::Request &req, gold_fundamentals:
     Maze* maze = (localizer->maze);
     PathPlanner planner;
 
-    T_VECTOR2D position = robot->getCellxy();
-    int row = position.y;
-    int column = position.x;
-    Cell* start = maze->getCell(row,column);
+    Cell* start = maze->getCell(robot->getCellxy());
     Cell* goal = maze->getCell(req.row, req.column);
 
     // calculate path
