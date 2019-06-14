@@ -132,6 +132,10 @@ public:
     T_VECTOR2D getCell();
 
     T_VECTOR2D getCellxy();
+
+    void digForGold();
+
+    void keyboardCallback(const std_msgs::String_<std::allocator<void>>::ConstPtr &msg);
 };
 
 #endif //SRC_ROBOT_H
