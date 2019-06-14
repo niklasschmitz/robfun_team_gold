@@ -18,8 +18,8 @@ const double Robot::WHEEL_RADIUS = 0.032;
 Robot::Robot() {
     ros::NodeHandle n;
     this->turnControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 10, 0.0, 0.0);
-    this->speedControl = PID(Robot::MAX_SPEED - 3, Robot::MIN_SPEED, 12, 0.0, 0.0);
-    this->steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 10, 0.0, 0.0);
+    this->speedControl = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
+    this->steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 7, 0.0, 0.0);
     this->steerMaxControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 7, 0.0, 0.0);
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->store_song = n.serviceClient<create_fundamentals::StoreSong>("store_song");
@@ -347,7 +347,7 @@ void Robot::drivePID(T_VECTOR2D goal) {
     double out = speedControl.calculate(error.magnitude(), 0.0, this->timeDelta);
     double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
 
-    if (out > 2 * Robot::MAX_SPEED) {
+    if (2.0 * out > Robot::MAX_SPEED) {
         if (turn > 0) {
             diffDrive(out - turn, out);
         } else {

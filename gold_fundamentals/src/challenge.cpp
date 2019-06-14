@@ -22,6 +22,7 @@ void mySigintHandler(int sig) {
 
     ros::shutdown();
     delete(robot);
+    exit 1;
 }
 
 void goldCallback(const gold_fundamentals::Goal::ConstPtr &msg) {
@@ -94,7 +95,7 @@ int main(int argc, char **argv) {
     //pickup gold and drive to Helipad
     for (T_VECTOR2D g: *gold) {
         while(!driveTo(g)) {
-            ROS_INFO("Retry Gold (%d/%d)", g.x, g.y);
+            ROS_INFO("Retry Gold (%lf/%lf)", g.x, g.y);
         }
         robot->digForGold();
         ROS_INFO("gold count %d", robot->gold_count);
@@ -109,14 +110,9 @@ int main(int argc, char **argv) {
         mySigintHandler(0);
     }
 
-    ros::Duration(2).sleep();
-    ROS_INFO("start");
-    for(int i = 0; i < 3; i++)
-        robot->digForGold();
-
     ROS_INFO("We got %d gold.", robot->gold_count);
 
-    delete(robot);
+    mySigintHandler(0);
 
     return 0;
 }
