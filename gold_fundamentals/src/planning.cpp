@@ -44,6 +44,7 @@ void mySigintHandler(int sig) {
 
     ros::shutdown();
     delete(robot);
+    exit(1);
 }
 
 
