@@ -22,7 +22,7 @@ void mySigintHandler(int sig) {
 
     ros::shutdown();
     delete(robot);
-    exit 1;
+    exit(1);
 }
 
 void goldCallback(const gold_fundamentals::Goal::ConstPtr &msg) {
@@ -112,7 +112,8 @@ int main(int argc, char **argv) {
 
     ROS_INFO("We got %d gold.", robot->gold_count);
 
-    mySigintHandler(0);
+    ros::shutdown();
+    delete(robot);
 
     return 0;
 }

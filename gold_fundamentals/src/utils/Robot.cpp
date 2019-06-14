@@ -487,14 +487,10 @@ void Robot::driveCenterCell() {
     T_VECTOR2D error = goal - this->position;
     double to = angleDelta(error.theta());
 
-    ROS_INFO("turning to cell center");
     this->turn(to);
     this->localized = true;
-    ROS_INFO("setting localized true and driving to cell center");
     this->driveTo(goal, true);
-    ROS_INFO("aligning to cell");
     this->turnTo(0);
-    ROS_INFO("debug");
 }
 
 inline double distanceEllipse(double angle) {
