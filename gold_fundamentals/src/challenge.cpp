@@ -94,11 +94,9 @@ int main(int argc, char **argv) {
     //pickup gold and drive to Helipad
     for (T_VECTOR2D g: *gold) {
         while(!driveTo(g)) {
-
+            ROS_INFO("Retry Gold (%d/%d)", g.x, g.y);
         }
-        ROS_INFO("arrived at gold");
         robot->digForGold();
-        ROS_INFO("digging for gold");
         ROS_INFO("gold count %d", robot->gold_count);
     }
 
@@ -111,8 +109,14 @@ int main(int argc, char **argv) {
         mySigintHandler(0);
     }
 
-    ros::spin();
+    ros::Duration(2).sleep();
+    ROS_INFO("start");
+    for(int i = 0; i < 3; i++)
+        robot->digForGold();
+
+    ROS_INFO("We got %d gold.", robot->gold_count);
 
     delete(robot);
+
     return 0;
 }

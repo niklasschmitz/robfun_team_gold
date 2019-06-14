@@ -37,6 +37,7 @@ Robot::Robot() {
     this->doNotAbort = true;
     this->resetPosition();
     this->gold_count = 0;
+    this->keyboard_received = false;
 }
 
 void Robot::storeSong() {
@@ -290,7 +291,6 @@ void Robot::followPath(std::queue<T_VECTOR2D> path, bool ignore_localized) {
     create_fundamentals::SensorPacket_<std::allocator<void> >::ConstPtr last = this->sensorData;
 //    while (ros::ok() && !path.empty() && (localized || ignore_localized) && doNotAbort) {
     while (ros::ok() && !path.empty() && !(this->localized && this->obstacle == true)) {
-        ROS_INFO("following path");
         if (last != this->sensorData) {
             last = this->sensorData;
 
@@ -403,7 +403,14 @@ void Robot::spin(double thetaGoal) {
 }
 
 void Robot::digForGold() {
+    this->keyboard_received = false;
     this->playSong(2);
+    ros::Duration(5).sleep();
+    ros::spinOnce();
+    if(!this->keyboard_received){
+        this->gold_count += 10;
+    }
+
 }
 
 void Robot::align() {
@@ -452,6 +459,7 @@ void Robot::alignToWall() {
 
 void Robot::keyboardCallback(const std_msgs::String::ConstPtr& msg) {
     ROS_INFO("input received %s", msg->data.c_str());
+    this->keyboard_received = true;
 }
 
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
