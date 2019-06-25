@@ -18,14 +18,15 @@ const double Robot::WHEEL_RADIUS = 0.032;
 Robot::Robot() {
     ros::NodeHandle n;
     this->turnControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 10, 0.0, 0.0);
-    this->speedControl = PID(Robot::MAX_SPEED - 3, Robot::MIN_SPEED, 12, 0.0, 0.0);
-    this->steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 10, 0.0, 0.0);
+    this->speedControl = PID(Robot::MAX_SPEED, Robot::MIN_SPEED, 12, 0.0, 0.0);
+    this->steerControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 7, 0.0, 0.0);
     this->steerMaxControl = PID(Robot::MAX_SPEED, -Robot::MAX_SPEED, 7, 0.0, 0.0);
     this->diff_drive = n.serviceClient<create_fundamentals::DiffDrive>("diff_drive");
     this->store_song = n.serviceClient<create_fundamentals::StoreSong>("store_song");
     this->play_song = n.serviceClient<create_fundamentals::PlaySong>("play_song");
     this->sub_sensor = n.subscribe("sensor_packet", 1, &Robot::sensorCallback, this);
     this->sub_laser = n.subscribe("scan", 1, &Robot::laserCallback, this);
+    this->sub_keyboard = n.subscribe("keyboard", 1, &Robot::keyboardCallback, this);
     this->pose_pub = n.advertise<gold_fundamentals::Pose>("pose", 1);
     this->sensorTime = ros::Time::now();
     this->obstacle = true;
@@ -35,6 +36,8 @@ Robot::Robot() {
     this->update_theta = false;
     this->doNotAbort = true;
     this->resetPosition();
+    this->gold_count = 0;
+    this->keyboard_received = false;
 }
 
 void Robot::storeSong() {
@@ -262,7 +265,7 @@ T_VECTOR2D Robot::getCell() {
 T_VECTOR2D Robot::getCellxy() {
     int x = round((this->position.x - MAZE_SIDE_LENGTH_2) / MAZE_SIDE_LENGTH);
     int y = round((this->position.y - MAZE_SIDE_LENGTH_2) / MAZE_SIDE_LENGTH);
-    return T_VECTOR2D(x, (this->particleFilter.oc_grid.max_cells_y - 1) - y);
+    return T_VECTOR2D((this->particleFilter.oc_grid.max_cells_y - 1) - y, x);
 }
 
 void Robot::executePlan(std::vector<int> plan) {
@@ -288,7 +291,6 @@ void Robot::followPath(std::queue<T_VECTOR2D> path, bool ignore_localized) {
     create_fundamentals::SensorPacket_<std::allocator<void> >::ConstPtr last = this->sensorData;
 //    while (ros::ok() && !path.empty() && (localized || ignore_localized) && doNotAbort) {
     while (ros::ok() && !path.empty() && !(this->localized && this->obstacle == true)) {
-        ROS_INFO("following path");
         if (last != this->sensorData) {
             last = this->sensorData;
 
@@ -345,7 +347,7 @@ void Robot::drivePID(T_VECTOR2D goal) {
     double out = speedControl.calculate(error.magnitude(), 0.0, this->timeDelta);
     double turn = steerControl.calculate(angleDelta(error.theta()), 0.0, this->timeDelta);
 
-    if (out > 2 * Robot::MAX_SPEED) {
+    if (2.0 * out > Robot::MAX_SPEED) {
         if (turn > 0) {
             diffDrive(out - turn, out);
         } else {
@@ -400,6 +402,16 @@ void Robot::spin(double thetaGoal) {
 
 }
 
+void Robot::digForGold() {
+    this->keyboard_received = false;
+    this->playSong(2);
+    ros::Duration(5).sleep();
+    ros::spinOnce();
+    if(!this->keyboard_received){
+        this->gold_count += 10;
+    }
+
+}
 
 void Robot::align() {
     std::vector<T_RATED_LINE> lines;
@@ -445,6 +457,11 @@ void Robot::alignToWall() {
     }
 }
 
+void Robot::keyboardCallback(const std_msgs::String::ConstPtr& msg) {
+    ROS_INFO("input received %s", msg->data.c_str());
+    this->keyboard_received = true;
+}
+
 void Robot::sensorCallback(const create_fundamentals::SensorPacket::ConstPtr &msg) {
     ros::Time time = ros::Time::now();
     this->timeDelta = (time - this->sensorTime).toSec();
@@ -470,14 +487,10 @@ void Robot::driveCenterCell() {
     T_VECTOR2D error = goal - this->position;
     double to = angleDelta(error.theta());
 
-    ROS_INFO("turning to cell center");
     this->turn(to);
     this->localized = true;
-    ROS_INFO("setting localized true and driving to cell center");
     this->driveTo(goal, true);
-    ROS_INFO("aligning to cell");
     this->turnTo(0);
-    ROS_INFO("debug");
 }
 
 inline double distanceEllipse(double angle) {
