@@ -336,10 +336,9 @@ void ParticleFilter::likelihoodFieldRangeFinderModel(
 			double map_angle = Probability::normalizeTheta(laser_angle + particleTheta);
 
 			if(isnan(range)){
-                weight += log(0.7);
+//                weight += log(0.7); // would get cancelled in normalization for resampling
 			    continue;
 			}
-
 
 			//laser endpoint
 			int laser_hit_x_map = (int)particleX - (int)(cos(map_angle) * range / this->likelihoodFieldResolution);
@@ -354,18 +353,19 @@ void ParticleFilter::likelihoodFieldRangeFinderModel(
 			    double x_dist = 0;
                 double y_dist = 0;
 
-                if (laser_hit_x_map < 0 || laser_hit_x_map >= likelihoodFieldWidth)
-                {
+                if (laser_hit_x_map < 0 || laser_hit_x_map >= likelihoodFieldWidth) {
                     x_dist = std::min(abs(laser_hit_x_map-0), abs(laser_hit_x_map-likelihoodFieldWidth));
-
-                } else if (laser_hit_y_map < 0 || laser_hit_y_map >= likelihoodFieldHeight) {
+                }
+                if (laser_hit_y_map < 0 || laser_hit_y_map >= likelihoodFieldHeight) {
                     y_dist = std::min(abs(laser_hit_y_map-0), abs(laser_hit_y_map-likelihoodFieldHeight));
                 }
 
                 double dist = sqrt(pow(x_dist,2) + pow(y_dist,2)) / oc_grid.inverse_resolution;
 
-//				weight += log(7e-1);
-				weight += log(1 / (1+dist));
+                //generate normal distribution with mean at the nearest obstacle
+                double sigmaHit_scaled = this->standardDev / this->likelihoodFieldResolution;
+                double p_hit = Probability::gaussian(dist, sigmaHit_scaled, 0);
+                weight += log(p_hit);
 			}
 			else
 			{
